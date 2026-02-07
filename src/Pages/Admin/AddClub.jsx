@@ -22,7 +22,7 @@ const AddClub = () => {
   const [logoPreview, setLogoPreview] = useState(null);
   const [coverPreview, setCoverPreview] = useState(null);
 
-  const API_BASE_URL = 'http://localhost:8000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL ||'http://localhost:8000';
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

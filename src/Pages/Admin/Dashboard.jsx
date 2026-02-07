@@ -16,7 +16,7 @@ const AdminDashboard = () => {
   const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const API_BASE_URL = 'http://localhost:8000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL ||'http://localhost:8000';
 
   useEffect(() => {
     fetchDashboardData();

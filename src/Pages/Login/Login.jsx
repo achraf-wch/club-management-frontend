@@ -16,7 +16,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState('');
 
-  const API_BASE_URL = 'http://localhost:8000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL ||'http://localhost:8000';
 
   // Centralized redirect logic
   const handleRedirect = (role, clubRole) => {

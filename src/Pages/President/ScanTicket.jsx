@@ -11,7 +11,7 @@ const ScanTicket = () => {
   const [ticketInfo, setTicketInfo] = useState(null);
   const [scanner, setScanner] = useState(null);
 
-  const API_BASE_URL = 'http://localhost:8000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     if (scanning && scanMode === 'camera' && !scanner) {

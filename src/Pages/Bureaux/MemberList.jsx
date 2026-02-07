@@ -20,7 +20,7 @@ const BureauxMembersList = () => {
   // Mock user - replace with actual auth
   const user = { id: 1, first_name: 'Ahmed', last_name: 'Benali' };
 
-  const API_BASE_URL = 'http://127.0.0.1:8000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL ||'http://127.0.0.1:8000';
 
   useEffect(() => {
     fetchUserClub();
