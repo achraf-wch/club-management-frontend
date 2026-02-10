@@ -75,7 +75,6 @@ const PresidentAddMember = () => {
     setSuccessMessage('');
     setErrorMessage('');
 
-    // Validation
     if (!club) {
       setErrorMessage('Aucun club trouvé');
       setLoading(false);
@@ -101,7 +100,6 @@ const PresidentAddMember = () => {
     }
 
     try {
-      // Step 1: Create the person account
       const personResponse = await fetch(`${API_BASE_URL}/api/persons`, {
         method: 'POST',
         headers: {
@@ -121,11 +119,8 @@ const PresidentAddMember = () => {
       });
 
       const personData = await personResponse.json();
-      
-      console.log('Person Response:', personData);
 
       if (!personResponse.ok) {
-        // Handle validation errors
         if (personData.errors) {
           const errorMessages = Object.entries(personData.errors)
             .map(([field, messages]) => {
@@ -141,25 +136,13 @@ const PresidentAddMember = () => {
         return;
       }
 
-      // Extract person ID from response
       const personId = personData.person?.id || personData.id;
-      
-      console.log('Extracted Person ID:', personId);
       
       if (!personId) {
         setErrorMessage('Erreur: ID de la personne non trouvé dans la réponse');
         setLoading(false);
         return;
       }
-
-      // Step 2: Add person to club as member
-      console.log('Adding member to club with:', {
-        person_id: personId,
-        club_id: parseInt(club.id),
-        role: memberData.role,
-        position: memberData.position.trim() || null,
-        status: 'active'
-      });
 
       const memberResponse = await fetch(`${API_BASE_URL}/api/members`, {
         method: 'POST',
@@ -178,14 +161,11 @@ const PresidentAddMember = () => {
       });
 
       const memberResponseData = await memberResponse.json();
-      
-      console.log('Member Response:', memberResponseData);
 
       if (memberResponse.ok) {
         setGeneratedPassword(memberData.password);
         setSuccessMessage(`✓ Membre ajouté avec succès au club ${club.name}! Mot de passe temporaire: ${memberData.password}`);
         
-        // Reset form after 5 seconds
         setTimeout(() => {
           setMemberData({
             first_name: '',
@@ -223,23 +203,29 @@ const PresidentAddMember = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 py-8">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute bottom-32 right-20 w-48 h-48 bg-purple-500/15 rounded-full blur-2xl animate-float-delayed"></div>
+      </div>
+
+      <div className="relative z-10 max-w-4xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Ajouter un Membre</h1>
+          <h1 className="text-4xl font-bold text-white mb-2">Ajouter un Membre</h1>
           {club && (
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-3 mt-4">
               {club.logo_url && (
                 <img src={club.logo_url} alt={club.name} className="w-8 h-8 rounded-full object-cover" />
               )}
-              <p className="text-gray-600">Ajoutez un nouveau membre à votre club: <span className="font-semibold">{club.name}</span></p>
+              <p className="text-white/70">Ajoutez un nouveau membre à votre club: <span className="font-semibold text-white">{club.name}</span></p>
             </div>
           )}
         </div>
 
         {/* Success Message */}
         {successMessage && (
-          <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg">
+          <div className="mb-6 bg-green-500/20 border border-green-500/40 backdrop-blur-sm text-green-300 px-6 py-4 rounded-xl">
             <div className="flex items-start gap-3">
               <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -254,7 +240,7 @@ const PresidentAddMember = () => {
 
         {/* Error Message */}
         {errorMessage && (
-          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg">
+          <div className="mb-6 bg-red-500/20 border border-red-500/40 backdrop-blur-sm text-red-300 px-6 py-4 rounded-xl">
             <div className="flex items-start gap-3">
               <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -265,27 +251,27 @@ const PresidentAddMember = () => {
         )}
 
         {!club ? (
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-8 text-center">
             <div className="text-6xl mb-4">🏢</div>
-            <p className="text-gray-600 text-lg mb-4">Chargement de votre club...</p>
+            <p className="text-white/70 text-lg mb-4">Chargement de votre club...</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl border border-white/10 p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
-              {/* Club Info Display (Read-only) */}
-              <div className="md:col-span-2 mb-4 p-4 bg-blue-50 rounded-lg">
+              {/* Club Info Display */}
+              <div className="md:col-span-2 mb-4 p-4 bg-blue-500/10 backdrop-blur-sm rounded-xl border border-blue-500/20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {club.logo_url && (
                       <img src={club.logo_url} alt={club.name} className="w-12 h-12 rounded-full object-cover" />
                     )}
                     <div>
-                      <h3 className="font-bold text-gray-800">{club.name}</h3>
-                      <p className="text-sm text-gray-600">{club.category}</p>
+                      <h3 className="font-bold text-white">{club.name}</h3>
+                      <p className="text-sm text-white/60">{club.category}</p>
                     </div>
                   </div>
-                  <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
+                  <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm font-semibold">
                     Club Président
                   </span>
                 </div>
@@ -293,52 +279,52 @@ const PresidentAddMember = () => {
 
               {/* First Name */}
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
-                  Prénom <span className="text-red-500">*</span>
+                <label className="block text-white font-semibold mb-2">
+                  Prénom <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   name="first_name"
                   value={memberData.first_name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Entrez le prénom"
                 />
               </div>
 
               {/* Last Name */}
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
-                  Nom <span className="text-red-500">*</span>
+                <label className="block text-white font-semibold mb-2">
+                  Nom <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   name="last_name"
                   value={memberData.last_name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Entrez le nom"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
-                  Email <span className="text-red-500">*</span>
+                <label className="block text-white font-semibold mb-2">
+                  Email <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="email"
                   name="email"
                   value={memberData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="email@example.com"
                 />
               </div>
 
               {/* Phone */}
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
+                <label className="block text-white font-semibold mb-2">
                   Téléphone
                 </label>
                 <input
@@ -346,14 +332,14 @@ const PresidentAddMember = () => {
                   name="phone"
                   value={memberData.phone}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="+212 6XX XXX XXX"
                 />
               </div>
 
               {/* CNE */}
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
+                <label className="block text-white font-semibold mb-2">
                   CNE
                 </label>
                 <input
@@ -361,45 +347,45 @@ const PresidentAddMember = () => {
                   name="cne"
                   value={memberData.cne}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Code National Étudiant"
                 />
               </div>
 
               {/* Role Selection */}
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
-                  Rôle dans le club <span className="text-red-500">*</span>
+                <label className="block text-white font-semibold mb-2">
+                  Rôle dans le club <span className="text-red-400">*</span>
                 </label>
                 <select
                   name="role"
                   value={memberData.role}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  <option value="member">Membre Simple</option>
-                  <option value="board">Membre du Bureau</option>
+                  <option value="member" className="bg-slate-800">Membre Simple</option>
+                  <option value="board" className="bg-slate-800">Membre du Bureau</option>
                 </select>
-                <p className="text-gray-500 text-xs mt-1">
+                <p className="text-white/50 text-xs mt-1">
                   {memberData.role === 'board' ? '👔 Membre du bureau avec position spécifique' : '👤 Membre régulier du club'}
                 </p>
               </div>
 
               {/* Position */}
               <div>
-                <label className="block text-gray-700 font-semibold mb-2">
-                  Position {memberData.role === 'board' && <span className="text-red-500">*</span>}
+                <label className="block text-white font-semibold mb-2">
+                  Position {memberData.role === 'board' && <span className="text-red-400">*</span>}
                 </label>
                 <input
                   type="text"
                   name="position"
                   value={memberData.position}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder={memberData.role === 'board' ? "Ex: Trésorier, Secrétaire..." : "Ex: Membre actif, Bénévole..."}
                 />
                 {memberData.role === 'board' && (
-                  <p className="text-yellow-600 text-xs mt-1 flex items-center gap-1">
+                  <p className="text-yellow-400 text-xs mt-1 flex items-center gap-1">
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                     </svg>
@@ -410,8 +396,8 @@ const PresidentAddMember = () => {
 
               {/* Password */}
               <div className="md:col-span-2">
-                <label className="block text-gray-700 font-semibold mb-2">
-                  Mot de passe temporaire <span className="text-red-500">*</span>
+                <label className="block text-white font-semibold mb-2">
+                  Mot de passe temporaire <span className="text-red-400">*</span>
                 </label>
                 <div className="flex gap-3">
                   <input
@@ -419,13 +405,13 @@ const PresidentAddMember = () => {
                     name="password"
                     value={memberData.password}
                     onChange={handleChange}
-                    className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                    className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
                     placeholder="Minimum 6 caractères"
                   />
                   <button
                     type="button"
                     onClick={generatePassword}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center gap-2 whitespace-nowrap"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center gap-2 whitespace-nowrap"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -433,7 +419,7 @@ const PresidentAddMember = () => {
                     Générer
                   </button>
                 </div>
-                <p className="text-gray-500 text-sm mt-2 flex items-center gap-2">
+                <p className="text-white/50 text-sm mt-2 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -447,7 +433,7 @@ const PresidentAddMember = () => {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
               >
                 {loading ? (
                   <>
@@ -470,6 +456,34 @@ const PresidentAddMember = () => {
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { 
+            transform: translateY(0px) translateX(0px); 
+          }
+          50% { 
+            transform: translateY(-20px) translateX(10px); 
+          }
+        }
+
+        @keyframes float-delayed {
+          0%, 100% { 
+            transform: translateY(0px) translateX(0px); 
+          }
+          50% { 
+            transform: translateY(-15px) translateX(-10px); 
+          }
+        }
+
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+
+        .animate-float-delayed {
+          animation: float-delayed 8s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };

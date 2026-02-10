@@ -10,19 +10,19 @@ const ClubCard = ({ id, name, image, logo, category, description, memberCount, f
 
   return (
     <div
-      onClick={() => navigate(`/clubs/${id}`)}  // ✅ FIXED: Changed from /club/ to /clubs/
+      onClick={() => navigate(`/clubs/${id}`)}
       className="group relative cursor-pointer h-full"
     >
       {/* Card Container - Netflix Style avec animations professionnelles */}
       <div className="relative h-full bg-zinc-900 rounded overflow-hidden transition-all duration-300 ease-out hover:scale-105 hover:z-10 hover:shadow-2xl hover:shadow-black/50">
         
-        {/* Image de couverture - Format Rectangle */}
-        <div className="relative h-64 overflow-hidden bg-black">
+        {/* Image de couverture - Format Rectangle - FIXED: object-contain pour afficher l'image complète */}
+        <div className="relative h-64 overflow-hidden bg-gradient-to-br from-zinc-900 via-zinc-800 to-black">
           {image ? (
             <img
               src={image}
               alt={name}
-              className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-75"
+              className="w-full h-full object-contain transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-75"
               onError={(e) => {
                 console.log('❌ Failed to load cover image:', image);
                 e.target.src = defaultCover;

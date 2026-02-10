@@ -117,10 +117,8 @@ const PresidentManageEvents = () => {
       const formData = new FormData();
       formData.append('recap_description', recapData.recap_description);
       
-      // Append existing images as JSON
       formData.append('existing_images', JSON.stringify(recapData.recap_images));
       
-      // Append new images
       newImages.forEach((file, index) => {
         formData.append(`new_images[${index}]`, file);
       });
@@ -175,19 +173,25 @@ const PresidentManageEvents = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-blue-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center">
         <div className="text-white text-2xl">Chargement...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-blue-950 py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 py-8">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-40 h-40 bg-green-500/20 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute bottom-32 right-20 w-48 h-48 bg-purple-500/15 rounded-full blur-2xl animate-float-delayed"></div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4">
         <div className="mb-8">
           <button
             onClick={() => navigate('/President/Dashboard')}
-            className="flex items-center text-blue-400 hover:text-blue-300 mb-4"
+            className="flex items-center text-blue-400 hover:text-blue-300 mb-4 transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -200,7 +204,7 @@ const PresidentManageEvents = () => {
               {club.logo_url && (
                 <img src={club.logo_url} alt={club.name} className="w-8 h-8 rounded-full object-cover" />
               )}
-              <p className="text-gray-300">Club: <span className="font-semibold">{club.name}</span></p>
+              <p className="text-white/70">Club: <span className="font-semibold text-white">{club.name}</span></p>
             </div>
           )}
         </div>
@@ -208,37 +212,37 @@ const PresidentManageEvents = () => {
         <div className="flex gap-4 mb-8">
           <button
             onClick={() => setFilter('all')}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               filter === 'all'
                 ? 'bg-blue-600 text-white shadow-lg'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
             }`}
           >
             Tous ({events.length})
           </button>
           <button
             onClick={() => setFilter('upcoming')}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               filter === 'upcoming'
                 ? 'bg-green-600 text-white shadow-lg'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
             }`}
           >
             À venir
           </button>
           <button
             onClick={() => setFilter('completed')}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
+            className={`px-6 py-3 rounded-xl font-semibold transition-all ${
               filter === 'completed'
                 ? 'bg-purple-600 text-white shadow-lg'
-                : 'bg-white/10 text-gray-300 hover:bg-white/20'
+                : 'bg-white/10 text-white/70 hover:bg-white/20'
             }`}
           >
             Terminés
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
           {getFilteredEvents().map(event => {
             const isPast = new Date(event.event_date) < new Date();
             const isCompleted = event.status === 'completed';
@@ -246,7 +250,7 @@ const PresidentManageEvents = () => {
             return (
               <div
                 key={event.id}
-                className="bg-white/10 backdrop-blur-lg rounded-xl overflow-hidden border border-white/20 hover:border-white/40 transition-all"
+                className="bg-white/5 backdrop-blur-lg rounded-2xl overflow-hidden border border-white/10 hover:border-white/30 transition-all"
               >
                 <div className="relative h-48">
                   <img
@@ -260,11 +264,11 @@ const PresidentManageEvents = () => {
                   />
                   <div className="absolute top-4 right-4">
                     {isPast || isCompleted ? (
-                      <span className="px-3 py-1 bg-purple-600 text-white text-sm rounded-full font-semibold">
+                      <span className="px-3 py-1 bg-purple-600 text-white text-sm rounded-full font-semibold shadow-lg">
                         Terminé
                       </span>
                     ) : (
-                      <span className="px-3 py-1 bg-green-600 text-white text-sm rounded-full font-semibold">
+                      <span className="px-3 py-1 bg-green-600 text-white text-sm rounded-full font-semibold shadow-lg">
                         À venir
                       </span>
                     )}
@@ -273,11 +277,11 @@ const PresidentManageEvents = () => {
 
                 <div className="p-6">
                   <h3 className="text-xl font-bold text-white mb-2">{event.title}</h3>
-                  <p className="text-gray-300 text-sm mb-4 line-clamp-2">
+                  <p className="text-white/60 text-sm mb-4 line-clamp-2">
                     {event.description || 'Aucune description'}
                   </p>
 
-                  <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
+                  <div className="flex items-center gap-4 text-sm text-white/60 mb-4">
                     <div className="flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -299,13 +303,13 @@ const PresidentManageEvents = () => {
                       <>
                         <button
                           onClick={() => openRecapModal(event)}
-                          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 px-4 rounded-lg font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all"
+                          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white py-2 px-4 rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg"
                         >
                           {event.recap_description ? 'Modifier Récap' : 'Ajouter Récap'}
                         </button>
                         <button
                           onClick={() => navigate(`/events/${event.id}`)}
-                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all"
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
                         >
                           Explorer
                         </button>
@@ -315,13 +319,13 @@ const PresidentManageEvents = () => {
                       <>
                         <button
                           onClick={() => markAsCompleted(event.id)}
-                          className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-green-700 transition-all"
+                          className="w-full bg-green-600 text-white py-2 px-4 rounded-xl font-semibold hover:bg-green-700 transition-all shadow-lg"
                         >
                           Marquer comme terminé
                         </button>
                         <button
                           onClick={() => navigate(`/events/${event.id}`)}
-                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-4 rounded-lg font-semibold hover:from-blue-700 hover:to-blue-800 transition-all"
+                          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-4 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
                         >
                           Explorer
                         </button>
@@ -336,10 +340,10 @@ const PresidentManageEvents = () => {
 
         {getFilteredEvents().length === 0 && (
           <div className="text-center py-16">
-            <svg className="w-24 h-24 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-24 h-24 text-white/30 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <p className="text-gray-400 text-lg">Aucun événement trouvé</p>
+            <p className="text-white/60 text-lg">Aucun événement trouvé</p>
           </div>
         )}
       </div>
@@ -352,7 +356,7 @@ const PresidentManageEvents = () => {
                 <h2 className="text-3xl font-bold text-white">Récapitulatif</h2>
                 <button
                   onClick={() => setShowRecapModal(false)}
-                  className="text-gray-400 hover:text-white"
+                  className="text-white/60 hover:text-white transition-colors"
                 >
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -362,7 +366,7 @@ const PresidentManageEvents = () => {
 
               <div className="mb-6">
                 <h3 className="text-xl font-semibold text-white mb-2">{selectedEvent.title}</h3>
-                <p className="text-gray-400">
+                <p className="text-white/60">
                   {new Date(selectedEvent.event_date).toLocaleDateString('fr-FR')}
                 </p>
               </div>
@@ -374,17 +378,16 @@ const PresidentManageEvents = () => {
                   onChange={(e) => setRecapData(prev => ({...prev, recap_description: e.target.value}))}
                   rows={6}
                   placeholder="Décrivez l'événement..."
-                  className="w-full bg-white/10 text-white border border-white/20 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-gray-400"
+                  className="w-full bg-white/5 text-white border border-white/20 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-purple-500 placeholder-white/40"
                 />
               </div>
 
               <div className="mb-6">
                 <label className="block text-white font-semibold mb-3">Photos</label>
                 
-                {/* Existing Images */}
                 {recapData.recap_images.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-gray-300 mb-2">Images existantes:</p>
+                    <p className="text-white/70 mb-2">Images existantes:</p>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {recapData.recap_images.map((img, idx) => (
                         <div key={`existing-${idx}`} className="relative group">
@@ -407,10 +410,9 @@ const PresidentManageEvents = () => {
                   </div>
                 )}
 
-                {/* New Images */}
                 {newImages.length > 0 && (
                   <div className="mb-4">
-                    <p className="text-gray-300 mb-2">Nouvelles images:</p>
+                    <p className="text-white/70 mb-2">Nouvelles images:</p>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {newImages.map((file, idx) => (
                         <div key={`new-${idx}`} className="relative group">
@@ -433,14 +435,13 @@ const PresidentManageEvents = () => {
                   </div>
                 )}
 
-                {/* File Upload */}
                 <div className="flex gap-3">
                   <label className="flex-1 cursor-pointer">
-                    <div className="bg-white/10 border border-white/20 rounded-lg px-4 py-3 hover:bg-white/20 transition-colors text-center">
-                      <svg className="w-6 h-6 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="bg-white/5 border border-white/20 rounded-xl px-4 py-3 hover:bg-white/10 transition-colors text-center">
+                      <svg className="w-6 h-6 text-white/60 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                       </svg>
-                      <span className="text-gray-300">Ajouter des images</span>
+                      <span className="text-white/70">Ajouter des images</span>
                       <input
                         type="file"
                         multiple
@@ -451,20 +452,20 @@ const PresidentManageEvents = () => {
                     </div>
                   </label>
                 </div>
-                <p className="text-gray-400 text-sm mt-2">Format: JPG, PNG, GIF. Taille max: 2MB par image</p>
+                <p className="text-white/60 text-sm mt-2">Format: JPG, PNG, GIF. Taille max: 2MB par image</p>
               </div>
 
               <div className="flex gap-4">
                 <button
                   onClick={saveRecap}
                   disabled={loadingRecap}
-                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-emerald-700 disabled:opacity-50"
+                  className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 shadow-lg"
                 >
                   {loadingRecap ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
                 <button
                   onClick={() => setShowRecapModal(false)}
-                  className="px-6 py-3 border border-white/20 text-gray-300 rounded-lg hover:bg-white/10"
+                  className="px-6 py-3 bg-white/5 border border-white/20 text-white rounded-xl hover:bg-white/10 transition-colors"
                 >
                   Annuler
                 </button>
@@ -474,7 +475,33 @@ const PresidentManageEvents = () => {
         </div>
       )}
 
-      <style>{`
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { 
+            transform: translateY(0px) translateX(0px); 
+          }
+          50% { 
+            transform: translateY(-20px) translateX(10px); 
+          }
+        }
+
+        @keyframes float-delayed {
+          0%, 100% { 
+            transform: translateY(0px) translateX(0px); 
+          }
+          50% { 
+            transform: translateY(-15px) translateX(-10px); 
+          }
+        }
+
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+
+        .animate-float-delayed {
+          animation: float-delayed 8s ease-in-out infinite;
+        }
+
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
