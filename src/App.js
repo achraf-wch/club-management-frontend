@@ -26,7 +26,7 @@ import CreateEvent from './Pages/President/CreateEvent';
 import PresidentMemberList from './Pages/President/MemberList';
 import ManageEvent from './Pages/President/ManageEvent';
 import Demandes from './Pages/President/Demandes';
-import ScanTicket from './Pages/President/ScanTicket'; // NEW
+import ScanTicket from './Pages/President/ScanTicket';
 
 // Bureaux
 import BureauxAddMember from './Pages/Bureaux/AddMember';
@@ -53,15 +53,24 @@ function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/Login/login" replace />;
   }
   
-  // Check if user is admin (they have access to everything)
-  if (user.role === 'admin') {
+  // If no specific roles required, allow any authenticated user
+  if (!allowedRoles || allowedRoles.length === 0) {
     return children;
   }
   
-  // For regular users, check their club_role
+  // Check for admin role (stored in user.role)
+  if (allowedRoles.includes('admin')) {
+    if (user.role === 'admin') {
+      return children;
+    }
+    console.warn('Access denied. User role:', user.role, 'Required: admin');
+    return <Navigate to="/Login/login" replace />;
+  }
+  
+  // Check for club roles (president, board, member) - stored in user.club_role
   const userRole = user.role === 'user' ? user.club_role : user.role;
   
-  if (allowedRoles && !allowedRoles.includes(userRole)) {
+  if (!allowedRoles.includes(userRole)) {
     console.warn('Access denied. User role:', userRole, 'Allowed roles:', allowedRoles);
     return <Navigate to="/Login/login" replace />;
   }
@@ -140,7 +149,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        {/* ========== NEW: TICKET SCANNER ROUTE ========== */}
         <Route 
           path="/President/ScanTicket" 
           element={
@@ -193,7 +201,6 @@ function App() {
             </ProtectedRoute>
           } 
         />
-        {/* ========== BUREAUX CAN ALSO SCAN TICKETS ========== */}
         <Route 
           path="/Bureaux/ScanTicket" 
           element={
@@ -204,8 +211,15 @@ function App() {
         />
 
         
-        {/* ========== ADMIN ROUTES (WITH LAYOUT) ========== */}
-        <Route path="/admin" element={<AdminLayout />}>
+        {/* ========== ADMIN ROUTES (PROTECTED WITH LAYOUT) ========== */}
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="addPresident" element={<AddPresident />} />
