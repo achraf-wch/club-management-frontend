@@ -88,7 +88,7 @@ const AdminDashboard = () => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       ),
-      path: '/admin/deleteClub',
+      path: '/admin/manageClubs',
       gradient: 'from-purple-600 to-indigo-500'
     }
   ];

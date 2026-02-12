@@ -7,6 +7,7 @@ import Clubs from './Pages/Clubs';
 import AdminLayout from './Layout/AdminLayout';
 import Dashboard from './Pages/Admin/Dashboard';
 import AddClub from './Pages/Admin/AddClub';
+import ManageClubs from './Pages/Admin/DeleteClub';
 import DeleteClub from './Pages/Admin/DeleteClub';
 import AdminLogin from './Pages/Admin/Login';
 import AddPresident from './Pages/Admin/AddPresident';
@@ -224,6 +225,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="addPresident" element={<AddPresident />} />
           <Route path="addClub" element={<AddClub />} />
+          <Route path="manageClubs" element={<ManageClubs/>} />
           <Route path="deleteClub" element={<DeleteClub />} />
         </Route>
 

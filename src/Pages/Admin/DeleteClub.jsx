@@ -1,53 +1,430 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const DeleteClub = () => {
-  const [clubs] = useState([
-    { id: 1, name: 'Cultisio Club', members: 45 },
-    { id: 2, name: 'Rotaract EST Fès', members: 38 },
-    { id: 3, name: 'NEXUS Club', members: 52 }
-  ]);
+const ManageClubs = () => {
+  const navigate = useNavigate();
+  const [clubs, setClubs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [editingClub, setEditingClub] = useState(null);
 
-  const handleDelete = (clubId) => {
-    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce club ?')) {
-      console.log('Club supprimé:', clubId);
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
+  useEffect(() => {
+    fetchClubs();
+  }, []);
+
+  const fetchClubs = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/clubs`, {
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setClubs(Array.isArray(data) ? data : []);
+      } else {
+        setError('Erreur lors du chargement des clubs');
+      }
+    } catch (err) {
+      console.error('Error fetching clubs:', err);
+      setError('Erreur de connexion au serveur');
+    } finally {
+      setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Gérer les Clubs</h1>
-        
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Nom du Club</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Membres</th>
-                <th className="px-6 py-4 text-left text-sm font-semibold">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {clubs.map((club) => (
-                <tr key={club.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">{club.name}</td>
-                  <td className="px-6 py-4">{club.members}</td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleDelete(club.id)}
-                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-                    >
-                      Supprimer
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+  const handleDelete = async (clubId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/clubs/${clubId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setSuccess('Club supprimé avec succès!');
+        setClubs(clubs.filter(club => club.id !== clubId));
+        setDeleteConfirm(null);
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        const data = await response.json();
+        setError(data.message || 'Erreur lors de la suppression');
+      }
+    } catch (err) {
+      console.error('Error deleting club:', err);
+      setError('Erreur de connexion au serveur');
+    }
+  };
+
+  const handleTogglePublic = async (club) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/clubs/${club.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          is_public: !club.is_public
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setClubs(clubs.map(c => c.id === club.id ? data.club : c));
+        setSuccess(`Club ${!club.is_public ? 'rendu public' : 'rendu privé'}!`);
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError('Erreur lors de la modification');
+      }
+    } catch (err) {
+      console.error('Error toggling public:', err);
+      setError('Erreur de connexion au serveur');
+    }
+  };
+
+  const filteredClubs = clubs.filter(club => {
+    const matchesSearch = club.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (club.description && club.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesCategory = !categoryFilter || club.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  const categories = [...new Set(clubs.map(c => c.category).filter(Boolean))];
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'culture': '🎭',
+      'sport': '⚽',
+      'tech': '💻',
+      'art': '🎨',
+      'science': '🔬',
+      'social': '🤝'
+    };
+    return icons[category?.toLowerCase()] || '📚';
+  };
+
+  const getCategoryGradient = (category) => {
+    const gradients = {
+      'culture': 'from-purple-600 to-pink-500',
+      'sport': 'from-green-600 to-emerald-500',
+      'tech': 'from-blue-600 to-cyan-500',
+      'art': 'from-pink-600 to-rose-500',
+      'science': 'from-indigo-600 to-purple-500',
+      'social': 'from-orange-600 to-red-500'
+    };
+    return gradients[category?.toLowerCase()] || 'from-gray-600 to-slate-500';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-red-500 mb-4"></div>
+          <p className="text-white text-xl font-semibold">Chargement des clubs...</p>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-40 h-40 bg-red-500/20 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute top-40 right-20 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl animate-float-delayed"></div>
+        <div className="absolute bottom-32 left-1/4 w-48 h-48 bg-purple-500/15 rounded-full blur-2xl animate-float" style={{ animationDelay: '1s' }}></div>
+      </div>
+
+      {/* Top Navigation */}
+      <div className="relative z-10 bg-white/5 backdrop-blur-xl border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/admin/dashboard')}
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 text-white font-semibold rounded-xl transition-all duration-300"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Retour au Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-8 py-12">
+        {/* Success Message */}
+        {success && (
+          <div className="mb-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-2xl shadow-xl text-center animate-fadeIn flex items-center justify-center gap-3">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-semibold">{success}</span>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-gradient-to-r from-red-500 to-pink-600 text-white px-6 py-4 rounded-2xl shadow-xl text-center animate-fadeIn flex items-center justify-center gap-3">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="font-semibold">{error}</span>
+          </div>
+        )}
+
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-xl">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-5xl font-bold text-white mb-2">
+                Gérer les <span className="text-purple-400">Clubs</span>
+              </h1>
+              <p className="text-white/70 text-lg">
+                {filteredClubs.length} club{filteredClubs.length !== 1 ? 's' : ''} trouvé{filteredClubs.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="mb-8 bg-white/5 backdrop-blur-xl rounded-2xl p-6 border border-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Search */}
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg className="w-5 h-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Rechercher un club..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
+              />
+            </div>
+
+            {/* Category Filter */}
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-4 py-3 bg-white/5 border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition"
+            >
+              <option value="" className="bg-slate-900">Toutes les catégories</option>
+              {categories.map(cat => (
+                <option key={cat} value={cat} className="bg-slate-900">
+                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Clubs Grid */}
+        {filteredClubs.length === 0 ? (
+          <div className="bg-white/5 backdrop-blur-lg rounded-2xl p-12 text-center border border-white/10">
+            <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+            </div>
+            <p className="text-white text-xl font-semibold mb-2">Aucun club trouvé</p>
+            <p className="text-white/60 mb-6">Essayez de modifier vos filtres de recherche</p>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setCategoryFilter('');
+              }}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-semibold transition-all duration-300"
+            >
+              Réinitialiser les filtres
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredClubs.map((club) => (
+              <div
+                key={club.id}
+                className="group bg-white/5 backdrop-blur-lg rounded-2xl overflow-hidden border border-white/10 hover:border-white/30 transition-all duration-300 transform hover:scale-[1.02]"
+              >
+                {/* Club Header with Cover */}
+                <div className={`h-32 bg-gradient-to-r ${getCategoryGradient(club.category)} relative overflow-hidden`}>
+                  {club.cover_image_url ? (
+                    <img src={club.cover_image_url} alt={club.name} className="w-full h-full object-cover opacity-60" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-6xl opacity-30">{getCategoryIcon(club.category)}</span>
+                    </div>
+                  )}
+                  
+                  {/* Status Badge */}
+                  <div className="absolute top-3 right-3">
+                    <button
+                      onClick={() => handleTogglePublic(club)}
+                      className={`px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm transition-all ${
+                        club.is_public 
+                          ? 'bg-green-500/80 text-white border border-green-300/50 hover:bg-green-600/80' 
+                          : 'bg-gray-500/80 text-white border border-gray-300/50 hover:bg-gray-600/80'
+                      }`}
+                    >
+                      {club.is_public ? '🌍 Public' : '🔒 Privé'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Club Content */}
+                <div className="p-6">
+                  {/* Logo & Title */}
+                  <div className="flex items-start gap-4 mb-4">
+                    {club.logo_url ? (
+                      <img 
+                        src={club.logo_url} 
+                        alt={club.name} 
+                        className="w-16 h-16 rounded-xl object-cover border-2 border-white/20"
+                      />
+                    ) : (
+                      <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${getCategoryGradient(club.category)} flex items-center justify-center text-2xl`}>
+                        {getCategoryIcon(club.category)}
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-white mb-1 line-clamp-1">{club.name}</h3>
+                      <p className="text-sm text-white/60">Code: {club.code}</p>
+                    </div>
+                  </div>
+
+                  {/* Category Badge */}
+                  <div className="mb-4">
+                    <span className={`inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r ${getCategoryGradient(club.category)} rounded-full text-xs font-semibold text-white`}>
+                      <span>{getCategoryIcon(club.category)}</span>
+                      {club.category}
+                    </span>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-white/70 text-sm mb-4 line-clamp-2">
+                    {club.description || 'Aucune description disponible.'}
+                  </p>
+
+                  {/* Stats */}
+                  <div className="flex items-center gap-4 mb-4 text-sm">
+                    <div className="flex items-center gap-2 text-white/60">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                      <span className="font-semibold text-white">{club.total_members || 0}</span>
+                      <span>membres</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white/60">
+                      <svg className="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span className="font-semibold text-white">{club.active_members || 0}</span>
+                      <span>actifs</span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => navigate(`/clubs/${club.id}`)}
+                      className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      Voir
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(club.id)}
+                      className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/30 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-slate-900 to-blue-950 rounded-3xl p-8 max-w-md w-full border border-white/10 shadow-2xl animate-fadeIn">
+            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-2xl font-bold text-white text-center mb-3">Confirmer la suppression</h3>
+            <p className="text-white/70 text-center mb-8">
+              Êtes-vous sûr de vouloir supprimer le club <span className="font-semibold text-white">{clubs.find(c => c.id === deleteConfirm)?.name}</span> ? 
+              Cette action est irréversible.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all duration-300 border border-white/20"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => handleDelete(deleteConfirm)}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) translateX(0px); }
+          50% { transform: translateY(-20px) translateX(10px); }
+        }
+        @keyframes float-delayed {
+          0%, 100% { transform: translateY(0px) translateX(0px); }
+          50% { transform: translateY(-15px) translateX(-10px); }
+        }
+        .animate-fadeIn {
+          animation: fadeIn 0.3s ease-out;
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+          animation: float-delayed 8s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };
 
-export default DeleteClub;
+export default ManageClubs;

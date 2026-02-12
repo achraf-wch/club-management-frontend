@@ -15,7 +15,7 @@ const EventDetail = () => {
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
-  const API_BASE_URL =process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     fetchEventData();
@@ -24,7 +24,7 @@ const EventDetail = () => {
   const fetchEventData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/events/${id}`);
+      const response = await fetch(`${API_BASE_URL}/api/events/${id}`);
       
       if (!response.ok) {
         throw new Error('Événement non trouvé');
