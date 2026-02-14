@@ -15,7 +15,7 @@ const EventDetail = () => {
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
 
- const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = 'http://localhost:8000';
 
   useEffect(() => {
     fetchEventData();
@@ -31,22 +31,6 @@ const EventDetail = () => {
       }
       
       const data = await response.json();
-      
-      // Parse recap_images if it's a string
-      if (data.recap_images && typeof data.recap_images === 'string') {
-        try {
-          data.recap_images = JSON.parse(data.recap_images);
-        } catch (e) {
-          console.error('Error parsing recap_images:', e);
-          data.recap_images = [];
-        }
-      }
-      
-      // Ensure recap_images is always an array
-      if (!Array.isArray(data.recap_images)) {
-        data.recap_images = [];
-      }
-      
       setEvent(data);
       setError(null);
     } catch (err) {
@@ -55,6 +39,15 @@ const EventDetail = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper to get full image URL
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    // Remove leading slash if present
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${API_BASE_URL}/storage/${cleanPath}`;
   };
 
   if (loading) {
@@ -93,6 +86,9 @@ const EventDetail = () => {
   const eventDate = new Date(event.event_date);
   const isCompleted = event.status === 'completed';
 
+  // Use banner_url if provided, otherwise construct from banner_image
+  const bannerUrl = event.banner_url || getImageUrl(event.banner_image);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-blue-950">
       <Navbar />
@@ -114,10 +110,10 @@ const EventDetail = () => {
 
       {/* Hero Section */}
       <div className="relative h-96 bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950">
-        {event.banner_image && (
+        {bannerUrl && (
           <>
             <img 
-              src={event.banner_image}
+              src={bannerUrl}
               alt={event.title}
               className="absolute inset-0 w-full h-full object-cover opacity-40"
             />
@@ -236,7 +232,7 @@ const EventDetail = () => {
                         className="relative group cursor-pointer overflow-hidden rounded-lg"
                       >
                         <img
-                          src={image}
+                          src={getImageUrl(image)} // ✅ use full URL
                           alt={`Event ${idx + 1}`}
                           className="w-full h-64 object-cover transition-transform duration-500 group-hover:scale-110"
                         />
@@ -303,8 +299,10 @@ const EventDetail = () => {
                       {recapImages.length} PHOTO{recapImages.length > 1 ? 'S' : ''}
                     </p>
                     <div className="flex gap-2 flex-wrap">
-                      {recapImages.slice(0, 4).map((_, idx) => (
-                        <div key={idx} className="w-12 h-12 bg-gray-300 rounded-lg"></div>
+                      {recapImages.slice(0, 4).map((img, idx) => (
+                        <div key={idx} className="w-12 h-12 bg-gray-300 rounded-lg overflow-hidden">
+                          <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
+                        </div>
                       ))}
                       {recapImages.length > 4 && (
                         <div className="w-12 h-12 bg-red-500 rounded-lg flex items-center justify-center text-white text-xs font-bold">
@@ -336,7 +334,7 @@ const EventDetail = () => {
               </svg>
             </button>
             <img
-              src={selectedImage}
+              src={getImageUrl(selectedImage)} // ✅ full URL
               alt="Full size"
               className="w-full h-auto rounded-lg"
             />

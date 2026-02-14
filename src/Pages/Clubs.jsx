@@ -18,7 +18,15 @@ const ClubDetail = () => {
   const [categories, setCategories] = useState([]);
 
   // Use same format as Home.jsx
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const API_BASE_URL = 'http://localhost:8000';
+
+  // Helper to get full image URL
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${API_BASE_URL}/storage/${cleanPath}`;
+  };
 
   useEffect(() => {
     fetchClubData();
@@ -364,7 +372,7 @@ const ClubDetail = () => {
                         >
                           <div className="relative h-80 overflow-hidden">
                             <img 
-                              src={event.banner_image || `https://via.placeholder.com/800x500?text=${encodeURIComponent(event.title)}`}
+                              src={event.banner_url || getImageUrl(event.banner_image) || `https://via.placeholder.com/800x500?text=${encodeURIComponent(event.title)}`}
                               alt={event.title}
                               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             />
@@ -473,7 +481,7 @@ const ClubDetail = () => {
                           <div className="relative inline-block group">
                             <div className="absolute inset-0 bg-red-500 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
                             <img 
-                              src={president.avatar || 'https://via.placeholder.com/200'}
+                              src={president.avatar_url || getImageUrl(president.avatar) || 'https://via.placeholder.com/200'}
                               alt={`${president.first_name} ${president.last_name}`}
                               className="relative w-56 h-56 rounded-full mx-auto object-cover border-4 border-red-500 shadow-2xl"
                             />
@@ -560,7 +568,7 @@ const ClubDetail = () => {
                               <div className="relative inline-block group">
                                 <div className="absolute inset-0 bg-red-500 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
                                 <img 
-                                  src={president.avatar || 'https://via.placeholder.com/200'}
+                                  src={president.avatar_url || getImageUrl(president.avatar) || 'https://via.placeholder.com/200'}
                                   alt={`${president.first_name} ${president.last_name}`}
                                   className="relative w-56 h-56 rounded-full mx-auto object-cover border-4 border-red-500 shadow-2xl"
                                 />
@@ -638,7 +646,7 @@ const ClubDetail = () => {
                                   <div className="relative">
                                     <div className="absolute inset-0 bg-red-500 rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
                                     <img 
-                                      src={member.avatar || 'https://via.placeholder.com/100'}
+                                      src={member.avatar_url || getImageUrl(member.avatar) || 'https://via.placeholder.com/100'}
                                       alt={`${member.first_name} ${member.last_name}`}
                                       className="relative w-24 h-24 rounded-full object-cover border-3 border-red-500 shadow-lg"
                                     />
@@ -691,7 +699,7 @@ const ClubDetail = () => {
                           <div key={member.id} className="bg-gray-50 rounded-lg p-4 hover:shadow-lg transition-shadow border border-red-200">
                             <div className="flex items-center gap-4">
                               <img 
-                                src={member.avatar || 'https://via.placeholder.com/80'}
+                                src={member.avatar_url || getImageUrl(member.avatar) || 'https://via.placeholder.com/80'}
                                 alt={`${member.first_name} ${member.last_name}`}
                                 className="w-16 h-16 rounded-full object-cover border-2 border-red-500"
                               />
@@ -718,7 +726,7 @@ const ClubDetail = () => {
                           <div key={member.id} className="bg-gray-50 rounded-lg p-4 hover:shadow-lg transition-shadow">
                             <div className="flex items-center gap-4">
                               <img 
-                                src={member.avatar || 'https://via.placeholder.com/80'}
+                                src={member.avatar_url || getImageUrl(member.avatar) || 'https://via.placeholder.com/80'}
                                 alt={`${member.first_name} ${member.last_name}`}
                                 className="w-16 h-16 rounded-full object-cover"
                               />
