@@ -18,7 +18,7 @@ const ClubDetail = () => {
   const [categories, setCategories] = useState([]);
 
   // Use same format as Home.jsx
-  const API_BASE_URL = 'http://localhost:8000';
+  const API_BASE_URL = process.env.REACT_APP_API_URL ||'http://localhost:8000';
 
   // Helper to get full image URL
   const getImageUrl = (path) => {
