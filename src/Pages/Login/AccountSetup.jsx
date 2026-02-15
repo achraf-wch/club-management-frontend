@@ -230,27 +230,27 @@ const AccountSetup = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-red-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-red-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-red-700/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
       <div className="relative min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-6xl">
-          <div className="grid md:grid-cols-2 gap-0 bg-white/5 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+          <div className="grid md:grid-cols-2 gap-0 bg-gray-900/50 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl border border-gray-800/50">
             
             {/* Left Side - User Info & Navigation */}
-            <div className="relative bg-gradient-to-br from-red-600 via-red-700 to-blue-900 p-12 flex flex-col justify-center overflow-hidden">
+            <div className="relative bg-gradient-to-br from-red-600 via-red-700 to-red-900 p-12 flex flex-col justify-center overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
               <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
               
               <div className="relative z-10">
                 {/* User Avatar */}
                 <div className="mb-8 relative">
-                  <div className="w-32 h-32 mx-auto rounded-full overflow-hidden shadow-2xl border-4 border-white animate-float">
+                  <div className="w-32 h-32 mx-auto rounded-full overflow-hidden shadow-2xl border-4 border-white animate-float ring-4 ring-white/20">
                     {avatarPreview ? (
                       <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
                     ) : (
@@ -261,14 +261,16 @@ const AccountSetup = () => {
                       </div>
                     )}
                   </div>
-                  <div className="absolute inset-0 bg-white/20 rounded-full animate-ping"></div>
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-lg">
+                    <span className="text-red-600 text-xs font-bold">PRO</span>
+                  </div>
                 </div>
 
                 <h1 className="text-4xl font-bold text-white mb-2 text-center drop-shadow-lg">
                   {user?.first_name} {user?.last_name}
                 </h1>
-                <p className="text-white/80 text-center mb-2">{user?.email}</p>
-                <p className="text-white/60 text-center text-sm mb-8">Code: {user?.member_code}</p>
+                <p className="text-white/90 text-center mb-2 font-medium">{user?.email}</p>
+                <p className="text-white/70 text-center text-sm mb-8">Code: {user?.member_code}</p>
 
                 {/* Tab Navigation - Vertical */}
                 <div className="space-y-3 mb-8">
@@ -276,7 +278,7 @@ const AccountSetup = () => {
                     onClick={() => setActiveTab('profile')}
                     className={`w-full flex items-center gap-3 p-4 rounded-xl font-semibold transition-all duration-300 ${
                       activeTab === 'profile'
-                        ? 'bg-white text-red-600 shadow-xl'
+                        ? 'bg-white text-red-600 shadow-xl scale-105'
                         : 'bg-white/10 text-white hover:bg-white/20'
                     }`}
                   >
@@ -290,7 +292,7 @@ const AccountSetup = () => {
                     onClick={() => setActiveTab('password')}
                     className={`w-full flex items-center gap-3 p-4 rounded-xl font-semibold transition-all duration-300 ${
                       activeTab === 'password'
-                        ? 'bg-white text-red-600 shadow-xl'
+                        ? 'bg-white text-red-600 shadow-xl scale-105'
                         : 'bg-white/10 text-white hover:bg-white/20'
                     }`}
                   >
@@ -304,7 +306,7 @@ const AccountSetup = () => {
                     onClick={() => setActiveTab('google')}
                     className={`w-full flex items-center gap-3 p-4 rounded-xl font-semibold transition-all duration-300 ${
                       activeTab === 'google'
-                        ? 'bg-white text-red-600 shadow-xl'
+                        ? 'bg-white text-red-600 shadow-xl scale-105'
                         : 'bg-white/10 text-white hover:bg-white/20'
                     }`}
                   >
@@ -320,7 +322,7 @@ const AccountSetup = () => {
 
                 <button
                   onClick={() => navigate(-1)}
-                  className="w-full flex items-center justify-center gap-2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all duration-300"
+                  className="w-full flex items-center justify-center gap-2 p-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-semibold transition-all duration-300 backdrop-blur-sm"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -331,10 +333,10 @@ const AccountSetup = () => {
             </div>
 
             {/* Right Side - Form Content */}
-            <div className="p-12 bg-white/95 backdrop-blur-sm max-h-[90vh] overflow-y-auto">
+            <div className="p-12 bg-gray-800/50 backdrop-blur-sm max-h-[90vh] overflow-y-auto">
               {/* Messages */}
               {success && (
-                <div className="mb-6 bg-green-500 text-white px-6 py-4 rounded-xl shadow-lg text-center animate-slideDown font-semibold flex items-center justify-center gap-2">
+                <div className="mb-6 bg-green-600/20 border border-green-600/50 text-white px-6 py-4 rounded-xl shadow-lg text-center animate-slideDown font-semibold flex items-center justify-center gap-2">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
@@ -343,7 +345,7 @@ const AccountSetup = () => {
               )}
 
               {error && (
-                <div className="mb-6 bg-red-500 text-white px-6 py-4 rounded-xl shadow-lg text-center animate-slideDown font-semibold flex items-center justify-center gap-2">
+                <div className="mb-6 bg-red-600/20 border border-red-600/50 text-white px-6 py-4 rounded-xl shadow-lg text-center animate-slideDown font-semibold flex items-center justify-center gap-2">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                   </svg>
@@ -355,25 +357,25 @@ const AccountSetup = () => {
               {activeTab === 'profile' && (
                 <form onSubmit={handleProfileUpdate} className="space-y-6">
                   <div className="mb-8">
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">Mettre à jour le profil</h3>
-                    <p className="text-gray-600">Personnalisez vos informations personnelles</p>
+                    <h3 className="text-3xl font-bold text-white mb-2">Mettre à jour le profil</h3>
+                    <p className="text-gray-400">Personnalisez vos informations personnelles</p>
                   </div>
 
                   {/* Avatar Upload */}
                   <div className="text-center">
                     <label htmlFor="avatar-upload" className="inline-block cursor-pointer group">
-                      <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-gray-200 group-hover:border-red-500 transition-all duration-300 shadow-lg">
+                      <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-gray-700 group-hover:border-red-500 transition-all duration-300 shadow-lg ring-4 ring-gray-700/50 group-hover:ring-red-500/50">
                         {avatarPreview ? (
                           <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-r from-red-500 to-blue-900 flex items-center justify-center">
+                          <div className="w-full h-full bg-gradient-to-r from-red-500 to-red-700 flex items-center justify-center">
                             <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
                           </div>
                         )}
                       </div>
-                      <p className="mt-3 text-sm text-gray-600 group-hover:text-red-600 transition-colors">
+                      <p className="mt-3 text-sm text-gray-400 group-hover:text-red-400 transition-colors font-medium">
                         Cliquez pour changer la photo
                       </p>
                       <input
@@ -389,38 +391,38 @@ const AccountSetup = () => {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="relative group">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Prénom</label>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">Prénom</label>
                       <input
                         type="text"
                         name="first_name"
                         required
                         value={profileData.first_name}
                         onChange={handleProfileChange}
-                        className="w-full px-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-red-500 transition-all duration-300"
+                        className="w-full px-4 py-3.5 bg-gray-900/50 border-2 border-gray-700 text-white rounded-xl focus:outline-none focus:bg-gray-900 focus:border-red-500 transition-all duration-300"
                       />
                     </div>
 
                     <div className="relative group">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Nom</label>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">Nom</label>
                       <input
                         type="text"
                         name="last_name"
                         required
                         value={profileData.last_name}
                         onChange={handleProfileChange}
-                        className="w-full px-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-red-500 transition-all duration-300"
+                        className="w-full px-4 py-3.5 bg-gray-900/50 border-2 border-gray-700 text-white rounded-xl focus:outline-none focus:bg-gray-900 focus:border-red-500 transition-all duration-300"
                       />
                     </div>
                   </div>
 
                   <div className="relative group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Téléphone</label>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">Téléphone</label>
                     <input
                       type="tel"
                       name="phone"
                       value={profileData.phone}
                       onChange={handleProfileChange}
-                      className="w-full px-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-red-500 transition-all duration-300"
+                      className="w-full px-4 py-3.5 bg-gray-900/50 border-2 border-gray-700 text-white rounded-xl focus:outline-none focus:bg-gray-900 focus:border-red-500 transition-all duration-300"
                       placeholder="+212 6 12 34 56 78"
                     />
                   </div>
@@ -428,7 +430,7 @@ const AccountSetup = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-4 bg-gradient-to-r from-red-600 to-blue-900 text-white font-bold rounded-xl hover:from-red-700 hover:to-blue-950 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 text-lg"
+                    className="w-full py-4 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 text-lg"
                   >
                     {isLoading ? (
                       <>
@@ -454,13 +456,13 @@ const AccountSetup = () => {
               {activeTab === 'password' && (
                 <form onSubmit={handleChangePassword} className="space-y-6">
                   <div className="mb-8">
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">Changer le mot de passe</h3>
-                    <p className="text-gray-600">Utilisez un mot de passe fort et unique</p>
+                    <h3 className="text-3xl font-bold text-white mb-2">Changer le mot de passe</h3>
+                    <p className="text-gray-400">Utilisez un mot de passe fort et unique</p>
                   </div>
 
                   {!googleStatus.has_password && (
-                    <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg">
-                      <p className="text-sm text-yellow-700">
+                    <div className="bg-yellow-600/20 border-l-4 border-yellow-500 p-4 rounded-lg">
+                      <p className="text-sm text-yellow-300">
                         Vous n'avez pas encore défini de mot de passe. Définissez-en un pour pouvoir vous connecter sans Google.
                       </p>
                     </div>
@@ -468,42 +470,42 @@ const AccountSetup = () => {
 
                   {googleStatus.has_password && (
                     <div className="relative group">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Mot de passe actuel</label>
+                      <label className="block text-sm font-semibold text-gray-300 mb-2">Mot de passe actuel</label>
                       <input
                         type="password"
                         name="current_password"
                         required
                         value={passwordData.current_password}
                         onChange={handlePasswordChange}
-                        className="w-full px-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-red-500 transition-all duration-300"
+                        className="w-full px-4 py-3.5 bg-gray-900/50 border-2 border-gray-700 text-white rounded-xl focus:outline-none focus:bg-gray-900 focus:border-red-500 transition-all duration-300"
                         placeholder="••••••••"
                       />
                     </div>
                   )}
 
                   <div className="relative group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Nouveau mot de passe</label>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">Nouveau mot de passe</label>
                     <input
                       type="password"
                       name="new_password"
                       required
                       value={passwordData.new_password}
                       onChange={handlePasswordChange}
-                      className="w-full px-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-red-500 transition-all duration-300"
+                      className="w-full px-4 py-3.5 bg-gray-900/50 border-2 border-gray-700 text-white rounded-xl focus:outline-none focus:bg-gray-900 focus:border-red-500 transition-all duration-300"
                       placeholder="••••••••"
                     />
                     <p className="mt-1 text-xs text-gray-500">Minimum 6 caractères</p>
                   </div>
 
                   <div className="relative group">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Confirmer le mot de passe</label>
+                    <label className="block text-sm font-semibold text-gray-300 mb-2">Confirmer le mot de passe</label>
                     <input
                       type="password"
                       name="new_password_confirmation"
                       required
                       value={passwordData.new_password_confirmation}
                       onChange={handlePasswordChange}
-                      className="w-full px-4 py-3.5 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white focus:border-red-500 transition-all duration-300"
+                      className="w-full px-4 py-3.5 bg-gray-900/50 border-2 border-gray-700 text-white rounded-xl focus:outline-none focus:bg-gray-900 focus:border-red-500 transition-all duration-300"
                       placeholder="••••••••"
                     />
                   </div>
@@ -511,7 +513,7 @@ const AccountSetup = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full py-4 bg-gradient-to-r from-red-600 to-blue-900 text-white font-bold rounded-xl hover:from-red-700 hover:to-blue-950 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 text-lg"
+                    className="w-full py-4 bg-gradient-to-r from-red-600 to-red-700 text-white font-bold rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-red-600/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-3 text-lg"
                   >
                     {isLoading ? (
                       <>
@@ -537,10 +539,10 @@ const AccountSetup = () => {
               {activeTab === 'google' && (
                 <div className="space-y-6">
                   <div className="mb-8">
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2">
+                    <h3 className="text-3xl font-bold text-white mb-2">
                       {googleStatus.is_linked ? 'Compte Google lié' : 'Lier avec Google'}
                     </h3>
-                    <p className="text-gray-600">
+                    <p className="text-gray-400">
                       {googleStatus.is_linked 
                         ? `Connecté avec ${googleStatus.google_email}` 
                         : 'Connectez-vous facilement avec Google'}
@@ -549,21 +551,21 @@ const AccountSetup = () => {
 
                   {googleStatus.is_linked ? (
                     <div className="space-y-4">
-                      <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+                      <div className="bg-green-600/20 border-l-4 border-green-500 p-4 rounded-lg">
                         <div className="flex items-center">
-                          <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-5 h-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
                           <div>
-                            <p className="text-sm font-medium text-green-800">Compte Google lié</p>
-                            <p className="text-xs text-green-700 mt-1">{googleStatus.google_email}</p>
+                            <p className="text-sm font-medium text-green-300">Compte Google lié</p>
+                            <p className="text-xs text-green-400 mt-1">{googleStatus.google_email}</p>
                           </div>
                         </div>
                       </div>
 
-                      <div className="bg-blue-50 p-6 rounded-lg">
-                        <h4 className="font-semibold text-gray-800 mb-3">Avantages:</h4>
-                        <ul className="space-y-2 text-sm text-gray-700">
+                      <div className="bg-gray-900/50 p-6 rounded-lg border border-gray-700">
+                        <h4 className="font-semibold text-white mb-3">Avantages:</h4>
+                        <ul className="space-y-2 text-sm text-gray-400">
                           <li className="flex items-center gap-2">
                             <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -589,22 +591,22 @@ const AccountSetup = () => {
                         type="button"
                         onClick={handleUnlinkGoogleAccount}
                         disabled={isLoading || !googleStatus.has_password}
-                        className="w-full py-4 border-2 border-red-300 text-red-600 font-bold rounded-xl hover:bg-red-50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-4 border-2 border-red-500/50 text-red-400 font-bold rounded-xl hover:bg-red-500/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isLoading ? 'Déconnexion...' : 'Délier le compte Google'}
                       </button>
 
                       {!googleStatus.has_password && (
-                        <p className="text-xs text-yellow-600 text-center">
+                        <p className="text-xs text-yellow-400 text-center">
                           ⚠️ Définissez d'abord un mot de passe avant de délier votre compte Google
                         </p>
                       )}
                     </div>
                   ) : (
                     <>
-                      <div className="bg-blue-50 p-6 rounded-lg">
-                        <h4 className="font-semibold text-gray-800 mb-3">Avantages de la connexion Google:</h4>
-                        <ul className="space-y-2 text-sm text-gray-700">
+                      <div className="bg-gray-900/50 p-6 rounded-lg border border-gray-700">
+                        <h4 className="font-semibold text-white mb-3">Avantages de la connexion Google:</h4>
+                        <ul className="space-y-2 text-sm text-gray-400">
                           <li className="flex items-start">
                             <svg className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -629,7 +631,7 @@ const AccountSetup = () => {
                       <button
                         type="button"
                         onClick={handleLinkGoogleAccount}
-                        className="w-full flex items-center justify-center gap-3 px-4 py-4 border-2 border-gray-300 rounded-xl shadow-sm bg-white hover:bg-gray-50 transition-all duration-300 group"
+                        className="w-full flex items-center justify-center gap-3 px-4 py-4 border-2 border-gray-700 rounded-xl shadow-sm bg-white hover:bg-gray-100 transition-all duration-300 group"
                       >
                         <svg className="w-6 h-6" viewBox="0 0 24 24">
                           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -637,7 +639,7 @@ const AccountSetup = () => {
                           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                         </svg>
-                        <span className="text-gray-700 font-semibold text-lg">Lier mon compte Google</span>
+                        <span className="text-gray-800 font-semibold text-lg">Lier mon compte Google</span>
                       </button>
                     </>
                   )}

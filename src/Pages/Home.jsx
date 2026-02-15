@@ -5,7 +5,6 @@ import Footer from '../Componenets/Footer';
 import WhyChooseUs from '../Componenets/WhyChooseUs';
 import ClubCard from '../Componenets/ClubCard';
 
-
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,7 +14,6 @@ const Home = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-  // Récupérer le paramètre de recherche depuis l'URL
   const searchParams = new URLSearchParams(location.search);
   const searchQuery = searchParams.get('search') || '';
 
@@ -34,7 +32,7 @@ const Home = () => {
       }
       
       const data = await response.json();
-      console.log('✅ Clubs data loaded:', data); // Debug log
+      console.log('✅ Clubs data loaded:', data);
       setClubs(Array.isArray(data) ? data : []);
       setLoading(false);
     } catch (error) {
@@ -44,16 +42,13 @@ const Home = () => {
     }
   };
 
-  // Helper function to get full image URL
   const getImageUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    // Remove leading slash if present to avoid double slashes
     const cleanPath = path.startsWith('/') ? path.substring(1) : path;
     return `${API_BASE_URL}/storage/${cleanPath}`;
   };
 
-  // Filtrer les clubs selon la recherche
   const filteredClubs = clubs.filter(club => {
     if (!searchQuery) return true;
     
@@ -70,47 +65,45 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black">
       <Navbar />
       
-      {/* Hero Section - Club Vibes */}
+      {/* Hero Section */}
       <div className="relative h-screen flex items-center justify-center overflow-hidden">
         {/* Dynamic Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black"></div>
         
-        {/* Club Activity Bubbles - Representing different clubs */}
+        {/* Animated Orbs */}
         <div className="absolute top-20 left-10 w-40 h-40 bg-red-500/20 rounded-full blur-2xl animate-float"></div>
-        <div className="absolute top-40 right-20 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl animate-float-delayed"></div>
-        <div className="absolute bottom-32 left-1/4 w-48 h-48 bg-purple-500/15 rounded-full blur-2xl animate-float" style={{ animationDelay: '1s' }}></div>
-        <div className="absolute bottom-20 right-1/3 w-36 h-36 bg-green-500/15 rounded-full blur-2xl animate-float-delayed" style={{ animationDelay: '1.5s' }}></div>
-        <div className="absolute top-1/2 left-1/2 w-56 h-56 bg-yellow-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-32 h-32 bg-red-600/20 rounded-full blur-2xl animate-float-delayed"></div>
+        <div className="absolute bottom-32 left-1/4 w-48 h-48 bg-red-700/15 rounded-full blur-2xl animate-float" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-20 right-1/3 w-36 h-36 bg-red-500/15 rounded-full blur-2xl animate-float-delayed" style={{ animationDelay: '1.5s' }}></div>
+        <div className="absolute top-1/2 left-1/2 w-56 h-56 bg-red-600/10 rounded-full blur-3xl animate-pulse"></div>
         
-        {/* Connection Network - Representing collaboration */}
+        {/* Connection Network */}
         <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="line-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#ef4444" stopOpacity="0.3"/>
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.3"/>
+              <stop offset="100%" stopColor="#dc2626" stopOpacity="0.3"/>
             </linearGradient>
           </defs>
-          {/* Connecting lines between "clubs" */}
           <line x1="10%" y1="20%" x2="90%" y2="35%" stroke="url(#line-gradient)" strokeWidth="1"/>
           <line x1="25%" y1="80%" x2="75%" y2="25%" stroke="url(#line-gradient)" strokeWidth="1"/>
           <line x1="80%" y1="60%" x2="20%" y2="40%" stroke="url(#line-gradient)" strokeWidth="1"/>
           <line x1="15%" y1="50%" x2="85%" y2="70%" stroke="url(#line-gradient)" strokeWidth="1"/>
           
-          {/* Node points */}
           <circle cx="10%" cy="20%" r="4" fill="#ef4444" opacity="0.6"/>
-          <circle cx="90%" cy="35%" r="4" fill="#3b82f6" opacity="0.6"/>
-          <circle cx="25%" cy="80%" r="4" fill="#8b5cf6" opacity="0.6"/>
-          <circle cx="75%" cy="25%" r="4" fill="#10b981" opacity="0.6"/>
-          <circle cx="80%" cy="60%" r="4" fill="#f59e0b" opacity="0.6"/>
-          <circle cx="20%" cy="40%" r="4" fill="#ec4899" opacity="0.6"/>
+          <circle cx="90%" cy="35%" r="4" fill="#dc2626" opacity="0.6"/>
+          <circle cx="25%" cy="80%" r="4" fill="#b91c1c" opacity="0.6"/>
+          <circle cx="75%" cy="25%" r="4" fill="#ef4444" opacity="0.6"/>
+          <circle cx="80%" cy="60%" r="4" fill="#dc2626" opacity="0.6"/>
+          <circle cx="20%" cy="40%" r="4" fill="#b91c1c" opacity="0.6"/>
         </svg>
 
-        {/* Club Icons Floating Around */}
+        {/* Floating Club Icons */}
         <div className="absolute top-24 left-1/4 animate-float">
-          <div className="w-16 h-16 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 flex items-center justify-center transform rotate-12">
+          <div className="w-16 h-16 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 flex items-center justify-center transform rotate-12 hover:scale-110 transition-transform duration-500">
             <svg className="w-8 h-8 text-red-400" fill="currentColor" viewBox="0 0 20 20">
               <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
             </svg>
@@ -118,16 +111,16 @@ const Home = () => {
         </div>
 
         <div className="absolute bottom-32 right-1/4 animate-float-delayed" style={{ animationDelay: '0.5s' }}>
-          <div className="w-14 h-14 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 flex items-center justify-center transform -rotate-12">
-            <svg className="w-7 h-7 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+          <div className="w-14 h-14 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 flex items-center justify-center transform -rotate-12 hover:scale-110 transition-transform duration-500">
+            <svg className="w-7 h-7 text-red-400" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"/>
             </svg>
           </div>
         </div>
 
         <div className="absolute top-1/3 right-20 animate-float" style={{ animationDelay: '1s' }}>
-          <div className="w-12 h-12 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 flex items-center justify-center transform rotate-6">
-            <svg className="w-6 h-6 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+          <div className="w-12 h-12 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 flex items-center justify-center transform rotate-6 hover:scale-110 transition-transform duration-500">
+            <svg className="w-6 h-6 text-red-400" fill="currentColor" viewBox="0 0 20 20">
               <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
             </svg>
           </div>
@@ -138,7 +131,7 @@ const Home = () => {
           <h1 className="text-white text-6xl md:text-8xl font-bold mb-6 tracking-tight leading-tight">
             <span className="inline-block animate-fade-in">DÉCOUVREZ</span>
             <br />
-            <span className="inline-block animate-fade-in text-red-500" style={{ animationDelay: '0.2s' }}>
+            <span className="inline-block animate-fade-in bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent" style={{ animationDelay: '0.2s' }}>
               NOS CLUBS
             </span>
           </h1>
@@ -154,18 +147,18 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Club Categories Preview */}
+          {/* Category Tags */}
           <div className="flex flex-wrap justify-center gap-3 animate-fade-in" style={{ animationDelay: '0.8s' }}>
             {[
-              { name: 'Technologie', color: 'blue', icon: '💻' },
-              { name: 'Culture', color: 'purple', icon: '🎭' },
-              { name: 'Sport', color: 'green', icon: '⚽' },
-              { name: 'Art', color: 'pink', icon: '🎨' },
-              { name: 'Sciences', color: 'yellow', icon: '🔬' }
+              { name: 'Technologie', color: 'red', icon: '💻' },
+              { name: 'Culture', color: 'red', icon: '🎭' },
+              { name: 'Sport', color: 'red', icon: '⚽' },
+              { name: 'Art', color: 'red', icon: '🎨' },
+              { name: 'Sciences', color: 'red', icon: '🔬' }
             ].map((category, idx) => (
               <div 
                 key={idx}
-                className="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full hover:bg-white/10 transition-all duration-300 cursor-pointer group"
+                className="px-4 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full hover:bg-red-500/20 hover:border-red-500/50 transition-all duration-300 cursor-pointer group"
               >
                 <span className="text-white/80 text-sm font-medium group-hover:text-white transition-colors">
                   {category.icon} {category.name}
@@ -174,11 +167,10 @@ const Home = () => {
             ))}
           </div>
         </div>
-
       </div>
 
       {/* Clubs Section */}
-      <div id="clubs-section" className="py-20 px-8 bg-gradient-to-b from-slate-900 to-blue-950">
+      <div id="clubs-section" className="py-20 px-8 bg-gradient-to-b from-black to-gray-900">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-block mb-4">

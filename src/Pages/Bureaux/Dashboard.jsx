@@ -18,9 +18,7 @@ const BoardDashboard = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/my-club`, {
         credentials: 'include',
-        headers: {
-          'Accept': 'application/json'
-        }
+        headers: { 'Accept': 'application/json' }
       });
       
       if (response.ok) {
@@ -34,269 +32,304 @@ const BoardDashboard = () => {
     }
   };
 
-  const menuItems = [
-    {
-      title: 'Ajouter Membre',
-      description: 'Envoyer une demande pour ajouter un nouveau membre',
-      icon: '👤',
-      emoji: '➕',
-      path: '/Bureaux/addMember',
-      color: 'from-blue-600 to-cyan-500',
-      bgPattern: 'bg-blue-50'
-    },
-    {
-      title: 'Liste Membres',
-      description: 'Consulter et gérer les membres du club',
-      icon: '👥',
-      emoji: '📋',
-      path: '/Bureaux/MemberList',
-      color: 'from-indigo-600 to-purple-500',
-      bgPattern: 'bg-indigo-50'
-    },
-    {
-      title: 'Créer Événement',
-      description: 'Proposer un nouvel événement au président',
-      icon: '📅',
-      emoji: '✨',
-      path: '/Bureaux/createEvent',
-      color: 'from-purple-600 to-pink-500',
-      bgPattern: 'bg-purple-50'
-    },
-    {
-      title: 'Rapports',
-      description: 'Générer et consulter les rapports d\'activité',
-      icon: '📊',
-      emoji: '📈',
-      path: '/Bureaux/reports',
-      color: 'from-pink-600 to-rose-500',
-      bgPattern: 'bg-pink-50'
-    }
-  ];
+  const getImageUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return `${API_BASE_URL}/storage/${cleanPath}`;
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black flex items-center justify-center">
         <div className="text-center">
-          <div className="w-20 h-20 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
-          <p className="text-gray-600 text-lg font-medium">Chargement...</p>
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-red-500 border-t-transparent mb-4"></div>
+          <p className="text-white text-xl font-semibold">Chargement...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Decorative Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-gradient-to-br from-blue-300/20 to-indigo-300/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-gradient-to-br from-purple-300/20 to-pink-300/20 rounded-full blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 w-[500px] h-[500px] bg-gradient-to-br from-cyan-200/10 to-blue-200/10 rounded-full blur-3xl transform -translate-x-1/2 -translate-y-1/2"></div>
-      </div>
-
-      {/* Top Navigation Bar */}
-      <nav className="relative bg-white/80 backdrop-blur-lg shadow-lg border-b border-gray-200/50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Logo & Title */}
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg transform rotate-3">
-                <span className="text-2xl">🎓</span>
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Bureau Dashboard
-                </h1>
-                <p className="text-sm text-gray-600">Espace Membre Bureau</p>
-              </div>
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+              </svg>
             </div>
+            <div>
+              <h1 className="text-xl font-bold text-white">Bureau CluVersity</h1>
+              <p className="text-xs text-gray-400">EST Fès</p>
+            </div>
+          </div>
 
-            {/* User Actions */}
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate('/Bureaux')}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
-                Dashboard
-              </button>
-              <button
-                onClick={() => navigate('/Login/AccountSetup')}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-300"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                Profil
-              </button>
+          {/* User Menu */}
+          <div className="flex items-center gap-4">
+            {/* Modify Profile */}
+            <button
+              onClick={() => navigate('/Login/AccountSetup')}
+              className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
+            >
+              Modifier Profil
+            </button>
+
+            <div className="flex items-center gap-3 pl-4 border-l border-white/10">
+              <div className="text-right">
+                <p className="text-sm font-semibold text-white">{user?.first_name} {user?.last_name}</p>
+                <p className="text-xs text-gray-400">Membre Bureau</p>
+              </div>
+              <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center text-white font-bold">
+                {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
+              </div>
               <button
                 onClick={logout}
-                className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-300"
+                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
               >
-                Déconnexion
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
               </button>
             </div>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <div className="relative max-w-7xl mx-auto px-6 py-12">
+      {/* Main Content */}
+      <div className="pt-24 px-8 pb-12 max-w-7xl mx-auto">
         {/* Welcome Banner */}
-        <div className="mb-12 bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+        <div className="mb-12 bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-4xl">👋</span>
+              <div className="w-20 h-20 bg-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                </svg>
               </div>
               <div>
-                <h2 className="text-3xl font-bold text-gray-800 mb-1">
-                  Bonjour, {user?.first_name}!
+                <h2 className="text-4xl font-bold text-white mb-2">
+                  Bienvenue, {user?.first_name}
                 </h2>
-                <p className="text-gray-600">
-                  Membre du Bureau {club ? `• ${club.name}` : ''}
+                <p className="text-gray-400 text-lg">
+                  Membre du Bureau {club && <span className="text-red-400">• {club.name}</span>}
                 </p>
               </div>
             </div>
-            {club && club.logo_url && (
-              <img src={club.logo_url} alt={club.name} className="w-16 h-16 rounded-full object-cover shadow-md" />
+            {club && (club.logo || club.logo_url) && (
+              <img 
+                src={getImageUrl(club.logo) || club.logo_url} 
+                alt={club.name} 
+                className="w-20 h-20 rounded-2xl object-cover shadow-lg border-2 border-white/10"
+              />
             )}
           </div>
         </div>
 
-        {/* Stats Grid */}
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-red-500/50 transition-all">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-100 to-blue-200 rounded-xl flex items-center justify-center">
-                <span className="text-3xl">👥</span>
-              </div>
-              <div className="text-right">
-                <p className="text-3xl font-bold text-gray-800">{club?.total_members || '--'}</p>
-                <p className="text-sm text-gray-500">Membres</p>
+              <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
               </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full" style={{ width: '75%' }}></div>
-            </div>
+            <h3 className="text-3xl font-bold text-white mb-1">{club?.total_members || '0'}</h3>
+            <p className="text-gray-400 text-sm">Membres du Club</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-purple-100 to-purple-200 rounded-xl flex items-center justify-center">
-                <span className="text-3xl">📅</span>
-              </div>
-              <div className="text-right">
-                <p className="text-3xl font-bold text-gray-800">--</p>
-                <p className="text-sm text-gray-500">Événements</p>
+              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
               </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full" style={{ width: '45%' }}></div>
-            </div>
+            <h3 className="text-3xl font-bold text-white mb-1">{club?.events_count || '0'}</h3>
+            <p className="text-gray-400 text-sm">Événements</p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-14 h-14 bg-gradient-to-br from-pink-100 to-pink-200 rounded-xl flex items-center justify-center">
-                <span className="text-3xl">✅</span>
-              </div>
-              <div className="text-right">
-                <p className="text-3xl font-bold text-gray-800">--</p>
-                <p className="text-sm text-gray-500">Tâches</p>
+              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
               </div>
             </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-gradient-to-r from-pink-600 to-rose-600 h-2 rounded-full" style={{ width: '60%' }}></div>
-            </div>
+            <h3 className="text-3xl font-bold text-white mb-1">3</h3>
+            <p className="text-gray-400 text-sm">Tâches en Attente</p>
           </div>
         </div>
 
-        {/* Actions Grid */}
-        <div className="mb-8">
-          <h3 className="text-2xl font-bold text-gray-800 mb-6">Actions Rapides</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {menuItems.map((item, index) => (
-              <div
-                key={index}
-                onClick={() => navigate(item.path)}
-                className="group relative bg-white rounded-3xl shadow-lg hover:shadow-2xl border border-gray-100 overflow-hidden cursor-pointer transform hover:scale-105 transition-all duration-300"
-              >
-                {/* Gradient Background Overlay */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${item.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
-                
-                <div className="relative p-8">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-16 h-16 ${item.bgPattern} rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow`}>
-                        <span className="text-3xl">{item.icon}</span>
-                      </div>
-                      <div>
-                        <h4 className="text-xl font-bold text-gray-800 mb-1">{item.title}</h4>
-                        <p className="text-sm text-gray-600">{item.description}</p>
-                      </div>
-                    </div>
-                    <span className="text-3xl opacity-50 group-hover:opacity-100 transition-opacity">{item.emoji}</span>
-                  </div>
-                  
-                  <div className="flex items-center text-blue-600 font-semibold text-sm group-hover:translate-x-2 transition-transform">
-                    Accéder
-                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        {/* Actions */}
+        <div className="mb-12">
+          <h3 className="text-2xl font-bold text-white mb-6">Actions Rapides</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <button
+              onClick={() => navigate('/Bureaux/addMember')}
+              className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:bg-red-500/10 hover:border-red-500/50 transition-all text-left"
+            >
+              <div className="w-14 h-14 bg-red-500 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+              </div>
+              <h4 className="text-xl font-bold text-white mb-2">Ajouter Membre</h4>
+              <p className="text-gray-400 text-sm">Envoyer une demande d'adhésion</p>
+            </button>
+
+            <button
+              onClick={() => navigate('/Bureaux/MemberList')}
+              className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:border-white/20 transition-all text-left"
+            >
+              <div className="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <h4 className="text-xl font-bold text-white mb-2">Liste Membres</h4>
+              <p className="text-gray-400 text-sm">Consulter et gérer les membres</p>
+            </button>
+
+            <button
+              onClick={() => navigate('/Bureaux/createEvent')}
+              className="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 hover:bg-white/10 hover:border-white/20 transition-all text-left"
+            >
+              <div className="w-14 h-14 bg-white/10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h4 className="text-xl font-bold text-white mb-2">Créer Événement</h4>
+              <p className="text-gray-400 text-sm">Proposer un nouvel événement</p>
+            </button>
+          </div>
+        </div>
+
+        {/* Two Columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Activity */}
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
+            <h3 className="text-xl font-bold text-white mb-6">Activité Récente</h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
+                <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-medium text-sm">Nouvelle demande d'adhésion</p>
+                  <p className="text-gray-400 text-xs">Ahmed Benali</p>
+                </div>
+                <span className="text-xs text-gray-500">2h</span>
+              </div>
+
+              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
+                <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-medium text-sm">Événement créé</p>
+                  <p className="text-gray-400 text-xs">Workshop React.js</p>
+                </div>
+                <span className="text-xs text-gray-500">5h</span>
+              </div>
+
+              <div className="flex items-center gap-4 p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
+                <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-white font-medium text-sm">Membre approuvé</p>
+                  <p className="text-gray-400 text-xs">Sara Alami</p>
+                </div>
+                <span className="text-xs text-gray-500">1j</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tips */}
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
+            <h3 className="text-xl font-bold text-white mb-6">Conseils & Astuces</h3>
+            <div className="space-y-3">
+              <div className="p-4 bg-white/5 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   </div>
-                </div>
-
-                {/* Decorative Corner */}
-                <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${item.color} opacity-10 rounded-bl-full`}></div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="text-2xl">🔔</span>
-              Activité Récente
-            </h4>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl">
-                <span className="text-2xl">📝</span>
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-800 text-sm">Nouvelle inscription</p>
-                  <p className="text-xs text-gray-600">Il y a 2h</p>
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-1">Action Rapide</h4>
+                    <p className="text-gray-400 text-xs">Vérifiez régulièrement les demandes en attente</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl">
-                <span className="text-2xl">📅</span>
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-800 text-sm">Événement créé</p>
-                  <p className="text-xs text-gray-600">Hier</p>
+
+              <div className="p-4 bg-white/5 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-1">Organisation</h4>
+                    <p className="text-gray-400 text-xs">Planifiez des événements réguliers</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <h4 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <span className="text-2xl">💡</span>
-              Conseils Rapides
-            </h4>
-            <div className="space-y-3">
-              <div className="flex items-start gap-3 p-3 bg-yellow-50 rounded-xl">
-                <span className="text-xl">✨</span>
-                <p className="text-sm text-gray-700">Vérifiez régulièrement les demandes en attente</p>
-              </div>
-              <div className="flex items-start gap-3 p-3 bg-green-50 rounded-xl">
-                <span className="text-xl">🎯</span>
-                <p className="text-sm text-gray-700">Organisez des événements pour dynamiser le club</p>
+              <div className="p-4 bg-white/5 rounded-xl">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-white font-semibold text-sm mb-1">Communication</h4>
+                    <p className="text-gray-400 text-xs">Gardez les membres informés</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Floating Orbs */}
+      <div className="fixed top-20 left-10 w-40 h-40 bg-red-500/10 rounded-full blur-3xl animate-float pointer-events-none"></div>
+      <div className="fixed bottom-20 right-10 w-32 h-32 bg-red-500/10 rounded-full blur-3xl animate-float-delayed pointer-events-none"></div>
+
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        @keyframes float-delayed {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-15px); }
+        }
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+          animation: float-delayed 8s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
 };
