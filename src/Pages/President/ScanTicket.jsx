@@ -127,12 +127,12 @@ const ScanTicket = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black py-8 px-4">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-40 h-40 bg-orange-500/20 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute top-20 left-10 w-40 h-40 bg-red-500/20 rounded-full blur-2xl animate-float"></div>
         <div className="absolute bottom-32 right-20 w-48 h-48 bg-red-500/15 rounded-full blur-2xl animate-float-delayed"></div>
-        <div className="absolute top-1/2 left-1/2 w-56 h-56 bg-yellow-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute top-1/2 left-1/2 w-56 h-56 bg-red-500/10 rounded-full blur-3xl animate-pulse"></div>
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto">
@@ -140,7 +140,7 @@ const ScanTicket = () => {
         <div className="mb-8">
           <button
             onClick={() => navigate('/President/Dashboard')}
-            className="flex items-center text-blue-400 hover:text-blue-300 mb-4 transition-colors"
+            className="flex items-center text-red-400 hover:text-red-300 mb-4 transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -163,13 +163,13 @@ const ScanTicket = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
                 <button
                   onClick={startCameraScanning}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-xl font-semibold text-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg transform hover:scale-105"
+                  className="bg-gradient-to-r from-red-600 to-red-700 text-white p-8 rounded-xl font-semibold text-xl hover:from-red-700 hover:to-red-800 transition-all shadow-lg transform hover:scale-105"
                 >
                   <div className="text-5xl mb-4">📷</div>
                   <div>Scanner avec caméra</div>
                 </button>
 
-                <label className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-8 rounded-xl font-semibold text-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg transform hover:scale-105 cursor-pointer">
+                <label className="bg-gradient-to-r from-gray-600 to-gray-700 text-white p-8 rounded-xl font-semibold text-xl hover:from-gray-700 hover:to-gray-800 transition-all shadow-lg transform hover:scale-105 cursor-pointer">
                   <div className="text-5xl mb-4">📁</div>
                   <div>Scanner un fichier</div>
                   <input 
@@ -205,7 +205,7 @@ const ScanTicket = () => {
 
           {loading && (
             <div className="text-center py-16">
-              <div className="inline-block animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-blue-500 mb-6"></div>
+              <div className="inline-block animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-red-500 mb-6"></div>
               <p className="text-white text-xl font-semibold">Validation en cours...</p>
             </div>
           )}
@@ -223,7 +223,7 @@ const ScanTicket = () => {
               </div>
               <button 
                 onClick={resetScanner} 
-                className="mt-4 bg-gradient-to-r from-red-600 to-pink-600 text-white px-8 py-3 rounded-xl hover:from-red-700 hover:to-pink-700 font-semibold text-lg shadow-lg"
+                className="mt-4 bg-gradient-to-r from-red-600 to-red-700 text-white px-8 py-3 rounded-xl hover:from-red-700 hover:to-red-800 font-semibold text-lg shadow-lg"
               >
                 Scanner un autre ticket
               </button>
@@ -241,8 +241,8 @@ const ScanTicket = () => {
 
             <div className="p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div className="bg-blue-500/10 backdrop-blur-sm border border-blue-500/20 p-6 rounded-xl">
-                  <h3 className="text-sm font-bold text-blue-300 mb-4 uppercase">🎉 Événement</h3>
+                <div className="bg-red-500/10 backdrop-blur-sm border border-red-500/20 p-6 rounded-xl">
+                  <h3 className="text-sm font-bold text-red-300 mb-4 uppercase">🎉 Événement</h3>
                   <p className="text-2xl font-bold text-white mb-4">{ticketInfo.event_title}</p>
                   <div className="space-y-3">
                     <div className="flex items-center text-white/70">
@@ -256,8 +256,8 @@ const ScanTicket = () => {
                   </div>
                 </div>
 
-                <div className="bg-purple-500/10 backdrop-blur-sm border border-purple-500/20 p-6 rounded-xl">
-                  <h3 className="text-sm font-bold text-purple-300 mb-4 uppercase">👤 Participant</h3>
+                <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-6 rounded-xl">
+                  <h3 className="text-sm font-bold text-white/70 mb-4 uppercase">👤 Participant</h3>
                   <p className="text-2xl font-bold text-white mb-4">{ticketInfo.first_name} {ticketInfo.last_name}</p>
                   <div className="space-y-3">
                     <div className="flex items-center text-white/70">
@@ -285,7 +285,7 @@ const ScanTicket = () => {
               <div className="text-center">
                 <button 
                   onClick={resetScanner} 
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-10 py-4 rounded-xl font-bold text-xl hover:from-blue-700 hover:to-indigo-700 shadow-lg transform hover:scale-105 transition-all"
+                  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-10 py-4 rounded-xl font-bold text-xl hover:from-red-700 hover:to-red-800 shadow-lg transform hover:scale-105 transition-all"
                 >
                   🎫 Scanner le prochain ticket
                 </button>

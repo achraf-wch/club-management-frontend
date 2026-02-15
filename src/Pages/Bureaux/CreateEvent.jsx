@@ -29,9 +29,9 @@ const BureauxCreateEvent = () => {
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   const tabs = [
-    { id: 0, name: 'Informations', icon: '📝', color: 'blue' },
-    { id: 1, name: 'Détails', icon: '🎯', color: 'indigo' },
-    { id: 2, name: 'Billets', icon: '🎫', color: 'purple' }
+    { id: 0, name: 'Informations', icon: '📝', color: 'red' },
+    { id: 1, name: 'Détails', icon: '🎯', color: 'red' },
+    { id: 2, name: 'Billets', icon: '🎫', color: 'red' }
   ];
 
   useEffect(() => {
@@ -151,28 +151,28 @@ const BureauxCreateEvent = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
-          <p className="text-gray-600 text-lg">Chargement...</p>
+          <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
+          <p className="text-white text-lg">Chargement...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black py-8">
       {/* Decorative Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-300/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-300/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative max-w-5xl mx-auto px-4">
         {/* Return Button */}
         <button
           onClick={() => navigate('/Bureaux/dashboard')}
-          className="mb-6 flex items-center gap-2 px-4 py-2 bg-white shadow-md hover:shadow-lg rounded-xl text-gray-700 hover:text-blue-600 transition-all duration-300"
+          className="mb-6 flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 rounded-xl text-white transition-all duration-300"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -181,24 +181,24 @@ const BureauxCreateEvent = () => {
         </button>
 
         {/* Header Card */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 mb-6 border border-gray-100">
+        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl shadow-xl p-8 mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-700 rounded-2xl flex items-center justify-center shadow-lg">
               <span className="text-3xl">📅</span>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Créer un Événement</h1>
-              <p className="text-gray-600">Soumettre une demande au président</p>
+              <h1 className="text-3xl font-bold text-white">Créer un Événement</h1>
+              <p className="text-white/70">Soumettre une demande au président</p>
             </div>
           </div>
 
           {userClubs.length > 0 && (
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
+            <div className="mt-6 p-4 bg-red-500/10 backdrop-blur-sm rounded-2xl border border-red-500/20">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">🏢</span>
                 <div>
-                  <p className="text-sm text-gray-600">Club</p>
-                  <p className="font-bold text-gray-800">{userClubs[0]?.club_name}</p>
+                  <p className="text-sm text-white/60">Club</p>
+                  <p className="font-bold text-white">{userClubs[0]?.club_name}</p>
                 </div>
               </div>
             </div>
@@ -207,43 +207,43 @@ const BureauxCreateEvent = () => {
 
         {/* Success/Error Messages */}
         {successMessage && (
-          <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-6 shadow-lg">
+          <div className="mb-6 bg-green-500/20 border-2 border-green-500/40 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <p className="font-bold text-green-800 text-lg">{successMessage}</p>
+              <p className="font-bold text-green-300 text-lg">{successMessage}</p>
             </div>
           </div>
         )}
 
         {errorMessage && (
-          <div className="mb-6 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-2xl p-6 shadow-lg">
+          <div className="mb-6 bg-red-500/20 border-2 border-red-500/40 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
-              <pre className="font-semibold text-red-800 whitespace-pre-wrap text-sm">{errorMessage}</pre>
+              <pre className="font-semibold text-red-300 whitespace-pre-wrap text-sm">{errorMessage}</pre>
             </div>
           </div>
         )}
 
         {/* Form Card */}
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl shadow-xl overflow-hidden">
           {/* Tabs */}
-          <div className="flex border-b border-gray-200">
+          <div className="flex border-b border-white/10">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex-1 px-6 py-4 text-center font-semibold transition-all duration-300 ${
                   activeTab === tab.id
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-50'
+                    ? 'bg-gradient-to-r from-red-600 to-red-700 text-white'
+                    : 'text-white/70 hover:bg-white/5'
                 }`}
               >
                 <span className="text-2xl block mb-1">{tab.icon}</span>
@@ -258,21 +258,21 @@ const BureauxCreateEvent = () => {
             {activeTab === 0 && (
               <div className="space-y-6 animate-fade-in">
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    Titre de l'événement <span className="text-red-500">*</span>
+                  <label className="block text-white font-semibold mb-2">
+                    Titre de l'événement <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     name="title"
                     value={eventData.title}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                     placeholder="Ex: Workshop React.js"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
+                  <label className="block text-white font-semibold mb-2">
                     Description
                   </label>
                   <textarea
@@ -280,13 +280,13 @@ const BureauxCreateEvent = () => {
                     value={eventData.description}
                     onChange={handleChange}
                     rows="5"
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all resize-none"
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all resize-none"
                     placeholder="Décrivez votre événement..."
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
+                  <label className="block text-white font-semibold mb-2">
                     Catégorie
                   </label>
                   <input
@@ -294,13 +294,13 @@ const BureauxCreateEvent = () => {
                     name="category"
                     value={eventData.category}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                     placeholder="Ex: Technology, Culture, Sport"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
+                  <label className="block text-white font-semibold mb-2">
                     Image de bannière (URL)
                   </label>
                   <input
@@ -308,7 +308,7 @@ const BureauxCreateEvent = () => {
                     name="banner_image"
                     value={eventData.banner_image}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                     placeholder="https://example.com/image.jpg"
                   />
                 </div>
@@ -320,20 +320,20 @@ const BureauxCreateEvent = () => {
               <div className="space-y-6 animate-fade-in">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Date de l'événement <span className="text-red-500">*</span>
+                    <label className="block text-white font-semibold mb-2">
+                      Date de l'événement <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="datetime-local"
                       name="event_date"
                       value={eventData.event_date}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
+                    <label className="block text-white font-semibold mb-2">
                       Date limite d'inscription
                     </label>
                     <input
@@ -341,12 +341,12 @@ const BureauxCreateEvent = () => {
                       name="registration_deadline"
                       value={eventData.registration_deadline}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
+                    <label className="block text-white font-semibold mb-2">
                       Lieu
                     </label>
                     <input
@@ -354,13 +354,13 @@ const BureauxCreateEvent = () => {
                       name="location"
                       value={eventData.location}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                       placeholder="Ex: Amphi 1, EST Fès"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
+                    <label className="block text-white font-semibold mb-2">
                       Capacité
                     </label>
                     <input
@@ -369,7 +369,7 @@ const BureauxCreateEvent = () => {
                       value={eventData.capacity}
                       onChange={handleChange}
                       min="1"
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                       placeholder="Ex: 100 personnes"
                     />
                   </div>
@@ -380,45 +380,45 @@ const BureauxCreateEvent = () => {
             {/* Tab 2: Tickets */}
             {activeTab === 2 && (
               <div className="space-y-6 animate-fade-in">
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <div className="bg-red-500/10 backdrop-blur-sm rounded-2xl p-6 border border-red-500/20">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                     <span className="text-2xl">🎫</span>
                     Configuration des billets
                   </h3>
 
                   <div className="space-y-4">
-                    <label className="flex items-start gap-3 cursor-pointer group p-4 bg-white rounded-xl hover:shadow-md transition-all">
+                    <label className="flex items-start gap-3 cursor-pointer group p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
                       <input
                         type="checkbox"
                         name="requires_ticket"
                         checked={eventData.requires_ticket}
                         onChange={handleChange}
-                        className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mt-0.5"
+                        className="w-5 h-5 text-red-600 bg-white/10 border-white/20 rounded focus:ring-red-500 mt-0.5"
                       />
                       <div>
-                        <span className="font-semibold text-gray-800 block">Nécessite un billet</span>
-                        <span className="text-sm text-gray-600">Les participants devront obtenir un billet pour participer</span>
+                        <span className="font-semibold text-white block">Nécessite un billet</span>
+                        <span className="text-sm text-white/60">Les participants devront obtenir un billet pour participer</span>
                       </div>
                     </label>
 
-                    <label className="flex items-start gap-3 cursor-pointer group p-4 bg-white rounded-xl hover:shadow-md transition-all">
+                    <label className="flex items-start gap-3 cursor-pointer group p-4 bg-white/5 rounded-xl hover:bg-white/10 transition-all">
                       <input
                         type="checkbox"
                         name="tickets_for_all"
                         checked={eventData.tickets_for_all}
                         onChange={handleChange}
-                        className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500 mt-0.5"
+                        className="w-5 h-5 text-red-600 bg-white/10 border-white/20 rounded focus:ring-red-500 mt-0.5"
                       />
                       <div>
-                        <span className="font-semibold text-gray-800 block">Billets pour tous</span>
-                        <span className="text-sm text-gray-600">Tous les membres du club recevront automatiquement un billet</span>
+                        <span className="font-semibold text-white block">Billets pour tous</span>
+                        <span className="text-sm text-white/60">Tous les membres du club recevront automatiquement un billet</span>
                       </div>
                     </label>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2 flex items-center gap-2">
+                  <label className="block text-white font-semibold mb-2 flex items-center gap-2">
                     <span className="text-xl">💰</span>
                     Prix du billet (DH)
                   </label>
@@ -430,12 +430,12 @@ const BureauxCreateEvent = () => {
                       onChange={handleChange}
                       min="0"
                       step="0.01"
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-purple-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                       placeholder="0.00"
                     />
-                    <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-semibold">DH</span>
+                    <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 font-semibold">DH</span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">Laissez à 0 pour un événement gratuit</p>
+                  <p className="text-sm text-white/50 mt-2">Laissez à 0 pour un événement gratuit</p>
                 </div>
               </div>
             )}
@@ -448,8 +448,8 @@ const BureauxCreateEvent = () => {
               disabled={activeTab === 0}
               className={`px-6 py-3 rounded-xl font-semibold transition-all ${
                 activeTab === 0
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? 'bg-white/5 text-white/40 cursor-not-allowed'
+                  : 'bg-white/10 text-white hover:bg-white/20'
               }`}
             >
               ← Précédent
@@ -458,7 +458,7 @@ const BureauxCreateEvent = () => {
             {activeTab < tabs.length - 1 ? (
               <button
                 onClick={() => setActiveTab(Math.min(tabs.length - 1, activeTab + 1))}
-                className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-semibold hover:from-red-700 hover:to-red-800 transition-all shadow-lg"
               >
                 Suivant →
               </button>
@@ -466,7 +466,7 @@ const BureauxCreateEvent = () => {
               <button
                 onClick={handleSubmit}
                 disabled={loading || userClubs.length === 0}
-                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-8 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-bold hover:from-red-700 hover:to-red-800 transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-xl"
               >
                 {loading ? (
                   <>
@@ -492,7 +492,7 @@ const BureauxCreateEvent = () => {
             <div
               key={tab.id}
               className={`h-2 rounded-full transition-all duration-300 ${
-                index === activeTab ? 'w-8 bg-blue-600' : 'w-2 bg-gray-300'
+                index === activeTab ? 'w-8 bg-red-600' : 'w-2 bg-white/20'
               }`}
             />
           ))}

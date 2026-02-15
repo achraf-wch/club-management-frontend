@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 
 const BureauxAddMember = () => {
-  const { user } = useAuth();
+  const { user } = useAuth(); // ✅ Using authenticated user
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [userClubs, setUserClubs] = useState([]);
@@ -33,6 +33,9 @@ const BureauxAddMember = () => {
 
   const fetchUserClubs = async () => {
     try {
+      console.log('🔍 Fetching clubs for user:', user);
+      console.log('🔍 API URL:', `${API_BASE_URL}/api/members?person_id=${user.id}&role=board&status=active`);
+      
       const response = await fetch(`${API_BASE_URL}/api/members?person_id=${user.id}&role=board&status=active`, {
         credentials: 'include',
         headers: {
@@ -41,17 +44,27 @@ const BureauxAddMember = () => {
         }
       });
 
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response ok:', response.ok);
+
+      const data = await response.json();
+      console.log('📦 Response data:', data);
+
       if (response.ok) {
-        const data = await response.json();
         setUserClubs(data);
+        console.log('✅ Clubs loaded:', data);
         if (data.length > 0) {
           setMemberData(prev => ({ ...prev, club_id: data[0].club_id }));
+        } else {
+          setErrorMessage('Vous n\'êtes membre du bureau d\'aucun club. Contactez votre président.');
         }
       } else {
-        setErrorMessage('Impossible de charger vos clubs');
+        console.error('❌ Response not OK:', data);
+        setErrorMessage(data.message || 'Impossible de charger vos clubs');
       }
     } catch (error) {
-      setErrorMessage('Erreur de connexion au serveur');
+      console.error('❌ Fetch error:', error);
+      setErrorMessage('Erreur de connexion au serveur: ' + error.message);
     }
   };
 
@@ -184,28 +197,28 @@ const BureauxAddMember = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
-          <p className="text-gray-600 text-lg">Chargement...</p>
+          <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
+          <p className="text-white text-lg">Chargement...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black py-8">
       {/* Decorative Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-300/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-300/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="relative max-w-5xl mx-auto px-4">
         {/* Return Button */}
         <button
           onClick={() => navigate('/Bureaux/dashboard')}
-          className="mb-6 flex items-center gap-2 px-4 py-2 bg-white shadow-md hover:shadow-lg rounded-xl text-gray-700 hover:text-blue-600 transition-all duration-300"
+          className="mb-6 flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 rounded-xl text-white transition-all duration-300"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -214,24 +227,24 @@ const BureauxAddMember = () => {
         </button>
 
         {/* Header Card */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 mb-6 border border-gray-100">
+        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl shadow-xl p-8 mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-700 rounded-2xl flex items-center justify-center shadow-lg">
               <span className="text-3xl">👤</span>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Demande d'Ajout de Membre</h1>
-              <p className="text-gray-600">Cette demande sera soumise au président pour validation</p>
+              <h1 className="text-3xl font-bold text-white">Demande d'Ajout de Membre</h1>
+              <p className="text-white/70">Cette demande sera soumise au président pour validation</p>
             </div>
           </div>
 
           {userClubs.length > 0 && (
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-200">
+            <div className="mt-6 p-4 bg-red-500/10 backdrop-blur-sm rounded-2xl border border-red-500/20">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">🏢</span>
                 <div>
-                  <p className="text-sm text-gray-600">Club sélectionné</p>
-                  <p className="font-bold text-gray-800">{userClubs[0]?.club_name}</p>
+                  <p className="text-sm text-white/60">Club sélectionné</p>
+                  <p className="font-bold text-white">{userClubs[0]?.club_name}</p>
                 </div>
               </div>
             </div>
@@ -240,7 +253,7 @@ const BureauxAddMember = () => {
 
         {/* Success Message */}
         {successMessage && (
-          <div className="mb-6 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-6 shadow-lg">
+          <div className="mb-6 bg-green-500/20 border-2 border-green-500/40 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,8 +261,8 @@ const BureauxAddMember = () => {
                 </svg>
               </div>
               <div>
-                <p className="font-bold text-green-800 text-lg">{successMessage}</p>
-                <p className="text-green-700 text-sm mt-1">Notez bien le mot de passe pour le transmettre au membre.</p>
+                <p className="font-bold text-green-300 text-lg">{successMessage}</p>
+                <p className="text-green-200 text-sm mt-1">Notez bien le mot de passe pour le transmettre au membre.</p>
               </div>
             </div>
           </div>
@@ -257,59 +270,70 @@ const BureauxAddMember = () => {
 
         {/* Error Message */}
         {errorMessage && (
-          <div className="mb-6 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 rounded-2xl p-6 shadow-lg">
+          <div className="mb-6 bg-red-500/20 border-2 border-red-500/40 backdrop-blur-sm rounded-2xl p-6 shadow-lg">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </div>
-              <pre className="font-semibold text-red-800 whitespace-pre-wrap text-sm">{errorMessage}</pre>
+              <div className="flex-1">
+                <pre className="font-semibold text-red-300 whitespace-pre-wrap text-sm">{errorMessage}</pre>
+                {user && (
+                  <div className="mt-4 p-3 bg-red-500/10 rounded-lg text-xs">
+                    <p className="text-red-200 mb-2">🔍 Informations de débogage:</p>
+                    <p className="text-red-300">User ID: {user.id}</p>
+                    <p className="text-red-300">Email: {user.email}</p>
+                    <p className="text-red-300">Role: {user.role}</p>
+                    <p className="text-red-300 mt-2">Vérifiez que cet utilisateur est bien membre du bureau d'un club actif dans la base de données.</p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
 
         {userClubs.length === 0 ? (
-          <div className="bg-white rounded-3xl shadow-xl p-12 text-center border border-gray-100">
+          <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl shadow-xl p-12 text-center">
             <span className="text-7xl mb-4 block">🏢</span>
-            <p className="text-gray-600 text-lg">Vous devez être membre du bureau d'un club pour ajouter des membres.</p>
+            <p className="text-white/70 text-lg">Vous devez être membre du bureau d'un club pour ajouter des membres.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-3xl shadow-xl p-8 border border-gray-100">
+          <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl shadow-xl p-8">
             {/* Form Sections */}
             <div className="space-y-8">
               {/* Section 1: Personal Info */}
               <div>
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                  <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
                     <span className="text-xl">1️⃣</span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800">Informations Personnelles</h3>
+                  <h3 className="text-xl font-bold text-white">Informations Personnelles</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Prénom <span className="text-red-500">*</span>
+                    <label className="block text-white font-semibold mb-2">
+                      Prénom <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="text"
                       name="first_name"
                       value={memberData.first_name}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                       placeholder="Entrez le prénom"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Nom <span className="text-red-500">*</span>
+                    <label className="block text-white font-semibold mb-2">
+                      Nom <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="text"
                       name="last_name"
                       value={memberData.last_name}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                       placeholder="Entrez le nom"
                     />
                   </div>
@@ -318,28 +342,28 @@ const BureauxAddMember = () => {
 
               {/* Section 2: Contact */}
               <div>
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                  <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
                     <span className="text-xl">2️⃣</span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800">Coordonnées</h3>
+                  <h3 className="text-xl font-bold text-white">Coordonnées</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Email <span className="text-red-500">*</span>
+                    <label className="block text-white font-semibold mb-2">
+                      Email <span className="text-red-400">*</span>
                     </label>
                     <input
                       type="email"
                       name="email"
                       value={memberData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                       placeholder="email@example.com"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
+                    <label className="block text-white font-semibold mb-2">
                       Téléphone
                     </label>
                     <input
@@ -347,12 +371,12 @@ const BureauxAddMember = () => {
                       name="phone"
                       value={memberData.phone}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                       placeholder="+212 6XX XXX XXX"
                     />
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
+                    <label className="block text-white font-semibold mb-2">
                       CNE
                     </label>
                     <input
@@ -360,7 +384,7 @@ const BureauxAddMember = () => {
                       name="cne"
                       value={memberData.cne}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                       placeholder="Code National Étudiant"
                     />
                   </div>
@@ -369,37 +393,37 @@ const BureauxAddMember = () => {
 
               {/* Section 3: Role */}
               <div>
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                  <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                  <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
                     <span className="text-xl">3️⃣</span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800">Rôle et Position</h3>
+                  <h3 className="text-xl font-bold text-white">Rôle et Position</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Rôle <span className="text-red-500">*</span>
+                    <label className="block text-white font-semibold mb-2">
+                      Rôle <span className="text-red-400">*</span>
                     </label>
                     <select
                       name="role"
                       value={memberData.role}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all cursor-pointer"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all cursor-pointer"
                     >
-                      <option value="member">Membre</option>
-                      <option value="board">Membre du Bureau</option>
+                      <option value="member" className="bg-gray-900">Membre</option>
+                      <option value="board" className="bg-gray-900">Membre du Bureau</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-gray-700 font-semibold mb-2">
-                      Position {memberData.role === 'board' && <span className="text-red-500">*</span>}
+                    <label className="block text-white font-semibold mb-2">
+                      Position {memberData.role === 'board' && <span className="text-red-400">*</span>}
                     </label>
                     <input
                       type="text"
                       name="position"
                       value={memberData.position}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                      className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
                       placeholder={memberData.role === 'board' ? "Ex: Trésorier, Secrétaire..." : "Ex: Membre actif"}
                     />
                   </div>
@@ -408,15 +432,15 @@ const BureauxAddMember = () => {
 
               {/* Section 4: Security */}
               <div>
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                  <div className="w-10 h-10 bg-pink-100 rounded-xl flex items-center justify-center">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                  <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
                     <span className="text-xl">4️⃣</span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800">Sécurité</h3>
+                  <h3 className="text-xl font-bold text-white">Sécurité</h3>
                 </div>
                 <div>
-                  <label className="block text-gray-700 font-semibold mb-2">
-                    Mot de passe temporaire <span className="text-red-500">*</span>
+                  <label className="block text-white font-semibold mb-2">
+                    Mot de passe temporaire <span className="text-red-400">*</span>
                   </label>
                   <div className="flex gap-3">
                     <input
@@ -424,13 +448,13 @@ const BureauxAddMember = () => {
                       name="password"
                       value={memberData.password}
                       onChange={handleChange}
-                      className="flex-1 px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:bg-white transition-all font-mono"
+                      className="flex-1 px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all font-mono"
                       placeholder="Minimum 6 caractères"
                     />
                     <button
                       type="button"
                       onClick={generatePassword}
-                      className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                      className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-semibold hover:from-red-700 hover:to-red-800 transform hover:scale-105 transition-all duration-300 flex items-center gap-2"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -438,7 +462,7 @@ const BureauxAddMember = () => {
                       Générer
                     </button>
                   </div>
-                  <p className="text-gray-500 text-sm mt-2 flex items-center gap-2">
+                  <p className="text-white/50 text-sm mt-2 flex items-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -453,7 +477,7 @@ const BureauxAddMember = () => {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-red-700 hover:to-red-800 transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-xl"
               >
                 {loading ? (
                   <>

@@ -133,18 +133,18 @@ const PresidentCreateEvent = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black py-8">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 right-20 w-40 h-40 bg-purple-500/20 rounded-full blur-2xl animate-float"></div>
-        <div className="absolute bottom-32 left-20 w-48 h-48 bg-blue-500/15 rounded-full blur-2xl animate-float-delayed"></div>
+        <div className="absolute top-20 right-20 w-40 h-40 bg-red-500/20 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute bottom-32 left-20 w-48 h-48 bg-red-500/15 rounded-full blur-2xl animate-float-delayed"></div>
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-4">
         <div className="mb-8">
           <button
             onClick={() => navigate('/President/Dashboard')}
-            className="flex items-center text-blue-400 hover:text-blue-300 mb-4 transition-colors"
+            className="flex items-center text-red-400 hover:text-red-300 mb-4 transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -179,7 +179,7 @@ const PresidentCreateEvent = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Club Info Display */}
-              <div className="md:col-span-2 mb-4 p-4 bg-blue-500/10 backdrop-blur-sm rounded-xl border border-blue-500/20">
+              <div className="md:col-span-2 mb-4 p-4 bg-red-500/10 backdrop-blur-sm rounded-xl border border-red-500/20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {club.logo_url && (
@@ -190,7 +190,7 @@ const PresidentCreateEvent = () => {
                       <p className="text-sm text-white/60">{club.category}</p>
                     </div>
                   </div>
-                  <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm font-semibold">
+                  <span className="px-3 py-1 bg-red-500/20 text-red-300 rounded-full text-sm font-semibold">
                     Club Président
                   </span>
                 </div>
@@ -207,7 +207,7 @@ const PresidentCreateEvent = () => {
                   value={eventData.title}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Ex: Workshop React.js"
                 />
               </div>
@@ -222,7 +222,7 @@ const PresidentCreateEvent = () => {
                   value={eventData.description}
                   onChange={handleChange}
                   rows="4"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Décrivez l'événement..."
                 />
               </div>
@@ -237,7 +237,7 @@ const PresidentCreateEvent = () => {
                   name="category"
                   value={eventData.category}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Ex: Technology, Sport"
                 />
               </div>
@@ -253,7 +253,7 @@ const PresidentCreateEvent = () => {
                   value={eventData.event_date}
                   onChange={handleChange}
                   required
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
 
@@ -267,7 +267,7 @@ const PresidentCreateEvent = () => {
                   name="registration_deadline"
                   value={eventData.registration_deadline}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
 
@@ -281,7 +281,7 @@ const PresidentCreateEvent = () => {
                   name="location"
                   value={eventData.location}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Ex: Amphi 1"
                 />
               </div>
@@ -297,7 +297,7 @@ const PresidentCreateEvent = () => {
                   value={eventData.capacity}
                   onChange={handleChange}
                   min="1"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Ex: 100"
                 />
               </div>
@@ -314,7 +314,7 @@ const PresidentCreateEvent = () => {
                   onChange={handleChange}
                   min="0"
                   step="0.01"
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="0"
                 />
               </div>
@@ -373,7 +373,7 @@ const PresidentCreateEvent = () => {
                     name="requires_ticket"
                     checked={eventData.requires_ticket}
                     onChange={handleChange}
-                    className="w-5 h-5 text-blue-600 bg-white/5 border-white/20 rounded focus:ring-blue-500"
+                    className="w-5 h-5 text-red-600 bg-white/5 border-white/20 rounded focus:ring-red-500"
                   />
                   <span className="ml-3 text-white">Nécessite un ticket</span>
                 </label>
@@ -384,7 +384,7 @@ const PresidentCreateEvent = () => {
                     name="tickets_for_all"
                     checked={eventData.tickets_for_all}
                     onChange={handleChange}
-                    className="w-5 h-5 text-blue-600 bg-white/5 border-white/20 rounded focus:ring-blue-500"
+                    className="w-5 h-5 text-red-600 bg-white/5 border-white/20 rounded focus:ring-red-500"
                   />
                   <span className="ml-3 text-white">Tickets pour tous les membres</span>
                 </label>
@@ -396,7 +396,7 @@ const PresidentCreateEvent = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 shadow-lg"
+                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-red-700 hover:to-red-800 transition-all duration-300 disabled:opacity-50 shadow-lg"
               >
                 {loading ? 'Création en cours...' : 'Créer l\'Événement'}
               </button>

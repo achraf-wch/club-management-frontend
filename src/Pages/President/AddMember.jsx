@@ -203,11 +203,11 @@ const PresidentAddMember = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black py-8">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-40 h-40 bg-blue-500/20 rounded-full blur-2xl animate-float"></div>
-        <div className="absolute bottom-32 right-20 w-48 h-48 bg-purple-500/15 rounded-full blur-2xl animate-float-delayed"></div>
+        <div className="absolute top-20 left-10 w-40 h-40 bg-red-500/20 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute bottom-32 right-20 w-48 h-48 bg-red-500/15 rounded-full blur-2xl animate-float-delayed"></div>
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto px-4">
@@ -260,7 +260,7 @@ const PresidentAddMember = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Club Info Display */}
-              <div className="md:col-span-2 mb-4 p-4 bg-blue-500/10 backdrop-blur-sm rounded-xl border border-blue-500/20">
+              <div className="md:col-span-2 mb-4 p-4 bg-red-500/10 backdrop-blur-sm rounded-xl border border-red-500/20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {club.logo_url && (
@@ -271,7 +271,7 @@ const PresidentAddMember = () => {
                       <p className="text-sm text-white/60">{club.category}</p>
                     </div>
                   </div>
-                  <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded-full text-sm font-semibold">
+                  <span className="px-3 py-1 bg-red-500/20 text-red-300 rounded-full text-sm font-semibold">
                     Club Président
                   </span>
                 </div>
@@ -287,7 +287,7 @@ const PresidentAddMember = () => {
                   name="first_name"
                   value={memberData.first_name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Entrez le prénom"
                 />
               </div>
@@ -302,7 +302,7 @@ const PresidentAddMember = () => {
                   name="last_name"
                   value={memberData.last_name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Entrez le nom"
                 />
               </div>
@@ -317,7 +317,7 @@ const PresidentAddMember = () => {
                   name="email"
                   value={memberData.email}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="email@example.com"
                 />
               </div>
@@ -332,7 +332,7 @@ const PresidentAddMember = () => {
                   name="phone"
                   value={memberData.phone}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="+212 6XX XXX XXX"
                 />
               </div>
@@ -347,7 +347,7 @@ const PresidentAddMember = () => {
                   name="cne"
                   value={memberData.cne}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder="Code National Étudiant"
                 />
               </div>
@@ -361,10 +361,10 @@ const PresidentAddMember = () => {
                   name="role"
                   value={memberData.role}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 >
-                  <option value="member" className="bg-slate-800">Membre Simple</option>
-                  <option value="board" className="bg-slate-800">Membre du Bureau</option>
+                  <option value="member" className="bg-gray-800">Membre Simple</option>
+                  <option value="board" className="bg-gray-800">Membre du Bureau</option>
                 </select>
                 <p className="text-white/50 text-xs mt-1">
                   {memberData.role === 'board' ? '👔 Membre du bureau avec position spécifique' : '👤 Membre régulier du club'}
@@ -381,7 +381,7 @@ const PresidentAddMember = () => {
                   name="position"
                   value={memberData.position}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   placeholder={memberData.role === 'board' ? "Ex: Trésorier, Secrétaire..." : "Ex: Membre actif, Bénévole..."}
                 />
                 {memberData.role === 'board' && (
@@ -405,13 +405,13 @@ const PresidentAddMember = () => {
                     name="password"
                     value={memberData.password}
                     onChange={handleChange}
-                    className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                    className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono"
                     placeholder="Minimum 6 caractères"
                   />
                   <button
                     type="button"
                     onClick={generatePassword}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center gap-2 whitespace-nowrap"
+                    className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl font-semibold hover:from-red-700 hover:to-red-800 transition-all duration-300 flex items-center gap-2 whitespace-nowrap"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -433,7 +433,7 @@ const PresidentAddMember = () => {
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
+                className="w-full bg-gradient-to-r from-red-600 to-red-700 text-white py-4 px-6 rounded-xl font-semibold hover:from-red-700 hover:to-red-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg"
               >
                 {loading ? (
                   <>

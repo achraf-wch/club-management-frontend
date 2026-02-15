@@ -201,11 +201,11 @@ const PresidentDemandes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-blue-950 to-slate-900 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black py-8">
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-2xl animate-float"></div>
-        <div className="absolute bottom-32 right-20 w-48 h-48 bg-blue-500/15 rounded-full blur-2xl animate-float-delayed"></div>
+        <div className="absolute top-20 left-10 w-40 h-40 bg-red-500/20 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute bottom-32 right-20 w-48 h-48 bg-red-500/15 rounded-full blur-2xl animate-float-delayed"></div>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4">
@@ -213,7 +213,7 @@ const PresidentDemandes = () => {
         <div className="mb-8">
           <button
             onClick={() => navigate('/President/Dashboard')}
-            className="flex items-center text-blue-400 hover:text-blue-300 mb-4 transition-colors"
+            className="flex items-center text-red-400 hover:text-red-300 mb-4 transition-colors"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -231,7 +231,7 @@ const PresidentDemandes = () => {
               onClick={() => setFilter('pending')}
               className={`px-6 py-3 rounded-lg font-semibold transition-all ${
                 filter === 'pending'
-                  ? 'bg-blue-600 text-white shadow-lg'
+                  ? 'bg-red-600 text-white shadow-lg'
                   : 'bg-white/5 text-white/70 hover:bg-white/10'
               }`}
             >
@@ -251,7 +251,7 @@ const PresidentDemandes = () => {
               onClick={() => setFilter('rejected')}
               className={`px-6 py-3 rounded-lg font-semibold transition-all ${
                 filter === 'rejected'
-                  ? 'bg-red-600 text-white shadow-lg'
+                  ? 'bg-gray-600 text-white shadow-lg'
                   : 'bg-white/5 text-white/70 hover:bg-white/10'
               }`}
             >
@@ -263,7 +263,7 @@ const PresidentDemandes = () => {
         {/* Requests List */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
             <p className="text-white/70 mt-4">Chargement des demandes...</p>
           </div>
         ) : requests.length === 0 ? (
@@ -320,7 +320,7 @@ const PresidentDemandes = () => {
         {/* Modal */}
         {showModal && selectedRequest && (
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-slate-900 border border-white/20 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-gray-900 border border-white/20 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
               <div className="p-8">
                 <div className="flex items-start justify-between mb-6">
                   <h2 className="text-2xl font-bold text-white">Détails de la demande</h2>
@@ -393,7 +393,7 @@ const PresidentDemandes = () => {
                     <button
                       onClick={() => handleReject(selectedRequest.id)}
                       disabled={actionLoading}
-                      className="flex-1 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white py-3 px-6 rounded-xl font-semibold transition-all disabled:opacity-50 shadow-lg"
+                      className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 px-6 rounded-xl font-semibold transition-all disabled:opacity-50 shadow-lg"
                     >
                       {actionLoading ? 'Traitement...' : '✗ Refuser'}
                     </button>
