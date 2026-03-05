@@ -16,7 +16,9 @@ const BureauxMembersList = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [viewMode, setViewMode] = useState('grid');
-  
+  const [darkMode, setDarkMode] = useState(false);
+  const dm = darkMode;
+
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('active');
@@ -42,10 +44,9 @@ const BureauxMembersList = () => {
 
     try {
       setLoading(true);
-      
-      // ✅ FIX: Fetch user's club membership (president OR board)
+
       const membershipResponse = await fetch(
-        `${API_BASE_URL}/api/members?person_id=${user.id}&status=active`, 
+        `${API_BASE_URL}/api/members?person_id=${user.id}&status=active`,
         {
           credentials: 'include',
           headers: {
@@ -62,8 +63,7 @@ const BureauxMembersList = () => {
       const membershipData = await membershipResponse.json();
       console.log('✅ User membership data:', membershipData);
 
-      // Find board or president membership
-      const boardMembership = membershipData.find(m => 
+      const boardMembership = membershipData.find(m =>
         (m.role === 'board' || m.role === 'president') && m.status === 'active'
       );
 
@@ -76,7 +76,6 @@ const BureauxMembersList = () => {
       console.log('✅ Board membership found:', boardMembership);
       setUserClub(boardMembership);
 
-      // ✅ Now fetch all members of that club
       const membersResponse = await fetch(
         `${API_BASE_URL}/api/members?club_id=${boardMembership.club_id}`,
         {
@@ -117,7 +116,7 @@ const BureauxMembersList = () => {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(m => 
+      filtered = filtered.filter(m =>
         m.first_name.toLowerCase().includes(query) ||
         m.last_name.toLowerCase().includes(query) ||
         m.email.toLowerCase().includes(query) ||
@@ -145,7 +144,7 @@ const BureauxMembersList = () => {
       const response = await fetch(`${API_BASE_URL}/api/members/${memberToDelete.id}`, {
         method: 'DELETE',
         credentials: 'include',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
@@ -154,8 +153,7 @@ const BureauxMembersList = () => {
 
       if (response.ok) {
         setSuccessMessage(`✓ ${memberToDelete.first_name} ${memberToDelete.last_name} a été retiré avec succès`);
-        
-        // Refresh members list
+
         if (userClub) {
           const membersResponse = await fetch(
             `${API_BASE_URL}/api/members?club_id=${userClub.club_id}`,
@@ -172,7 +170,7 @@ const BureauxMembersList = () => {
             setMembers(membersData);
           }
         }
-        
+
         setTimeout(() => setSuccessMessage(''), 3000);
       } else {
         const data = await response.json();
@@ -188,253 +186,328 @@ const BureauxMembersList = () => {
 
   const getRoleBadge = (role) => {
     const badges = {
-      president: { color: 'bg-red-500/20 text-red-300 border-red-500/30', icon: '👑', label: 'Président' },
-      board: { color: 'bg-white/20 text-white/80 border-white/30', icon: '💼', label: 'Bureau' },
-      member: { color: 'bg-white/10 text-white/70 border-white/20', icon: '👤', label: 'Membre' }
+      president: {
+        color: dm ? 'bg-red-900/40 text-red-300 border border-red-800/40' : 'bg-red-100 text-red-800',
+        icon: '👑', label: 'Président'
+      },
+      board: {
+        color: dm ? 'bg-red-950/40 text-red-400 border border-red-900/40' : 'bg-indigo-100 text-indigo-800',
+        icon: '💼', label: 'Bureau'
+      },
+      member: {
+        color: dm ? 'bg-black/40 text-gray-400 border border-red-900/20' : 'bg-gray-100 text-gray-800',
+        icon: '👤', label: 'Membre'
+      }
     };
     return badges[role] || badges.member;
   };
 
   const getStatusBadge = (status) => {
     const badges = {
-      active: { color: 'bg-green-500/20 text-green-300 border-green-500/30', icon: '✓', label: 'Actif' },
-      inactive: { color: 'bg-red-500/20 text-red-300 border-red-500/30', icon: '✗', label: 'Inactif' },
-      pending: { color: 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30', icon: '⏱', label: 'En attente' }
+      active: {
+        color: dm ? 'bg-green-950/40 text-green-400 border border-green-900/40' : 'bg-green-100 text-green-800',
+        icon: '✓', label: 'Actif'
+      },
+      inactive: {
+        color: dm ? 'bg-red-950/40 text-red-400 border border-red-900/40' : 'bg-red-100 text-red-800',
+        icon: '✗', label: 'Inactif'
+      },
+      pending: {
+        color: dm ? 'bg-yellow-950/40 text-yellow-400 border border-yellow-900/40' : 'bg-yellow-100 text-yellow-800',
+        icon: '⏱', label: 'En attente'
+      }
     };
     return badges[status] || badges.active;
   };
 
+  const inputClass = `w-full px-4 py-3 border-2 rounded-lg transition-all duration-300 placeholder-gray-400 focus:outline-none
+    ${dm
+      ? 'bg-[#0d0d18] border-red-900/40 text-gray-100 focus:ring-2 focus:ring-red-500/40 focus:border-red-700/60'
+      : 'bg-white border-gray-200 text-gray-800 focus:ring-2 focus:ring-red-500 focus:border-red-500'}`;
+
+  const selectClass = `w-full px-4 py-3 border-2 rounded-lg transition-all duration-300 focus:outline-none
+    ${dm
+      ? 'bg-[#0d0d18] border-red-900/40 text-gray-100 focus:ring-2 focus:ring-red-500/40 focus:border-red-700/60 [color-scheme:dark]'
+      : 'bg-white border-gray-200 text-gray-800 focus:ring-2 focus:ring-red-500 focus:border-red-500'}`;
+
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-20 h-20 border-4 border-red-600 border-t-transparent rounded-full animate-spin mb-4 mx-auto"></div>
-          <p className="text-white text-lg font-medium">{!user ? 'Chargement de l\'utilisateur...' : 'Chargement des membres...'}</p>
+      <div className={`min-h-screen flex items-center justify-center ${dm ? 'bg-black' : ''}`}>
+        <div className="text-center animate-pulse">
+          <div className={`inline-block animate-spin rounded-full h-16 w-16 border-4 ${dm ? 'border-red-900/30 border-t-red-500' : 'border-red-500/30 border-t-red-500'}`}></div>
+          <p className={`mt-4 text-lg ${dm ? 'text-gray-400' : 'text-gray-500'}`}>{!user ? 'Chargement de l\'utilisateur...' : 'Chargement des membres...'}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black">
-      {/* Decorative Elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-red-500/10 rounded-full blur-3xl"></div>
-      </div>
+    <div className={`min-h-screen py-8 transition-colors duration-300 ${dm ? 'bg-black' : 'bg-white'}`}>
 
-      <div className="relative max-w-7xl mx-auto px-4 py-8">
-        {/* Return Button */}
-        <button
-          onClick={() => navigate('/Bureaux/dashboard')}
-          className="mb-6 flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 rounded-xl text-white transition-all duration-300"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          Retour au Dashboard
-        </button>
+      {/* Dark Mode Toggle Button */}
+      <button
+        onClick={() => setDarkMode(!dm)}
+        className={`fixed right-6 top-1/2 -translate-y-1/2 z-50 flex items-center justify-center w-14 h-14 rounded-2xl border shadow-xl transition-all duration-300 hover:scale-110
+          ${dm ? 'bg-[#100010] border-red-900/40 hover:bg-[#1a001a]' : 'bg-white border-gray-200 hover:bg-gray-50'}`}>
+        {dm
+          ? <svg className="w-7 h-7 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clipRule="evenodd" /></svg>
+          : <svg className="w-7 h-7 text-gray-600" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" /></svg>
+        }
+      </button>
 
-        {/* Header Card */}
-        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl shadow-xl p-8 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-red-600 to-red-700 rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-3xl">👥</span>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-white">Liste des Membres</h1>
-                {userClub && (
-                  <p className="text-white/70">Club: <span className="font-semibold text-red-400">{userClub.club_name}</span></p>
-                )}
-              </div>
+      <div className="max-w-7xl mx-auto px-4">
+
+        {/* Header */}
+        <div className="mb-8 animate-fadeInDown">
+          <h1 className={`text-4xl font-bold ${dm ? 'text-red-400' : 'text-gray-900'}`}>
+            Liste des <span className="text-red-500">Membres</span>
+          </h1>
+          {userClub && (
+            <div className="flex items-center gap-3 mt-3">
+              <p className={dm ? 'text-gray-400' : 'text-gray-500'}>
+                Club: <span className={`font-semibold ${dm ? 'text-red-400' : 'text-red-500'}`}>{userClub.club_name}</span>
+              </p>
             </div>
-
-            {/* View Mode Toggle */}
-            <div className="flex items-center gap-2 bg-white/5 p-1 rounded-xl border border-white/10">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-red-600 shadow-md text-white' : 'text-white/60 hover:text-white'}`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setViewMode('table')}
-                className={`p-2 rounded-lg transition-all ${viewMode === 'table' ? 'bg-red-600 shadow-md text-white' : 'text-white/60 hover:text-white'}`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Success/Error Messages */}
-        {successMessage && (
-          <div className="mb-6 bg-green-500/20 border-2 border-green-500/40 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
+        {/* Stats Cards */}
+        {members.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className={`rounded-2xl border p-6 animate-fadeIn ${dm ? 'bg-[#0d0d18] border-red-900/20' : 'bg-gradient-to-br from-[#0f1d4a] to-[#0a1235] border-blue-500/20'}`}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">Total Membres</p>
+                  <p className={`text-3xl font-bold mt-1 ${dm ? 'text-red-300' : 'text-white'}`}>{members.length}</p>
+                </div>
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/50 animate-bounce-slow">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
               </div>
-              <p className="font-bold text-green-300">{successMessage}</p>
+            </div>
+
+            <div className={`rounded-2xl border p-6 animate-fadeIn ${dm ? 'bg-[#0d0d18] border-red-900/20' : 'bg-gradient-to-br from-[#0f1d4a] to-[#0a1235] border-blue-500/20'}`} style={{ animationDelay: '0.1s' }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">Actifs</p>
+                  <p className={`text-3xl font-bold mt-1 ${dm ? 'text-red-300' : 'text-white'}`}>{members.filter(m => m.status === 'active').length}</p>
+                </div>
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-lg shadow-green-500/50 animate-bounce-slow" style={{ animationDelay: '0.5s' }}>
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className={`rounded-2xl border p-6 animate-fadeIn ${dm ? 'bg-[#0d0d18] border-red-900/20' : 'bg-gradient-to-br from-[#0f1d4a] to-[#0a1235] border-blue-500/20'}`} style={{ animationDelay: '0.2s' }}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">Bureau</p>
+                  <p className={`text-3xl font-bold mt-1 ${dm ? 'text-red-300' : 'text-white'}`}>{members.filter(m => m.role === 'board' || m.role === 'president').length}</p>
+                </div>
+                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-500/50 animate-bounce-slow" style={{ animationDelay: '1s' }}>
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {errorMessage && (
-          <div className="mb-6 bg-red-500/20 border-2 border-red-500/40 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
+        {/* Success Message */}
+        {successMessage && (
+          <div className={`mb-6 border-2 px-6 py-4 rounded-xl shadow-lg animate-slideInLeft
+            ${dm
+              ? 'bg-green-950/40 border-green-700/40 text-green-300 shadow-green-900/20'
+              : 'bg-gradient-to-r from-green-100 to-green-50 border-green-400 text-green-800 shadow-green-200'}`}>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </div>
-              <p className="font-semibold text-red-300">{errorMessage}</p>
+              <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-semibold">{successMessage}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {errorMessage && (
+          <div className={`mb-6 border-2 px-6 py-4 rounded-xl shadow-lg animate-slideInLeft
+            ${dm
+              ? 'bg-red-950/40 border-red-800/40 text-red-300 shadow-red-900/20'
+              : 'bg-gradient-to-r from-red-100 to-red-50 border-red-400 text-red-800 shadow-red-200'}`}>
+            <div className="flex items-center gap-3">
+              <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span className="font-semibold">{errorMessage}</span>
             </div>
           </div>
         )}
 
         {!userClub ? (
-          <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl shadow-xl p-12 text-center">
-            <span className="text-7xl mb-4 block">🏢</span>
-            <p className="text-white/70 text-lg">Vous devez être membre du bureau d'un club pour voir cette page.</p>
+          <div className={`rounded-2xl shadow-sm p-12 text-center border animate-fadeIn ${dm ? 'bg-[#0d0d18] border-red-900/20' : 'bg-gray-50 border-gray-200'}`}>
+            <div className="text-6xl mb-4">🏢</div>
+            <p className={`text-lg ${dm ? 'text-gray-400' : 'text-gray-500'}`}>Vous devez être membre du bureau d'un club pour voir cette page.</p>
           </div>
         ) : (
           <>
-            {/* Filter Panel */}
-            <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl p-6 mb-6">
+            {/* Filters */}
+            <div className={`rounded-2xl shadow-sm p-6 mb-6 border animate-slideInLeft ${dm ? 'bg-[#0d0d18] border-red-900/20' : 'bg-gray-50 border-gray-200'}`}>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Search */}
                 <div className="md:col-span-2">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Rechercher par nom, email, position..."
-                      className="w-full px-4 py-3 pl-12 bg-white/5 border-2 border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-red-500 focus:bg-white/10 transition-all"
-                    />
-                    <svg className="w-5 h-5 text-white/40 absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                  </div>
+                  <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-700'}`}>Rechercher</label>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Nom, email, position..."
+                    className={inputClass}
+                  />
                 </div>
 
                 {/* Role Filter */}
                 <div>
+                  <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-700'}`}>Rôle</label>
                   <select
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-red-500 transition-all cursor-pointer"
+                    className={selectClass}
                   >
-                    <option value="all" className="bg-gray-900">Tous les rôles</option>
-                    <option value="president" className="bg-gray-900">Président</option>
-                    <option value="board" className="bg-gray-900">Bureau</option>
-                    <option value="member" className="bg-gray-900">Membre</option>
+                    <option value="all">Tous les rôles</option>
+                    <option value="president">Président</option>
+                    <option value="board">Bureau</option>
+                    <option value="member">Membre</option>
                   </select>
                 </div>
 
                 {/* Status Filter */}
                 <div>
+                  <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-700'}`}>Statut</label>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/5 border-2 border-white/10 rounded-xl text-white focus:outline-none focus:border-red-500 transition-all cursor-pointer"
+                    className={selectClass}
                   >
-                    <option value="all" className="bg-gray-900">Tous les statuts</option>
-                    <option value="active" className="bg-gray-900">Actif</option>
-                    <option value="inactive" className="bg-gray-900">Inactif</option>
-                    <option value="pending" className="bg-gray-900">En attente</option>
+                    <option value="all">Tous les statuts</option>
+                    <option value="active">Actif</option>
+                    <option value="inactive">Inactif</option>
+                    <option value="pending">En attente</option>
                   </select>
                 </div>
               </div>
 
-              <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
-                <p className="text-white/70">
-                  <span className="font-bold text-red-400 text-lg">{filteredMembers.length}</span> membre{filteredMembers.length !== 1 ? 's' : ''}
+              <div className={`mt-4 pt-4 border-t flex items-center justify-between ${dm ? 'border-red-900/20' : 'border-gray-200'}`}>
+                <p className={dm ? 'text-gray-400' : 'text-gray-500'}>
+                  <span className="font-bold text-red-500 text-lg">{filteredMembers.length}</span> membre{filteredMembers.length !== 1 ? 's' : ''}
                 </p>
-                {(searchQuery || roleFilter !== 'all' || statusFilter !== 'all') && (
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      setRoleFilter('all');
-                      setStatusFilter('all');
-                    }}
-                    className="text-sm text-red-400 hover:text-red-300 font-semibold"
-                  >
-                    Réinitialiser les filtres
-                  </button>
-                )}
+                <div className="flex items-center gap-4">
+                  {(searchQuery || roleFilter !== 'all' || statusFilter !== 'all') && (
+                    <button
+                      onClick={() => { setSearchQuery(''); setRoleFilter('all'); setStatusFilter('all'); }}
+                      className={`text-sm font-semibold ${dm ? 'text-red-400 hover:text-red-300' : 'text-red-500 hover:text-red-700'}`}
+                    >
+                      Réinitialiser les filtres
+                    </button>
+                  )}
+                  {/* View Mode Toggle */}
+                  <div className={`flex items-center gap-1 p-1 rounded-lg ${dm ? 'bg-black/40' : 'bg-gray-200'}`}>
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`p-1.5 rounded transition-all ${
+                        viewMode === 'grid'
+                          ? dm ? 'bg-red-900/40 text-red-300' : 'bg-white shadow text-gray-900'
+                          : dm ? 'text-gray-600 hover:text-gray-400' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setViewMode('table')}
+                      className={`p-1.5 rounded transition-all ${
+                        viewMode === 'table'
+                          ? dm ? 'bg-red-900/40 text-red-300' : 'bg-white shadow text-gray-900'
+                          : dm ? 'text-gray-600 hover:text-gray-400' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Members Display */}
             {filteredMembers.length === 0 ? (
-              <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl shadow-xl p-12 text-center">
-                <svg className="w-20 h-20 text-white/20 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <p className="text-white/70 text-lg font-medium">Aucun membre trouvé</p>
-                <p className="text-white/50 text-sm mt-2">Essayez de modifier vos filtres</p>
+              <div className={`rounded-2xl shadow-sm p-12 text-center border animate-fadeIn ${dm ? 'bg-[#0d0d18] border-red-900/20' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="text-6xl mb-4">👥</div>
+                <p className={`text-lg mb-2 ${dm ? 'text-gray-400' : 'text-gray-500'}`}>Aucun membre trouvé</p>
+                <p className={`text-sm ${dm ? 'text-gray-600' : 'text-gray-400'}`}>Essayez de modifier vos filtres</p>
               </div>
             ) : viewMode === 'grid' ? (
               /* Grid View */
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-slideInRight">
                 {filteredMembers.map((member) => {
                   const roleBadge = getRoleBadge(member.role);
                   const statusBadge = getStatusBadge(member.status);
-                  
+
                   return (
                     <div
                       key={member.id}
-                      className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl shadow-lg hover:shadow-2xl hover:border-white/30 overflow-hidden transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                      className={`rounded-2xl shadow-md border overflow-hidden transition-all duration-300 transform hover:scale-105 cursor-pointer
+                        ${dm
+                          ? 'bg-[#0d0d18] border-red-900/20 hover:border-red-700/40 hover:shadow-red-900/30 hover:shadow-lg'
+                          : 'bg-white border-gray-100 hover:shadow-lg hover:border-red-200'}`}
                       onClick={() => handleViewMember(member)}
                     >
-                      <div className="bg-gradient-to-r from-red-600 to-red-700 p-6 text-center">
-                        <div className="w-20 h-20 mx-auto bg-white rounded-full flex items-center justify-center shadow-lg mb-3">
-                          <span className="text-3xl font-bold text-red-600">
+                      <div className={`p-6 text-center ${dm ? 'bg-gradient-to-r from-red-950/60 to-black' : 'bg-gradient-to-r from-red-600 to-red-700'}`}>
+                        <div className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center shadow-lg mb-3 ${dm ? 'bg-black border-2 border-red-800/50' : 'bg-white'}`}>
+                          <span className={`text-3xl font-bold ${dm ? 'text-red-400' : 'text-red-600'}`}>
                             {member.first_name[0]}{member.last_name[0]}
                           </span>
                         </div>
-                        <h3 className="text-xl font-bold text-white">{member.first_name} {member.last_name}</h3>
-                        <p className="text-red-100 text-sm">{member.email}</p>
+                        <h3 className={`text-xl font-bold ${dm ? 'text-red-300' : 'text-white'}`}>{member.first_name} {member.last_name}</h3>
+                        <p className={`text-sm ${dm ? 'text-red-900' : 'text-red-100'}`}>{member.email}</p>
                       </div>
 
-                      <div className="p-6 space-y-3">
+                      <div className="p-5 space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${roleBadge.color} flex items-center gap-1`}>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${roleBadge.color} flex items-center gap-1`}>
                             <span>{roleBadge.icon}</span>
                             {roleBadge.label}
                           </span>
-                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusBadge.color} flex items-center gap-1`}>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusBadge.color} flex items-center gap-1`}>
                             <span>{statusBadge.icon}</span>
                             {statusBadge.label}
                           </span>
                         </div>
 
                         {member.position && (
-                          <div className="text-center p-2 bg-white/5 rounded-lg">
-                            <p className="text-xs text-white/50">Position</p>
-                            <p className="font-semibold text-white">{member.position}</p>
+                          <div className={`text-center p-2 rounded-lg ${dm ? 'bg-black/40 border border-red-900/20' : 'bg-gray-50'}`}>
+                            <p className={`text-xs ${dm ? 'text-gray-600' : 'text-gray-400'}`}>Position</p>
+                            <p className={`font-semibold ${dm ? 'text-gray-300' : 'text-gray-800'}`}>{member.position}</p>
                           </div>
                         )}
 
-                        <div className="text-center text-xs text-white/50 pt-2 border-t border-white/10">
+                        <div className={`text-center text-xs pt-2 border-t ${dm ? 'text-gray-600 border-red-900/20' : 'text-gray-400 border-gray-100'}`}>
                           Membre depuis {new Date(member.joined_at).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}
                         </div>
 
                         {member.status === 'active' && member.role !== 'president' && (
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteClick(member);
-                            }}
-                            className="w-full py-2 bg-red-500/20 text-red-300 rounded-lg hover:bg-red-500/30 transition-colors font-semibold text-sm"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteClick(member); }}
+                            className={`w-full py-2 rounded-lg transition-colors font-semibold text-sm border
+                              ${dm
+                                ? 'bg-red-950/30 text-red-400 border-red-900/40 hover:bg-red-950/50'
+                                : 'bg-red-50 text-red-500 border-red-200 hover:bg-red-100'}`}
                           >
                             Retirer
                           </button>
@@ -445,53 +518,55 @@ const BureauxMembersList = () => {
                 })}
               </div>
             ) : (
-              /* Table View - Keep the same as before */
-              <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl shadow-xl overflow-hidden">
+              /* Table View */
+              <div className={`rounded-2xl shadow-md overflow-hidden border animate-slideInRight ${dm ? 'bg-[#0d0d18] border-red-900/20' : 'bg-white border-gray-200'}`}>
                 <div className="overflow-x-auto">
                   <table className="w-full">
-                    <thead className="bg-gradient-to-r from-red-600 to-red-700 text-white">
+                    <thead className={dm ? 'bg-gradient-to-r from-red-950/60 to-black border-b border-red-900/30' : 'bg-gradient-to-r from-red-600 to-red-700 border-b border-red-500/30'}>
                       <tr>
-                        <th className="px-6 py-4 text-left text-sm font-bold">Membre</th>
-                        <th className="px-6 py-4 text-left text-sm font-bold">Contact</th>
-                        <th className="px-6 py-4 text-left text-sm font-bold">Rôle</th>
-                        <th className="px-6 py-4 text-left text-sm font-bold">Position</th>
-                        <th className="px-6 py-4 text-left text-sm font-bold">Statut</th>
-                        <th className="px-6 py-4 text-center text-sm font-bold">Actions</th>
+                        <th className={`px-6 py-4 text-left text-sm font-bold ${dm ? 'text-red-300' : 'text-white'}`}>Membre</th>
+                        <th className={`px-6 py-4 text-left text-sm font-bold ${dm ? 'text-red-300' : 'text-white'}`}>Contact</th>
+                        <th className={`px-6 py-4 text-left text-sm font-bold ${dm ? 'text-red-300' : 'text-white'}`}>Rôle</th>
+                        <th className={`px-6 py-4 text-left text-sm font-bold ${dm ? 'text-red-300' : 'text-white'}`}>Position</th>
+                        <th className={`px-6 py-4 text-left text-sm font-bold ${dm ? 'text-red-300' : 'text-white'}`}>Statut</th>
+                        <th className={`px-6 py-4 text-center text-sm font-bold ${dm ? 'text-red-300' : 'text-white'}`}>Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-white/10">
-                      {filteredMembers.map((member) => {
+                    <tbody>
+                      {filteredMembers.map((member, index) => {
                         const roleBadge = getRoleBadge(member.role);
                         const statusBadge = getStatusBadge(member.status);
-                        
+
                         return (
-                          <tr key={member.id} className="hover:bg-white/5 transition-colors">
+                          <tr key={member.id}
+                            className={`border-b transition-all duration-300 animate-fadeInUp
+                              ${dm ? 'border-red-900/20 hover:bg-red-950/20' : 'border-gray-100 hover:bg-red-50'}`}
+                            style={{ animationDelay: `${index * 0.05}s` }}>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center text-white font-bold shadow-md">
-                                  {member.first_name[0]}{member.last_name[0]}
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shadow
+                                  ${dm ? 'bg-gradient-to-br from-red-900 to-black border border-red-800/50' : 'bg-gradient-to-br from-red-500 to-red-600'}`}>
+                                  <span className={dm ? 'text-red-400' : 'text-white'}>{member.first_name[0]}{member.last_name[0]}</span>
                                 </div>
                                 <div>
-                                  <p className="font-semibold text-white">{member.first_name} {member.last_name}</p>
-                                  {member.member_code && <p className="text-xs text-white/50">{member.member_code}</p>}
+                                  <p className={`font-semibold ${dm ? 'text-gray-200' : 'text-gray-900'}`}>{member.first_name} {member.last_name}</p>
+                                  {member.member_code && <p className={`text-xs ${dm ? 'text-gray-600' : 'text-gray-400'}`}>{member.member_code}</p>}
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <p className="text-white/70 text-sm">{member.email}</p>
-                              {member.phone && <p className="text-xs text-white/50">{member.phone}</p>}
+                              <p className={`text-sm ${dm ? 'text-gray-400' : 'text-gray-600'}`}>{member.email}</p>
+                              {member.phone && <p className={`text-xs ${dm ? 'text-gray-600' : 'text-gray-400'}`}>{member.phone}</p>}
                             </td>
                             <td className="px-6 py-4">
-                              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${roleBadge.color} inline-flex items-center gap-1`}>
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${roleBadge.color} inline-flex items-center gap-1`}>
                                 <span>{roleBadge.icon}</span>
                                 {roleBadge.label}
                               </span>
                             </td>
+                            <td className={`px-6 py-4 text-sm ${dm ? 'text-gray-400' : 'text-gray-600'}`}>{member.position || '-'}</td>
                             <td className="px-6 py-4">
-                              <p className="text-white/70 text-sm">{member.position || '-'}</p>
-                            </td>
-                            <td className="px-6 py-4">
-                              <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${statusBadge.color} inline-flex items-center gap-1`}>
+                              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusBadge.color} inline-flex items-center gap-1`}>
                                 <span>{statusBadge.icon}</span>
                                 {statusBadge.label}
                               </span>
@@ -500,23 +575,16 @@ const BureauxMembersList = () => {
                               <div className="flex items-center justify-center gap-2">
                                 <button
                                   onClick={() => handleViewMember(member)}
-                                  className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                  title="Voir détails"
+                                  className={`font-semibold transition-all duration-300 hover:scale-110 text-sm ${dm ? 'text-red-400 hover:text-red-300' : 'text-red-500 hover:text-red-700'}`}
                                 >
-                                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                  </svg>
+                                  Voir
                                 </button>
                                 {member.status === 'active' && member.role !== 'president' && (
                                   <button
                                     onClick={() => handleDeleteClick(member)}
-                                    className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                    title="Retirer"
+                                    className={`font-semibold transition-all duration-300 hover:scale-110 text-sm ${dm ? 'text-red-400 hover:text-red-300' : 'text-red-500 hover:text-red-700'}`}
                                   >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
+                                    Retirer
                                   </button>
                                 )}
                               </div>
@@ -531,157 +599,172 @@ const BureauxMembersList = () => {
             )}
           </>
         )}
-      </div>
 
-      {/* Member Details Modal - Keep same as before */}
-      {showModal && selectedMember && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 border border-white/20 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-red-600 to-red-700 p-6 text-white rounded-t-3xl">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold">Détails du Membre</h2>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        {/* Member Details Modal */}
+        {showModal && selectedMember && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fadeIn backdrop-blur-sm">
+            <div className={`rounded-xl shadow-2xl max-w-lg w-full border-2 animate-scaleIn overflow-y-auto max-h-[90vh]
+              ${dm ? 'bg-black border-red-900/40' : 'bg-gradient-to-br from-[#0f1d4a] to-[#0a1235] border-red-500/30'}`}>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-xl font-bold text-white">
+                    Détails du <span className="text-red-400">Membre</span>
+                  </h2>
+                  <button onClick={() => setShowModal(false)}
+                    className="text-gray-400 hover:text-red-400 transition-all duration-300 hover:rotate-90">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className={`p-3 rounded-xl border ${dm ? 'bg-red-950/20 border-red-900/30' : 'bg-white/5 border-white/10'}`}>
+                      <span className="block text-xs font-semibold text-gray-400 mb-1">Prénom</span>
+                      <p className="text-white font-medium">{selectedMember.first_name}</p>
+                    </div>
+                    <div className={`p-3 rounded-xl border ${dm ? 'bg-red-950/20 border-red-900/30' : 'bg-white/5 border-white/10'}`}>
+                      <span className="block text-xs font-semibold text-gray-400 mb-1">Nom</span>
+                      <p className="text-white font-medium">{selectedMember.last_name}</p>
+                    </div>
+                  </div>
+
+                  <div className={`p-3 rounded-xl border ${dm ? 'bg-red-950/20 border-red-900/30' : 'bg-white/5 border-white/10'}`}>
+                    <span className="block text-xs font-semibold text-gray-400 mb-1">Email</span>
+                    <p className="text-white font-medium truncate">{selectedMember.email}</p>
+                  </div>
+
+                  {selectedMember.phone && (
+                    <div className={`p-3 rounded-xl border ${dm ? 'bg-red-950/20 border-red-900/30' : 'bg-white/5 border-white/10'}`}>
+                      <span className="block text-xs font-semibold text-gray-400 mb-1">Téléphone</span>
+                      <p className="text-white font-medium">{selectedMember.phone}</p>
+                    </div>
+                  )}
+
+                  {selectedMember.position && (
+                    <div className={`p-3 rounded-xl border ${dm ? 'bg-red-950/20 border-red-900/30' : 'bg-white/5 border-white/10'}`}>
+                      <span className="block text-xs font-semibold text-gray-400 mb-1">Position</span>
+                      <p className="text-white font-medium">{selectedMember.position}</p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className={`p-3 rounded-xl border ${dm ? 'bg-red-950/20 border-red-900/30' : 'bg-white/5 border-white/10'}`}>
+                      <span className="block text-xs font-semibold text-gray-400 mb-1">Rôle</span>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${getRoleBadge(selectedMember.role).color}`}>
+                        {getRoleBadge(selectedMember.role).icon} {getRoleBadge(selectedMember.role).label}
+                      </span>
+                    </div>
+                    <div className={`p-3 rounded-xl border ${dm ? 'bg-red-950/20 border-red-900/30' : 'bg-white/5 border-white/10'}`}>
+                      <span className="block text-xs font-semibold text-gray-400 mb-1">Statut</span>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusBadge(selectedMember.status).color}`}>
+                        {getStatusBadge(selectedMember.status).label}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className={`p-3 rounded-xl border ${dm ? 'bg-red-950/20 border-red-900/30' : 'bg-white/5 border-white/10'}`}>
+                    <span className="block text-xs font-semibold text-gray-400 mb-1">Membre depuis</span>
+                    <p className="text-white font-medium text-sm">
+                      {new Date(selectedMember.joined_at).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex gap-3">
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="group flex-1 relative bg-gradient-to-r from-[#0f1d4a] via-[#162035] to-[#0f1d4a] text-white py-3 px-4 rounded-xl font-bold
+                    hover:from-[#162035] hover:via-[#1e2a47] hover:to-[#162035] transition-all duration-300
+                    shadow-lg shadow-blue-900/30 hover:scale-[1.02] border-2 border-blue-500/30 overflow-hidden text-sm">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                    <span className="relative z-10">Fermer</span>
+                  </button>
+
+                  {selectedMember.status === 'active' && selectedMember.role !== 'president' && (
+                    <button
+                      onClick={() => { setShowModal(false); handleDeleteClick(selectedMember); }}
+                      className="group flex-1 relative bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-4 rounded-xl font-bold
+                      hover:from-red-500 hover:to-red-600 transition-all duration-300
+                      shadow-lg shadow-red-900/30 hover:scale-[1.02] border-2 border-red-500/30 overflow-hidden text-sm">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                      <span className="relative z-10">Retirer</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
+          </div>
+        )}
 
-            <div className="p-8 space-y-6">
-              <div className="flex items-center gap-4 pb-6 border-b border-white/10">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-red-600 to-red-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
-                  {selectedMember.first_name[0]}{selectedMember.last_name[0]}
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && memberToDelete && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 animate-fadeIn backdrop-blur-sm">
+            <div className={`rounded-xl shadow-2xl max-w-md w-full border-2 animate-scaleIn
+              ${dm ? 'bg-black border-red-900/40' : 'bg-gradient-to-br from-[#0f1d4a] to-[#0a1235] border-red-500/30'}`}>
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-xl font-bold text-white">
+                    <span className="text-red-400">Confirmation</span>
+                  </h2>
+                  <button onClick={() => { setShowDeleteConfirm(false); setMemberToDelete(null); }}
+                    className="text-gray-400 hover:text-red-400 transition-all duration-300 hover:rotate-90">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-white">{selectedMember.first_name} {selectedMember.last_name}</h3>
-                  <p className="text-white/60">{selectedMember.email}</p>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {(() => {
-                  const roleBadge = getRoleBadge(selectedMember.role);
-                  const statusBadge = getStatusBadge(selectedMember.status);
-                  
-                  return (
-                    <>
-                      <div className="bg-white/5 p-4 rounded-xl">
-                        <p className="text-white/50 text-sm mb-2">Rôle</p>
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${roleBadge.color} inline-flex items-center gap-1`}>
-                          <span>{roleBadge.icon}</span>
-                          {roleBadge.label}
-                        </span>
-                      </div>
-
-                      <div className="bg-white/5 p-4 rounded-xl">
-                        <p className="text-white/50 text-sm mb-2">Statut</p>
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold border ${statusBadge.color} inline-flex items-center gap-1`}>
-                          <span>{statusBadge.icon}</span>
-                          {statusBadge.label}
-                        </span>
-                      </div>
-                    </>
-                  );
-                })()}
-
-                {selectedMember.position && (
-                  <div className="bg-white/5 p-4 rounded-xl col-span-2">
-                    <p className="text-white/50 text-sm mb-1">Position</p>
-                    <p className="font-semibold text-white">{selectedMember.position}</p>
-                  </div>
-                )}
-
-                {selectedMember.phone && (
-                  <div className="bg-white/5 p-4 rounded-xl">
-                    <p className="text-white/50 text-sm mb-1">Téléphone</p>
-                    <p className="font-semibold text-white">{selectedMember.phone}</p>
-                  </div>
-                )}
-
-                <div className="bg-white/5 p-4 rounded-xl">
-                  <p className="text-white/50 text-sm mb-1">Date d'adhésion</p>
-                  <p className="font-semibold text-white">
-                    {new Date(selectedMember.joined_at).toLocaleDateString('fr-FR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
-                    })}
+                <div className={`p-4 rounded-xl border mb-4 ${dm ? 'bg-red-950/20 border-red-900/30' : 'bg-white/5 border-white/10'}`}>
+                  <p className="text-white text-base mb-2">
+                    Êtes-vous sûr de vouloir retirer <span className="font-bold text-red-400">{memberToDelete.first_name} {memberToDelete.last_name}</span> du club ?
+                  </p>
+                  <p className="text-gray-400 text-sm">
+                    Cette action changera le statut du membre en "inactif".
                   </p>
                 </div>
-              </div>
 
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-colors"
-                >
-                  Fermer
-                </button>
-                {selectedMember.status === 'active' && selectedMember.role !== 'president' && (
+                <div className="flex gap-3">
                   <button
-                    onClick={() => {
-                      setShowModal(false);
-                      handleDeleteClick(selectedMember);
-                    }}
-                    className="flex-1 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors"
-                  >
-                    Retirer
+                    onClick={() => { setShowDeleteConfirm(false); setMemberToDelete(null); }}
+                    className="group flex-1 relative bg-gradient-to-r from-[#0f1d4a] via-[#162035] to-[#0f1d4a] text-white py-3 px-4 rounded-xl font-bold
+                    hover:from-[#162035] hover:via-[#1e2a47] hover:to-[#162035] transition-all duration-300
+                    shadow-lg shadow-blue-900/30 hover:scale-[1.02] border-2 border-blue-500/30 overflow-hidden text-sm">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                    <span className="relative z-10">Annuler</span>
                   </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal - Keep same as before */}
-      {showDeleteConfirm && memberToDelete && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-900 border border-white/20 rounded-3xl shadow-2xl max-w-md w-full">
-            <div className="bg-red-600 p-6 text-white rounded-t-3xl">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
+                  <button
+                    onClick={confirmDelete}
+                    className="group flex-1 relative bg-gradient-to-r from-red-600 to-red-700 text-white py-3 px-4 rounded-xl font-bold
+                    hover:from-red-500 hover:to-red-600 transition-all duration-300
+                    shadow-lg shadow-red-900/30 hover:scale-[1.02] border-2 border-red-500/30 overflow-hidden text-sm">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                    <span className="relative z-10">Confirmer</span>
+                  </button>
                 </div>
-                <h2 className="text-2xl font-bold">Confirmation</h2>
-              </div>
-            </div>
-
-            <div className="p-6">
-              <p className="text-white text-lg mb-4">
-                Êtes-vous sûr de vouloir retirer <span className="font-bold">{memberToDelete.first_name} {memberToDelete.last_name}</span> du club ?
-              </p>
-              <p className="text-white/60 text-sm mb-6">
-                Cette action changera le statut du membre en "inactif".
-              </p>
-
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setShowDeleteConfirm(false);
-                    setMemberToDelete(null);
-                  }}
-                  className="flex-1 px-6 py-3 bg-white/10 border border-white/20 text-white rounded-xl font-semibold hover:bg-white/20 transition-colors"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="flex-1 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors"
-                >
-                  Confirmer
-                </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        <style>{`
+          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+          @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+          @keyframes slideInLeft { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+          @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+          @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+          @keyframes bounceSlow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+          .animate-fadeIn { animation: fadeIn 0.6s ease-out forwards; }
+          .animate-fadeInDown { animation: fadeInDown 0.6s ease-out; }
+          .animate-fadeInUp { animation: fadeInUp 0.6s ease-out forwards; }
+          .animate-slideInLeft { animation: slideInLeft 0.7s ease-out; }
+          .animate-slideInRight { animation: slideInRight 0.7s ease-out; }
+          .animate-scaleIn { animation: scaleIn 0.3s ease-out; }
+          .animate-bounce-slow { animation: bounceSlow 3s ease-in-out infinite; }
+        `}</style>
+      </div>
     </div>
   );
 };

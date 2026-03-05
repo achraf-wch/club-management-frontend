@@ -15,3 +15,18 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+iframe.goog-te-banner-frame {
+  display: none !important;
+}
+
+.goog-te-banner-frame {
+  display: none !important;
+}
+
+#goog-gt-tt {
+  display: none !important;
+}
+
+.goog-te-balloon-frame {
+  display: none !important;
+}

@@ -4,9 +4,7 @@ const AuthContext = createContext();
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };
 
@@ -15,15 +13,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    // Au démarrage, récupère l'user depuis localStorage
     const storedUser = localStorage.getItem('person');
-    
-    if (token && storedUser) {
+    if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('token');
+      } catch {
         localStorage.removeItem('person');
       }
     }
@@ -31,29 +26,34 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
+    // userData = { id, first_name, last_name, email, avatar_url, ... }
     setUser(userData);
-    localStorage.setItem('token', userData.token);
     localStorage.setItem('person', JSON.stringify(userData));
   };
 
+  const updateUser = (newUserData) => {
+    // Merge les nouvelles données avec l'existant
+    setUser(prev => {
+      const merged = { ...prev, ...newUserData };
+      localStorage.setItem('person', JSON.stringify(merged));
+      return merged;
+    });
+  };
+
   const logout = async () => {
-    const token = localStorage.getItem('token');
-    
     try {
       await fetch('http://localhost:8000/api/logout', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
+          'Accept': 'application/json',
+        },
+        credentials: 'include',
       });
     } catch (error) {
       console.error('Logout error:', error);
     }
-    
     setUser(null);
-    localStorage.removeItem('token');
     localStorage.removeItem('person');
   };
 
@@ -61,9 +61,9 @@ export const AuthProvider = ({ children }) => {
     user,
     login,
     logout,
+    updateUser,
     loading,
     isAuthenticated: !!user,
-    token: user?.token
   };
 
   return (

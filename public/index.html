@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <style>
+      .goog-te-banner-frame { display: none !important; }
+      .goog-te-menu-value:hover { text-decoration: none !important; }
+      body { top: 0 !important; }
+      #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+    </style>
+
+    
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -27,6 +35,7 @@
     <title>React App</title>
   </head>
   <body>
+    <div id="google_translate_element" style="display:none"></div>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <!--
@@ -39,5 +48,30 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+       
+<script>
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+      {pageLanguage: 'fr', includedLanguages: 'ar,en,fr', layout: google.translate.TranslateElement.InlineLayout.SIMPLE},
+      'google_translate_element'
+    );
+  }
+
+  // Cache la barre automatiquement
+  function hideBanner() {
+    var banner = document.querySelector('.goog-te-banner-frame');
+    if (banner) {
+      banner.style.display = 'none';
+      document.body.style.top = '0px';
+    } else {
+      setTimeout(hideBanner, 500);
+    }
+  }
+  
+  window.onload = function() {
+    setTimeout(hideBanner, 1000);
+  }
+</script>
+<script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   </body>
 </html>

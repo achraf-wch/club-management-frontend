@@ -7,12 +7,25 @@ const PresidentDashboard = () => {
   const navigate = useNavigate();
   const [club, setClub] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
+  const dm = darkMode;
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
+  const [typedText, setTypedText] = useState('');
+  const fullText = `Bienvenue, ${user?.first_name} Président !`;
+
   useEffect(() => {
-    fetchMyClub();
+    let index = 0;
+    const interval = setInterval(() => {
+      setTypedText(fullText.slice(0, index + 1));
+      index++;
+      if (index === fullText.length) clearInterval(interval);
+    }, 60);
+    return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => { fetchMyClub(); }, []);
 
   const fetchMyClub = async () => {
     try {
@@ -20,11 +33,7 @@ const PresidentDashboard = () => {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setClub(data);
-      }
+      if (response.ok) { const data = await response.json(); setClub(data); }
     } catch (error) {
       console.error('Error fetching club:', error);
     } finally {
@@ -39,254 +48,155 @@ const PresidentDashboard = () => {
     return `${API_BASE_URL}/storage/${cleanPath}`;
   };
 
-  const menuItems = [
-    {
-      title: 'Ajouter Membre',
-      description: 'Ajouter un nouveau membre au club',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-        </svg>
-      ),
-      path: '/President/addMember',
-      isRed: true
-    },
-    {
-      title: 'Liste des Membres',
-      description: 'Gérer et supprimer des membres',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-      ),
-      path: '/President/MemberList'
-    },
-    {
-      title: 'Créer Événement',
-      description: 'Organiser un nouvel événement',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-      ),
-      path: '/President/CreateEvent'
-    },
-    {
-      title: 'Gérer Événements',
-      description: 'Modifier et ajouter des récapitulatifs',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
-      ),
-      path: '/President/ManageEvent'
-    },
-    {
-      title: 'Scanner Tickets',
-      description: 'Valider les tickets à l\'entrée',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-        </svg>
-      ),
-      path: '/President/ScanTicket'
-    },
-    {
-      title: 'Voir Demandes',
-      description: 'Consulter les demandes en attente',
-      icon: (
-        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-      ),
-      path: '/President/Demandes'
-    }
-  ];
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-red-500 border-t-transparent mb-4"></div>
-          <p className="text-white text-xl font-semibold">Chargement...</p>
-        </div>
+      <div className={`min-h-screen flex items-center justify-center ${dm ? 'bg-[#0a0a0f]' : 'bg-gray-50'}`}>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-8 py-4 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">Président CluVersity</h1>
-              <p className="text-xs text-gray-400">EST Fès</p>
-            </div>
-          </div>
+    <>
+      <div className={`min-h-screen p-8 transition-colors duration-300 ${dm ? 'bg-[#0a0a0f]' : 'bg-gray-50'}`}>
+        <div className="max-w-7xl mx-auto">
 
-          {/* User Menu */}
-          <div className="flex items-center gap-4">
-            {/* Notifications */}
-            <button className="relative p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
-
-            {/* Modify Profile */}
-            <button
-              onClick={() => navigate('/Login/AccountSetup')}
-              className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-all"
-            >
-              Modifier Profil
-            </button>
-
-            {/* User */}
-            <div className="flex items-center gap-3 pl-4 border-l border-white/10">
-              <div className="text-right">
-                <p className="text-sm font-semibold text-white">{user?.first_name} {user?.last_name}</p>
-                <p className="text-xs text-gray-400">Président</p>
+          {/* Page Title */}
+          <div className="mb-8">
+            <h1 className={`text-4xl font-bold ${dm ? 'text-red-400' : 'text-gray-900'}`}>
+              Tableau de Bord Président
+            </h1>
+            <p className="text-red-500 mt-2 font-medium">
+              {typedText}<span className="animate-pulse">|</span>
+            </p>
+            {club && (
+              <div className="mt-3 flex items-center gap-3">
+                {(club.logo || club.logo_url) && (
+                  <img src={getImageUrl(club.logo) || club.logo_url} alt={club.name} className="w-10 h-10 rounded-full object-cover shadow" />
+                )}
+                <span className={`font-semibold px-4 py-2 rounded-full shadow-sm border animate-floatSide
+                  ${dm ? 'text-cyan-300 bg-black/40 border-cyan-900/40' : 'text-gray-700 bg-white border-gray-200'}`}>
+                  Club : {club.name}
+                </span>
               </div>
-              <div className="w-10 h-10 bg-red-500 rounded-xl flex items-center justify-center text-white font-bold">
-                {user?.first_name?.charAt(0)}{user?.last_name?.charAt(0)}
-              </div>
-              <button
-                onClick={logout}
-                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="pt-24 px-8 pb-12 max-w-7xl mx-auto">
-        {/* Welcome Banner */}
-        <div className="mb-12 bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <div className="w-20 h-20 bg-red-500 rounded-2xl flex items-center justify-center shadow-lg">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-4xl font-bold text-white mb-2">
-                  Bienvenue, {user?.first_name}
-                </h2>
-                <p className="text-gray-400 text-lg">
-                  Président du Club {club && <span className="text-red-400">• {club.name}</span>}
-                </p>
-              </div>
-            </div>
-            {club && (club.logo || club.logo_url) && (
-              <img 
-                src={getImageUrl(club.logo) || club.logo_url} 
-                alt={club.name} 
-                className="w-20 h-20 rounded-2xl object-cover shadow-lg border-2 border-white/10"
-              />
             )}
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-red-500/50 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
+          {/* Welcome Card + Quick Settings */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+
+            {/* Welcome Card */}
+            <div className={`lg:col-span-2 rounded-2xl shadow-sm border p-8 relative overflow-hidden transition-colors duration-300
+              ${dm ? 'bg-[#0d0d18] border-red-900/30' : 'bg-white border-gray-200'}`}>
+              <div className={`absolute -right-20 -top-20 w-40 h-40 rounded-full opacity-50 ${dm ? 'bg-red-700/20' : 'bg-blue-100'}`}></div>
+              <div className={`absolute -left-10 -bottom-10 w-32 h-32 rounded-full opacity-50 ${dm ? 'bg-cyan-900/20' : 'bg-red-100'}`}></div>
+
+              <div className="relative">
+                <h2 className={`text-3xl font-bold mb-4 ${dm ? 'text-red-100' : 'text-gray-900'}`}>
+                  👋 Bonjour, {user?.first_name} !
+                </h2>
+                <p className={`mb-6 ${dm ? 'text-gray-500' : 'text-gray-500'}`}>
+                  Vous avez accès à toutes les fonctionnalités de gestion du club.
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className={`border p-4 rounded-xl ${dm ? 'bg-red-950/40 border-red-800/30' : 'bg-blue-50 border-blue-100'}`}>
+                    <p className={`text-sm ${dm ? 'text-gray-500' : 'text-gray-500'}`}>Rôle</p>
+                    <p className={`text-lg font-semibold ${dm ? 'text-white' : 'text-gray-800'}`}>{user?.role}</p>
+                  </div>
+                  <div className={`border p-4 rounded-xl ${dm ? 'bg-black/40 border-cyan-900/30' : 'bg-red-50 border-red-100'}`}>
+                    <p className={`text-sm ${dm ? 'text-gray-500' : 'text-gray-500'}`}>Email</p>
+                    <p className={`text-lg font-semibold truncate ${dm ? 'text-white' : 'text-gray-800'}`}>{user?.email}</p>
+                  </div>
+                  {club && (
+                    <>
+                      <div className={`border p-4 rounded-xl ${dm ? 'bg-red-950/30 border-red-900/30' : 'bg-green-50 border-green-100'}`}>
+                        <p className={`text-sm ${dm ? 'text-gray-500' : 'text-gray-500'}`}>Club</p>
+                        <p className={`text-lg font-semibold ${dm ? 'text-white' : 'text-gray-800'}`}>{club.name}</p>
+                      </div>
+                      <div className={`border p-4 rounded-xl ${dm ? 'bg-black/50 border-cyan-900/20' : 'bg-yellow-50 border-yellow-100'}`}>
+                        <p className={`text-sm ${dm ? 'text-gray-500' : 'text-gray-500'}`}>Catégorie</p>
+                        <p className={`text-lg font-semibold ${dm ? 'text-white' : 'text-gray-800'}`}>{club.category}</p>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-            <h3 className="text-3xl font-bold text-white mb-1">{club?.total_members || '0'}</h3>
-            <p className="text-gray-400 text-sm">Membres Totaux</p>
-          </div>
 
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+            {/* Quick Settings Card — always dark as accent */}
+            <div className="relative bg-[#0d0010] rounded-2xl shadow-xl p-6 border border-red-900/40 overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-600 opacity-25 blur-3xl"></div>
+              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-cyan-500 opacity-10 blur-3xl"></div>
+              <h3 className="text-xl font-bold mb-6 text-white tracking-wide relative z-10">⚙️ Paramètres Rapides</h3>
+              <div className="space-y-4 relative z-10">
+                <button onClick={() => navigate('/Login/AccountSetup')}
+                  className="group w-full flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 transition-all duration-300 hover:scale-105 hover:border-blue-400 hover:bg-white/10">
+                  <div className="p-2 rounded-lg bg-blue-600/20 group-hover:bg-blue-600/30 transition">
+                    <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                  </div>
+                  <span className="font-medium text-gray-200 group-hover:text-white transition">Modifier mon profil</span>
+                </button>
+                <button onClick={() => navigate('/Login/AccountSetup')}
+                  className="group w-full flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 transition-all duration-300 hover:scale-105 hover:border-red-400 hover:bg-white/10">
+                  <div className="p-2 rounded-lg bg-red-600/20 group-hover:bg-red-600/30 transition">
+                    <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                  </div>
+                  <span className="font-medium text-gray-200 group-hover:text-white transition">Changer mot de passe</span>
+                </button>
+                <button onClick={() => navigate('/Login/AccountSetup')}
+                  className="group w-full flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 transition-all duration-300 hover:scale-105 hover:border-yellow-400 hover:bg-white/10">
+                  <div className="p-2 rounded-lg bg-yellow-400/20 group-hover:bg-yellow-400/30 transition">
+                    <svg className="w-5 h-5 text-yellow-400" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                      <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                      <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                      <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                    </svg>
+                  </div>
+                  <span className="font-medium text-gray-200 group-hover:text-white transition">Lier compte Google</span>
+                </button>
               </div>
             </div>
-            <h3 className="text-3xl font-bold text-white mb-1">{club?.events_count || '0'}</h3>
-            <p className="text-gray-400 text-sm">Événements Actifs</p>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 hover:border-white/20 transition-all">
-            <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-            </div>
-            <h3 className="text-3xl font-bold text-white mb-1">--</h3>
-            <p className="text-gray-400 text-sm">Demandes en Attente</p>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="mb-12">
-          <h3 className="text-2xl font-bold text-white mb-6">Actions Rapides</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {menuItems.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => navigate(item.path)}
-                className={`group bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8 ${
-                  item.isRed ? 'hover:bg-red-500/10 hover:border-red-500/50' : 'hover:bg-white/10 hover:border-white/20'
-                } transition-all text-left`}
-              >
-                <div className={`w-14 h-14 ${item.isRed ? 'bg-red-500' : 'bg-white/10'} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <div className="text-white">
-                    {item.icon}
+          {/* Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            {[
+              { label: 'Membres Totaux', value: club?.total_members || 0, sub: 'Votre club', subColor: 'text-green-500', color: dm ? 'bg-red-700' : 'bg-blue-700', icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>, delay: '' },
+              { label: 'Événements Actifs', value: club?.events_count || '--', sub: 'Gérez vos événements', subColor: 'text-cyan-500', color: dm ? 'bg-[#0e4a4a]' : 'bg-red-600', icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>, delay: 'animation-delay-2s' },
+              { label: 'Demandes en Attente', value: '--', sub: 'Action requise', subColor: 'text-red-500', color: dm ? 'bg-red-900' : 'bg-blue-700', icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>, delay: 'animation-delay-4s' },
+            ].map((stat, i) => (
+              <div key={i} className={`rounded-2xl shadow-sm border p-6 animate-float-card transition-colors duration-300
+                ${dm ? 'bg-[#0d0d18] border-red-900/30' : 'bg-white border-gray-200'}`}
+                style={{ animationDelay: i === 1 ? '0.5s' : i === 2 ? '1s' : '0s' }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className={`text-sm font-medium ${dm ? 'text-gray-500' : 'text-gray-500'}`}>{stat.label}</p>
+                    <p className={`text-4xl font-bold mt-2 ${dm ? 'text-red-100' : 'text-gray-900'}`}>{stat.value}</p>
+                    <p className={`text-sm mt-1 font-semibold ${stat.subColor}`}>{stat.sub}</p>
+                  </div>
+                  <div className={`w-16 h-16 ${stat.color} rounded-full flex items-center justify-center shadow-lg animate-bounce-slow ${stat.delay}`}>
+                    {stat.icon}
                   </div>
                 </div>
-                <h4 className="text-xl font-bold text-white mb-2">{item.title}</h4>
-                <p className="text-gray-400 text-sm">{item.description}</p>
-              </button>
+              </div>
             ))}
           </div>
+
         </div>
       </div>
 
-      {/* Floating Orbs */}
-      <div className="fixed top-20 left-10 w-40 h-40 bg-red-500/10 rounded-full blur-3xl animate-float pointer-events-none"></div>
-      <div className="fixed bottom-20 right-10 w-32 h-32 bg-red-500/10 rounded-full blur-3xl animate-float-delayed pointer-events-none"></div>
-
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        @keyframes float-delayed {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-15px); }
-        }
-        .animate-float {
-          animation: float 6s ease-in-out infinite;
-        }
-        .animate-float-delayed {
-          animation: float-delayed 8s ease-in-out infinite;
-        }
+      <style>{`
+        @keyframes floatSide { 0% { transform: translateX(0px); } 50% { transform: translateX(15px); } 100% { transform: translateX(0px); } }
+        @keyframes floatCard { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes bounceSlow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .animate-floatSide { animation: floatSide 3s ease-in-out infinite; }
+        .animate-float-card { animation: floatCard 4s ease-in-out infinite; }
+        .animate-bounce-slow { animation: bounceSlow 3s ease-in-out infinite; }
+        .animation-delay-2s { animation-delay: 0.7s; }
+        .animation-delay-4s { animation-delay: 1.4s; }
       `}</style>
-    </div>
+    </>
   );
 };
 

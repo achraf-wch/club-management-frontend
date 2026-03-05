@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthContext';
 
@@ -6,6 +6,19 @@ const AdminSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
+
+  const [darkMode, setDarkMode] = useState(
+    document.documentElement.classList.contains("dark")
+  );
+  const dm = darkMode;
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      setDarkMode(document.documentElement.classList.contains("dark"));
+    };
+    window.addEventListener("themeChanged", handleThemeChange);
+    return () => window.removeEventListener("themeChanged", handleThemeChange);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -53,11 +66,11 @@ const AdminSidebar = () => {
   ];
 
   return (
-    <div className="w-64 bg-gray-900 min-h-screen text-white flex flex-col">
+    <div className={`w-64 min-h-screen flex flex-col ${dm ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
       {/* Logo/Header */}
-      <div className="p-6 border-b border-gray-800">
+      <div className={`p-6 border-b ${dm ? 'border-gray-800' : 'border-gray-200'}`}>
         <h2 className="text-xl font-bold text-emerald-400">Admin Panel</h2>
-        <p className="text-xs text-gray-400 mt-1">Gestion des clubs</p>
+        <p className={`text-xs ${dm ? 'text-gray-400' : 'text-gray-600'} mt-1`}>Gestion des clubs</p>
       </div>
 
       {/* Menu Items */}
@@ -83,7 +96,7 @@ const AdminSidebar = () => {
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
               location.pathname === item.path
                 ? 'bg-emerald-600 text-white'
-                : 'hover:bg-gray-800 text-gray-300'
+                : `${dm ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-200 text-gray-700'}`
             }`}
           >
             {item.icon}
@@ -93,10 +106,10 @@ const AdminSidebar = () => {
       </nav>
 
       {/* Logout Button */}
-      <div className="p-4 border-t border-gray-800">
+      <div className={`p-4 border-t ${dm ? 'border-gray-800' : 'border-gray-200'}`}>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-4 py-3 rounded-lg w-full hover:bg-red-600 transition-colors text-gray-300 hover:text-white"
+          className={`flex items-center gap-3 px-4 py-3 rounded-lg w-full hover:bg-red-600 transition-colors ${dm ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-white'}`}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

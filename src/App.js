@@ -1,7 +1,11 @@
+import { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './Context/AuthContext';
 import Home from './Pages/Home';
 import Clubs from './Pages/Clubs';
+import AllEvents from './Pages/AllEvents';
+
+
 
 // Admin
 import AdminLayout from './Layout/AdminLayout';
@@ -22,6 +26,7 @@ import Login from './Pages/Login/Login';
 import AccountSetup from './Pages/Login/AccountSetup';
 
 // President
+import PresidentLayout from './Layout/PresidentLayout';
 import AddMember from './Pages/President/AddMember';
 import CreateEvent from './Pages/President/CreateEvent';
 import PresidentMemberList from './Pages/President/MemberList';
@@ -30,6 +35,7 @@ import Demandes from './Pages/President/Demandes';
 import ScanTicket from './Pages/President/ScanTicket';
 
 // Bureaux
+import BureauxLayout from './Layout/BureauxLayout';
 import BureauxAddMember from './Pages/Bureaux/AddMember';
 import BureauxCreateEvent from './Pages/Bureaux/CreateEvent';
 import BureauxMemberList from './Pages/Bureaux/MemberList';
@@ -80,17 +86,26 @@ function ProtectedRoute({ children, allowedRoles }) {
 }
 
 function App() {
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    }
+  }, []);
   return (
-    <Router>
-      <Routes>
-        {/* ========== PUBLIC ROUTES ========== */}
-        <Route path="/" element={<Home />} />
-        <Route path="/clubs" element={<Clubs />} />
-        <Route path="/clubs/:id" element={<ClubDetail />} />
-        <Route path="/events/:id" element={<EventDetail />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/Login/login" element={<Login />} />
-        
+    <div className="min-h-screen bg-white text-black dark:bg-black dark:text-white transition-colors duration-300">
+      <Router>
+        <Routes>
+
+          {/* ========== PUBLIC ROUTES ========== */}
+          <Route path="/" element={<Home />} />
+          <Route path="/clubs" element={<Clubs />} />
+          <Route path="/clubs/:id" element={<ClubDetail />} />
+          <Route path="/events" element={<AllEvents />} /> 
+          <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/Login/login" element={<Login />} />
+
         {/* ========== ACCOUNT SETUP (PROTECTED - ANY LOGGED IN USER) ========== */}
         <Route 
           path="/Login/AccountSetup" 
@@ -101,63 +116,23 @@ function App() {
           } 
         />
         
-        {/* ========== PRESIDENT ROUTES (PROTECTED) ========== */}
-        <Route 
-          path="/President/Dashboard" 
-          element={
-            <ProtectedRoute allowedRoles={['president']}>
-              <PresidentDashboard />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/President/addMember" 
-          element={
-            <ProtectedRoute allowedRoles={['president']}>
-              <AddMember />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/President/ManageEvent" 
-          element={
-            <ProtectedRoute allowedRoles={['president']}>
-              <ManageEvent/>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/President/CreateEvent" 
-          element={
-            <ProtectedRoute allowedRoles={['president']}>
-              <CreateEvent />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/President/MemberList" 
-          element={
-            <ProtectedRoute allowedRoles={['president']}>
-              <PresidentMemberList/>
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/President/Demandes" 
-          element={
-            <ProtectedRoute allowedRoles={['president']}>
-              <Demandes />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/President/ScanTicket" 
-          element={
-            <ProtectedRoute allowedRoles={['president', 'board']}>
-              <ScanTicket />
-            </ProtectedRoute>
-          } 
-        />
+       {/* ========== PRESIDENT ROUTES (PROTECTED WITH LAYOUT) ========== */}
+<Route
+  path="/President"
+  element={
+    <ProtectedRoute allowedRoles={['president']}>
+      <PresidentLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route path="Dashboard" element={<PresidentDashboard />} />
+  <Route path="addMember" element={<AddMember />} />
+  <Route path="ManageEvent" element={<ManageEvent />} />
+  <Route path="CreateEvent" element={<CreateEvent />} />
+  <Route path="MemberList" element={<PresidentMemberList />} />
+  <Route path="Demandes" element={<Demandes />} />
+  <Route path="ScanTicket" element={<ScanTicket />} />
+</Route>
 
         {/* ========== MEMBER ROUTES (PROTECTED) ========== */}
         <Route 
@@ -168,48 +143,21 @@ function App() {
             </ProtectedRoute>
           } 
         />
-
-        {/* ========== BUREAUX ROUTES (PROTECTED) ========== */}
-        <Route 
-          path="/Bureaux/Dashboard" 
+{/* ========== BUREAUX ROUTES (avec sidebar BureauxLayout) ========== */}
+        <Route
+          path="/Bureaux"
           element={
             <ProtectedRoute allowedRoles={['board']}>
-              <BoardDashboard/>
+              <BureauxLayout />
             </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/Bureaux/addMember" 
-          element={
-            <ProtectedRoute allowedRoles={['board']}>
-              <BureauxAddMember />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/Bureaux/MemberList" 
-          element={
-            <ProtectedRoute allowedRoles={['board']}>
-              <BureauxMemberList />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/Bureaux/createEvent" 
-          element={
-            <ProtectedRoute allowedRoles={['board']}>
-              <BureauxCreateEvent />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/Bureaux/ScanTicket" 
-          element={
-            <ProtectedRoute allowedRoles={['board']}>
-              <ScanTicket />
-            </ProtectedRoute>
-          } 
-        />
+          }
+        >
+          <Route path="Dashboard" element={<BoardDashboard />} />
+          <Route path="addMember" element={<BureauxAddMember />} />
+          <Route path="MemberList" element={<BureauxMemberList />} />
+          <Route path="createEvent" element={<BureauxCreateEvent />} />
+          <Route path="ScanTicket" element={<ScanTicket />} />
+        </Route>
 
         
         {/* ========== ADMIN ROUTES (PROTECTED WITH LAYOUT) ========== */}
@@ -249,6 +197,7 @@ function App() {
         />
       </Routes>
     </Router>
+    </div>
   );
 }
 
