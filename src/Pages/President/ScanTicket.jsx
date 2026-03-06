@@ -57,18 +57,39 @@ const ScanTicket = () => {
     }
   };
 
-  const validateTicket = async (qrData) => {
+  const validateTicket = async (rawQrText) => {
     setLoading(true);
     setError('');
     setTicketInfo(null);
+
+    console.log('QR RAW TEXT:', rawQrText);
+
     try {
+      // The QR contains a JSON string like {"ticket_code":"ABCD-EFGH","ticket_id":1,...}
+      // Parse it first so we can send the object fields directly
+      let parsedQr = null;
+      try {
+        parsedQr = JSON.parse(rawQrText);
+      } catch (e) {
+        // Not JSON — treat the whole string as a plain ticket_code
+        parsedQr = { ticket_code: rawQrText.trim() };
+      }
+
+      console.log('QR PARSED:', parsedQr);
+
       const response = await fetch(`${API_BASE_URL}/api/tickets/scan-qr`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ qr_data: qrData, scanned_by: user.id }),
+        body: JSON.stringify({
+          qr_data: JSON.stringify(parsedQr), // send as JSON string so backend can json_decode it
+          scanned_by: user.id,
+        }),
       });
+
       const data = await response.json();
+      console.log('SCAN RESPONSE:', data);
+
       if (response.ok) {
         setTicketInfo(data.ticket);
       } else {
@@ -78,6 +99,7 @@ const ScanTicket = () => {
         else setError(data.message || 'Erreur lors de la validation');
       }
     } catch (err) {
+      console.error('Scan error:', err);
       setError('Erreur de connexion au serveur');
     } finally {
       setLoading(false);
@@ -101,7 +123,6 @@ const ScanTicket = () => {
 
   return (
     <div className={`min-h-screen py-8 px-4 transition-colors duration-300 ${dm ? 'bg-[#0a0a0f]' : 'bg-gray-50'}`}>
-
       <div className="relative z-10 max-w-4xl mx-auto">
 
         {/* Header */}
@@ -176,14 +197,11 @@ const ScanTicket = () => {
                   Retour
                 </button>
               </div>
-
               <div className="mb-6 text-center">
                 <h3 className={`text-2xl font-bold mb-1 ${dm ? 'text-gray-100' : 'text-gray-900'}`}>Scanner actif</h3>
                 <p className="text-red-500 text-lg">Placez le QR code devant la caméra</p>
               </div>
-
               <div id="qr-reader" className={`rounded-2xl overflow-hidden shadow-sm border mb-6 ${dm ? 'border-red-900/30' : 'border-gray-200'}`}></div>
-
               <div className="text-center">
                 <label className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-sm hover:scale-105 cursor-pointer
                   ${dm ? 'bg-black border border-blue-800/50 text-blue-400 hover:bg-blue-950/30' : 'bg-blue-700 hover:bg-blue-800 text-white'}`}>
@@ -239,8 +257,6 @@ const ScanTicket = () => {
         {ticketInfo && (
           <div className={`rounded-3xl shadow-sm overflow-hidden border-2 animate-scaleIn
             ${dm ? 'bg-[#0d0d18] border-green-900/40' : 'bg-white border-green-200'}`}>
-
-            {/* Success Header */}
             <div className={`p-8 text-center ${dm ? 'bg-green-900/30' : 'bg-green-600'}`}>
               <svg className={`w-20 h-20 mx-auto mb-4 animate-bounce-slow ${dm ? 'text-green-400' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -251,8 +267,6 @@ const ScanTicket = () => {
 
             <div className="p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-
-                {/* Event Card */}
                 <div className={`p-6 rounded-2xl border ${dm ? 'bg-red-950/20 border-red-900/30' : 'bg-red-50 border-red-200'}`}>
                   <div className="flex items-center gap-2 mb-4">
                     <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -269,7 +283,6 @@ const ScanTicket = () => {
                   </div>
                 </div>
 
-                {/* Participant Card */}
                 <div className={`p-6 rounded-2xl border ${dm ? 'bg-blue-950/20 border-blue-900/30' : 'bg-blue-50 border-blue-200'}`}>
                   <div className="flex items-center gap-2 mb-4">
                     <svg className={`w-5 h-5 ${dm ? 'text-blue-400' : 'text-blue-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,7 +308,6 @@ const ScanTicket = () => {
                 </div>
               </div>
 
-              {/* Scan Time */}
               <div className={`border-l-4 border-green-500 p-6 rounded-xl mb-8 ${dm ? 'bg-green-900/10' : 'bg-green-50'}`}>
                 <div className="flex items-center">
                   <svg className={`w-10 h-10 mr-4 ${dm ? 'text-green-400' : 'text-green-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,7 +320,6 @@ const ScanTicket = () => {
                 </div>
               </div>
 
-              {/* Next Button */}
               <div className="text-center">
                 <button
                   onClick={resetScanner}

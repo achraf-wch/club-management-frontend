@@ -183,27 +183,8 @@ const styles = `
     background: var(--topbar-bg); backdrop-filter: blur(20px);
     animation: fadeIn 0.4s ease;
     transition: background 0.4s ease, border-color 0.4s ease;
-}
+  }
   .mem-topbar-left { display: flex; align-items: center; gap: 12px; }
-  .mem-avatar {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 100%);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 800; color: #f8fafc;
-    letter-spacing: 0.02em; flex-shrink: 0;
-    border: 2px solid rgba(6,182,212,0.4);
-    box-shadow: 0 0 12px rgba(6,182,212,0.3);
-    font-family: 'DM Sans', sans-serif;
-    cursor: pointer; overflow: hidden; position: relative;
-  }
-  .mem-avatar:hover .mem-avatar-overlay { opacity: 1 !important; }
-  .mem-avatar-overlay {
-    position: absolute; inset: 0; border-radius: 50%;
-    background: rgba(0,0,0,0.5);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; transition: opacity 0.2s;
-  }
-  .mem-member-name { font-size: 15px; font-weight: 700; color: var(--white); letter-spacing: -0.02em; transition: color 0.3s ease; }
   .mem-topbar-actions { display: flex; gap: 10px; align-items: center; }
 
   .mem-logout {
@@ -296,6 +277,12 @@ const styles = `
   }
   .mem-dcard-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 13px; }
   .mem-dcard-avatar:hover .mem-avatar-overlay { opacity: 1 !important; }
+  .mem-avatar-overlay {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+  }
   .mem-dcard-type {
     font-size: 10px; color: var(--cyan); font-weight: 600;
     font-family: 'JetBrains Mono', monospace;
@@ -466,7 +453,6 @@ const styles = `
   .notif-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
   .notif-header-title { font-size: 13px; font-weight: 800; color: var(--white); letter-spacing: -0.01em; }
   .notif-header-count { font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: #e74c3c; background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.25); padding: 2px 8px; border-radius: 99px; letter-spacing: 0.04em; }
-  .notif-section-label { padding: 10px 20px 4px; font-size: 9px; font-weight: 700; color: var(--grey); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.14em; text-transform: uppercase; }
   .notif-list { max-height: 340px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .notif-list::-webkit-scrollbar { width: 4px; }
   .notif-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
@@ -531,8 +517,6 @@ const MemberDashboard = () => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-
-  // ✅ MODIFICATION 1 : state pour la notification sélectionnée
   const [selectedNotif, setSelectedNotif] = useState(null);
 
   const [avatarUploadOpen, setAvatarUploadOpen] = useState(false);
@@ -543,10 +527,10 @@ const MemberDashboard = () => {
 
   const fileInputRef = React.useRef(null);
 
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
   useEffect(() => {
-    const handler = () => {
-      setIsDark(document.documentElement.classList.contains('dark'));
-    };
+    const handler = () => setIsDark(document.documentElement.classList.contains('dark'));
     window.addEventListener('themeChanged', handler);
     return () => window.removeEventListener('themeChanged', handler);
   }, []);
@@ -563,7 +547,7 @@ const MemberDashboard = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/notifications`, {
         credentials: 'include',
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
       });
       if (response.ok) {
         const data = await response.json();
@@ -574,18 +558,6 @@ const MemberDashboard = () => {
       console.error('Notifications error:', err);
     }
   };
-
-  const relativeTime = (dateStr) => {
-    if (!dateStr) return '';
-    const diff = (new Date(dateStr) - new Date()) / 1000;
-    const absDiff = Math.abs(diff);
-    if (absDiff < 3600)  return `${Math.round(absDiff/60)}min`;
-    if (absDiff < 86400) return `${Math.round(absDiff/3600)}h`;
-    if (absDiff < 604800) return `${Math.round(absDiff/86400)}j`;
-    return new Date(dateStr).toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
-  };
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     if (user) {
@@ -599,7 +571,7 @@ const MemberDashboard = () => {
       setLoading(true);
       const clubResponse = await fetch(`${API_BASE_URL}/api/my-club-membership`, {
         credentials: 'include',
-        headers: { 'Accept': 'application/json' }
+        headers: { 'Accept': 'application/json' },
       });
       if (clubResponse.ok) {
         const clubData = await clubResponse.json();
@@ -614,17 +586,14 @@ const MemberDashboard = () => {
             );
             if (eventsResp.ok) {
               const eventsData = await eventsResp.json();
-              const allEvents = Array.isArray(eventsData) ? eventsData : (eventsData.events || []);
-              const myClubId = clubData.club.id;
-              const filtered = allEvents.filter(e => {
-                const eClubId = e.club_id || e.club?.id;
-                return eClubId === myClubId;
-              });
-              setClubEvents(filtered);
+              const allEvents  = Array.isArray(eventsData) ? eventsData : (eventsData.events || []);
+              const myClubId   = clubData.club.id;
+              setClubEvents(allEvents.filter(e => (e.club_id || e.club?.id) === myClubId));
             }
           } catch (_) {}
         }
       }
+
       const ticketsResponse = await fetch(
         `${API_BASE_URL}/api/tickets?person_id=${user.id}&status=scanned`,
         { credentials: 'include', headers: { 'Accept': 'application/json' } }
@@ -694,10 +663,40 @@ const MemberDashboard = () => {
     return { name: 'Argent', icon: '⭐', pillClass: 'mem-level-pill mem-level-argent', progress: (eventCount / 5) * 100, nextLabel: `${5 - eventCount} pour Or` };
   };
 
-  const level = getMemberLevel(attendedEvents.length);
-  const initials = `${user?.first_name?.[0] || ''}${user?.last_name?.[0] || ''}`.toUpperCase();
+  const level         = getMemberLevel(attendedEvents.length);
+  const initials      = `${user?.first_name?.[0] || ''}${user?.last_name?.[0] || ''}`.toUpperCase();
   const currentAvatar = localAvatar || user?.avatar_url;
 
+  // Notification type helpers
+  const notifColor = (type) =>
+    type === 'event'  ? '#e74c3c'           :
+    type === 'member' ? 'var(--green)'      :
+    type === 'club'   ? 'var(--blue-light)' :
+    'var(--yellow)';
+
+  const notifBg = (type) =>
+    type === 'event'  ? 'rgba(231,76,60,0.12)'  :
+    type === 'member' ? 'rgba(16,185,129,0.12)' :
+    type === 'club'   ? 'rgba(59,130,246,0.12)' :
+    'rgba(251,191,36,0.12)';
+
+  const notifBorder = (type) =>
+    type === 'event'  ? 'rgba(231,76,60,0.3)'  :
+    type === 'member' ? 'rgba(16,185,129,0.3)' :
+    type === 'club'   ? 'rgba(59,130,246,0.3)' :
+    'rgba(251,191,36,0.3)';
+
+const notifEmoji = (type) =>
+  type === 'event_ticket' ? '🎟️' :
+  type === 'event'        ? '🎉'  :
+  type === 'member'       ? '👤'  :
+  type === 'club'         ? '🏢'  : '🔔';
+
+const notifLabel = (type) =>
+  type === 'event_ticket' ? 'Billet Événement' :
+  type === 'event'        ? 'Événement'        :
+  type === 'member'       ? 'Membre'           :
+  type === 'club'         ? 'Club'             : 'Notification';
   if (loading) {
     return (
       <>
@@ -778,7 +777,7 @@ const MemberDashboard = () => {
           </div>
 
           <div className="mem-topbar-actions">
-            {/* Notifications */}
+            {/* ── Notification bell ── */}
             <div className="notif-wrap">
               <button
                 className={`notif-btn${unreadCount > 0 ? ' has-notif' : ''}`}
@@ -788,7 +787,7 @@ const MemberDashboard = () => {
                     fetch(`${API_BASE_URL}/api/notifications/read-all`, {
                       method: 'PUT',
                       credentials: 'include',
-                      headers: { 'Accept': 'application/json' }
+                      headers: { 'Accept': 'application/json' },
                     }).then(() => fetchNotifications());
                   }
                 }}
@@ -824,22 +823,20 @@ const MemberDashboard = () => {
                           className="notif-item"
                           key={notif.id}
                           style={{
-                            cursor: 'pointer',
                             background: notif.read ? 'transparent' : 'rgba(231,76,60,0.05)',
-                            borderLeft: notif.read ? '3px solid transparent' : '3px solid #e74c3c'
+                            borderLeft: notif.read ? '3px solid transparent' : '3px solid #e74c3c',
                           }}
-                          // ✅ MODIFICATION 2 : onClick ouvre le modal de détail
                           onClick={async () => {
                             if (!notif.read) {
                               await fetch(`${API_BASE_URL}/api/notifications/${notif.id}/read`, {
                                 method: 'PUT',
                                 credentials: 'include',
-                                headers: { 'Accept': 'application/json' }
+                                headers: { 'Accept': 'application/json' },
                               });
                               fetchNotifications();
                             }
                             setNotifOpen(false);
-                            setSelectedNotif(notif); // ← ouvre le modal
+                            setSelectedNotif(notif);
                           }}
                         >
                           <div className={`notif-dot ${
@@ -848,18 +845,16 @@ const MemberDashboard = () => {
                             notif.type === 'club'   ? 'notif-dot-blue'   :
                             'notif-dot-yellow'
                           }`}>
-                            {notif.type === 'event'  ? '🎉' :
-                             notif.type === 'member' ? '👤' :
-                             notif.type === 'club'   ? '🏢' : '🔔'}
+                            {notifEmoji(notif.type)}
                           </div>
                           <div className="notif-item-body">
                             <div className="notif-item-title">{notif.title}</div>
                             <div className="notif-item-sub">{notif.message}</div>
                           </div>
-                          <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4, flexShrink:0 }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
                             <div className="notif-item-time">{notif.time_ago}</div>
                             {!notif.read && (
-                              <span style={{ width:6, height:6, borderRadius:'50%', background:'#e74c3c', display:'block' }} />
+                              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#e74c3c', display: 'block' }} />
                             )}
                           </div>
                         </div>
@@ -874,7 +869,7 @@ const MemberDashboard = () => {
                         await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
                           method: 'PUT',
                           credentials: 'include',
-                          headers: { 'Accept': 'application/json' }
+                          headers: { 'Accept': 'application/json' },
                         });
                         fetchNotifications();
                         setNotifOpen(false);
@@ -1101,7 +1096,7 @@ const MemberDashboard = () => {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{event.event_location}</span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.event_location}</span>
                           </div>
                         )}
                         {event.club_name && (
@@ -1109,7 +1104,7 @@ const MemberDashboard = () => {
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                             </svg>
-                            <span style={{ overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{event.club_name}</span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.club_name}</span>
                           </div>
                         )}
                       </div>
@@ -1388,7 +1383,7 @@ const MemberDashboard = () => {
           </div>
         )}
 
-        {/* ✅ MODIFICATION 3 : Modal détail notification */}
+        {/* ── Notification Detail Modal ── */}
         {selectedNotif && (
           <div
             onClick={e => { if (e.target === e.currentTarget) setSelectedNotif(null); }}
@@ -1407,21 +1402,21 @@ const MemberDashboard = () => {
               border: '1px solid var(--border2)',
               borderRadius: 20,
               padding: 28,
-              width: 420,
+              width: 440,
               maxWidth: 'calc(100vw - 32px)',
               boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
               animation: 'fadeUp 0.25s ease',
               position: 'relative',
             }}>
-              {/* Bouton fermer */}
+
+              {/* Close */}
               <button
                 onClick={() => setSelectedNotif(null)}
                 style={{
                   position: 'absolute', top: 16, right: 16,
                   background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)',
                   borderRadius: 8, width: 32, height: 32,
-                  color: 'var(--grey2)', cursor: 'pointer',
-                  fontSize: 18, lineHeight: 1,
+                  color: 'var(--grey2)', cursor: 'pointer', fontSize: 18, lineHeight: 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   transition: 'all 0.2s',
                 }}
@@ -1429,80 +1424,86 @@ const MemberDashboard = () => {
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'var(--grey2)'; }}
               >×</button>
 
-              {/* Icône + type */}
+              {/* Icon + type label */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
                 <div style={{
                   width: 52, height: 52, borderRadius: 14, flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 24,
-                  background: selectedNotif.type === 'event'  ? 'rgba(231,76,60,0.12)'  :
-                              selectedNotif.type === 'member' ? 'rgba(16,185,129,0.12)' :
-                              selectedNotif.type === 'club'   ? 'rgba(59,130,246,0.12)' :
-                              'rgba(251,191,36,0.12)',
-                  border: `1px solid ${
-                    selectedNotif.type === 'event'  ? 'rgba(231,76,60,0.3)'  :
-                    selectedNotif.type === 'member' ? 'rgba(16,185,129,0.3)' :
-                    selectedNotif.type === 'club'   ? 'rgba(59,130,246,0.3)' :
-                    'rgba(251,191,36,0.3)'
-                  }`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24,
+                  background: notifBg(selectedNotif.type),
+                  border: `1px solid ${notifBorder(selectedNotif.type)}`,
                 }}>
-                  {selectedNotif.type === 'event'  ? '🎉' :
-                   selectedNotif.type === 'member' ? '👤' :
-                   selectedNotif.type === 'club'   ? '🏢' : '🔔'}
+                  {notifEmoji(selectedNotif.type)}
                 </div>
                 <div>
                   <div style={{
                     fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
                     textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace",
-                    color: selectedNotif.type === 'event'  ? '#e74c3c'       :
-                           selectedNotif.type === 'member' ? 'var(--green)'  :
-                           selectedNotif.type === 'club'   ? 'var(--blue-light)' :
-                           'var(--yellow)',
-                    marginBottom: 4,
+                    color: notifColor(selectedNotif.type), marginBottom: 4,
                   }}>
-                    {selectedNotif.type === 'event'  ? 'Événement' :
-                     selectedNotif.type === 'member' ? 'Membre'    :
-                     selectedNotif.type === 'club'   ? 'Club'      : 'Notification'}
+                    {notifLabel(selectedNotif.type)}
                   </div>
-                  <div style={{ fontSize: 13, color: 'var(--grey2)', fontFamily: "'JetBrains Mono', monospace" }}>
+                  <div style={{ fontSize: 12, color: 'var(--grey2)', fontFamily: "'JetBrains Mono', monospace" }}>
                     {selectedNotif.time_ago || ''}
                   </div>
                 </div>
               </div>
 
-              {/* Titre */}
+              {/* Title */}
               <h3 style={{
-                fontSize: 18, fontWeight: 800, color: 'var(--white)',
-                letterSpacing: '-0.02em', marginBottom: 12, lineHeight: 1.3,
-                paddingRight: 32,
+                fontSize: 17, fontWeight: 800, color: 'var(--white)',
+                letterSpacing: '-0.02em', marginBottom: 12, lineHeight: 1.3, paddingRight: 32,
               }}>
                 {selectedNotif.title}
               </h3>
 
-              {/* Séparateur */}
               <div style={{ height: 1, background: 'var(--border)', marginBottom: 16 }} />
 
-              {/* Message complet */}
+              {/* Full message */}
               <p style={{
-                fontSize: 14, color: 'var(--grey2)',
-                lineHeight: 1.7, whiteSpace: 'pre-wrap',
+                fontSize: 13, color: 'var(--grey2)', lineHeight: 1.8,
+                whiteSpace: 'pre-wrap', marginBottom: 20,
               }}>
                 {selectedNotif.message}
               </p>
 
-              {/* Bouton fermer en bas */}
+              {/* ── PDF download button — event notifications only ── */}
+              {selectedNotif.type === 'event_ticket' && selectedNotif.data?.ticket_id &&(
+                <a
+                  href={`${API_BASE_URL}/api/tickets/${selectedNotif.data.ticket_id}/download-pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                    width: '100%', padding: '13px 0', marginBottom: 10,
+                    background: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
+                    border: 'none', borderRadius: 12,
+                    color: '#fff', fontSize: 13, fontWeight: 800,
+                    fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.05em',
+                    textDecoration: 'none', cursor: 'pointer',
+                    transition: 'opacity 0.2s, transform 0.15s',
+                    boxShadow: '0 6px 20px rgba(231,76,60,0.35)',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = '1';   e.currentTarget.style.transform = 'translateY(0)'; }}
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Télécharger mon billet PDF
+                </a>
+              )}
+
+              {/* Close button */}
               <button
                 onClick={() => setSelectedNotif(null)}
                 style={{
-                  marginTop: 24, width: '100%',
-                  padding: '11px 0',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid var(--border)',
+                  width: '100%', padding: '11px 0',
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)',
                   borderRadius: 10, color: 'var(--grey2)',
                   fontSize: 12, fontWeight: 700,
-                  fontFamily: "'JetBrains Mono', monospace",
-                  letterSpacing: '0.06em', cursor: 'pointer',
-                  transition: 'all 0.2s',
+                  fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.06em',
+                  cursor: 'pointer', transition: 'all 0.2s',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = '#e74c3c'; e.currentTarget.style.color = '#e74c3c'; e.currentTarget.style.background = 'rgba(231,76,60,0.08)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--grey2)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
