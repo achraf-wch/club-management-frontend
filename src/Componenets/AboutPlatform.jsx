@@ -41,7 +41,7 @@ const AboutPlatform = () => {
   ];
 
   return (
-   <section className="py-20 px-8 relative overflow-hidden bg-[#1a3a5c] dark:bg-[#0f1e3d]">
+   <section className="py-20 px-8 relative overflow-hidden bg-[#1a3a5c] dark:bg-black">
       {/* Background decorative elements */}
       <div className="absolute top-0 left-0 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-pulse-slow"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl animate-pulse-slow" style={{ animationDelay: '1s' }}></div>

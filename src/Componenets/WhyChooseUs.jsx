@@ -57,7 +57,7 @@ const WhyChooseUs = () => {
   return (
     <section 
       id="why-choose-us"
-      className="py-24 px-8 relative overflow-hidden bg-[#f0f4f8] dark:bg-[#0f1e3d]"
+      className="py-24 px-8 relative overflow-hidden bg-[#f0f4f8] dark:bg-black"
     >
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden opacity-5">

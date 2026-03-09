@@ -52,6 +52,12 @@ const BureauxLayout = () => {
         { label: 'Créer un Événement', path: '/Bureaux/createEvent' },
       ]
     },
+    {
+      key: 'club',
+      label: 'Gestion du Club',
+      single: true,
+      path: '/Bureaux/ClubManagement',
+    },
   ];
 
   const isGroupActive = (group) => {

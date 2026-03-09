@@ -1,20 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const ClubCard = ({ id, name, image, logo, category, description, memberCount, foundingYear }) => {
   const navigate = useNavigate();
 
-  // Default placeholder images
+  // ── Real members count ────────────────────────────────────────────────────
+  const [realMemberCount, setRealMemberCount] = useState(memberCount || 0);
+  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchMembers = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/clubs/${id}/members`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const list = Array.isArray(data) ? data : (data.data ?? []);
+          setRealMemberCount(list.length);
+        }
+        // if endpoint fails, keep the memberCount prop as fallback
+      } catch {
+        // keep fallback value
+      }
+    };
+    fetchMembers();
+  }, [id]);
+  // ─────────────────────────────────────────────────────────────────────────
+
   const defaultCover = 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=400&h=300&fit=crop';
   const defaultLogo = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&size=128&background=random';
 
- return (
+  return (
     <div
       onClick={() => navigate(`/clubs/${id}`)}
       className="group relative cursor-pointer h-full"
     >
       {/* Card Container */}
-     <div className="relative h-full bg-[#0d1b2a] dark:bg-black rounded overflow-hidden transition-all duration-300 ease-out hover:scale-105 hover:z-10 hover:shadow-2xl hover:shadow-red-600/50 border border-red-600/30 hover:border-red-600 animate-border-pulse">
+      <div className="relative h-full bg-[#0d1b2a] dark:bg-black rounded overflow-hidden transition-all duration-300 ease-out hover:scale-105 hover:z-10 hover:shadow-2xl hover:shadow-red-600/50 border border-red-600/30 hover:border-red-600 animate-border-pulse">
+        
         {/* Image de couverture */}
         <div className="relative h-64 overflow-hidden bg-gradient-to-br from-[#0d1b2a] via-[#112240] to-[#0a1628] dark:from-black dark:via-gray-900 dark:to-black">
           {image ? (
@@ -22,10 +48,7 @@ const ClubCard = ({ id, name, image, logo, category, description, memberCount, f
               src={image}
               alt={name}
               className="w-full h-full object-contain transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-75"
-              onError={(e) => {
-                console.log('❌ Failed to load cover image:', image);
-                e.target.src = defaultCover;
-              }}
+              onError={(e) => { e.target.src = defaultCover; }}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-[#112240] dark:bg-gray-900">
@@ -34,13 +57,13 @@ const ClubCard = ({ id, name, image, logo, category, description, memberCount, f
               </div>
             </div>
           )}
-          
+
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] dark:from-black via-[#0a1628]/60 dark:via-black/60 to-transparent transition-opacity duration-500 group-hover:from-[#0a1628]/90 dark:group-hover:from-black/90"></div>
-          
+
           {/* Badge TOP 10 */}
-          {memberCount > 100 && (
-            <div className="absolute top-4 right-4 transform transition-all duration-500 translate-x-0 group-hover:translate-x-0 group-hover:scale-110">
+          {realMemberCount > 100 && (
+            <div className="absolute top-4 right-4 transform transition-all duration-500 group-hover:scale-110">
               <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0a1628]/80 backdrop-blur-sm border border-red-600/50 transition-all duration-300 group-hover:border-red-600">
                 <svg className="w-4 h-4 text-red-600 transition-transform duration-500 group-hover:rotate-12" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
@@ -57,10 +80,7 @@ const ClubCard = ({ id, name, image, logo, category, description, memberCount, f
                 src={logo}
                 alt={`${name} logo`}
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  console.log('❌ Failed to load logo:', logo);
-                  e.target.src = defaultLogo;
-                }}
+                onError={(e) => { e.target.src = defaultLogo; }}
               />
             </div>
           )}
@@ -70,7 +90,7 @@ const ClubCard = ({ id, name, image, logo, category, description, memberCount, f
         </div>
 
         {/* Info Section */}
-       <div className="relative bg-[#0d1b2a] dark:bg-black p-4 transition-all duration-500 ease-out group-hover:bg-[#112240] dark:group-hover:bg-gray-900">
+        <div className="relative bg-[#0d1b2a] dark:bg-black p-4 transition-all duration-500 ease-out group-hover:bg-[#112240] dark:group-hover:bg-gray-900">
           <div className="mb-3 overflow-hidden">
             <h3 className="text-white text-lg font-semibold mb-2 tracking-wide transition-all duration-300 group-hover:text-red-500 transform group-hover:translate-x-1 uppercase">
               {name}
@@ -102,7 +122,7 @@ const ClubCard = ({ id, name, image, logo, category, description, memberCount, f
               <svg className="w-3 h-3 transition-transform duration-300 group-hover:scale-110" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
               </svg>
-              {memberCount || 0} membres
+              {realMemberCount} membres   {/* ← real value */}
             </span>
           </div>
 
@@ -133,31 +153,17 @@ const ClubCard = ({ id, name, image, logo, category, description, memberCount, f
 
       <style jsx>{`
         @keyframes slideUp {
-          from {
-            transform: translateY(10px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
+          from { transform: translateY(10px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes border-pulse {
+          0%, 100% { box-shadow: 0 0 5px 1px rgba(220, 38, 38, 0.3); }
+          50% { box-shadow: 0 0 15px 4px rgba(220, 38, 38, 0.7); }
+        }
+        .animate-border-pulse {
+          animation: border-pulse 2s ease-in-out infinite;
         }
       `}</style>
-      <style jsx>{`
-  @keyframes slideUp {
-    from { transform: translateY(10px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-
-  @keyframes border-pulse {
-    0%, 100% { box-shadow: 0 0 5px 1px rgba(220, 38, 38, 0.3); }
-    50% { box-shadow: 0 0 15px 4px rgba(220, 38, 38, 0.7); }
-  }
-
-  .animate-border-pulse {
-    animation: border-pulse 2s ease-in-out infinite;
-  }
-`}</style>
     </div>
   );
 };

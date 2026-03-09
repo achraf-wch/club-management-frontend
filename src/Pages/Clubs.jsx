@@ -9,13 +9,12 @@ const LANGUAGES = [
   { code: 'ar', label: 'AR', flag: '🇲🇦', name: 'العربية' },
 ];
 
-// Small translate button component for each event card
 const EventTranslateBtn = ({ eventId }) => {
   const [open, setOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState(() => localStorage.getItem('selectedLang') || 'ar');
 
   const translateTo = (e, lang) => {
-    e.stopPropagation(); // don't navigate to event detail
+    e.stopPropagation();
     document.cookie = `googtrans=/ar/${lang}`;
     document.cookie = `googtrans=/ar/${lang};domain=.${window.location.hostname}`;
     localStorage.setItem('selectedLang', lang);
@@ -27,11 +26,7 @@ const EventTranslateBtn = ({ eventId }) => {
   const activeLang = LANGUAGES.find(l => l.code === currentLang) || LANGUAGES[2];
 
   return (
-    <div
-      className="absolute top-3 left-3 z-20"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* Dropdown options */}
+    <div className="absolute top-3 left-3 z-20" onClick={(e) => e.stopPropagation()}>
       {open && (
         <div className="absolute bottom-full left-0 mb-2 flex flex-col gap-1 items-start">
           {LANGUAGES.map((lang) => (
@@ -50,8 +45,6 @@ const EventTranslateBtn = ({ eventId }) => {
           ))}
         </div>
       )}
-
-      {/* Toggle button */}
       <button
         onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
         className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-bold border-2 shadow-lg transition-all duration-200 ${
@@ -111,36 +104,34 @@ const ClubDetail = () => {
       setLoading(true);
       setError(null);
 
+      // ── 1. Club ──
       const clubResponse = await fetch(`${API_BASE_URL}/api/clubs/${id}`);
       if (!clubResponse.ok) throw new Error('Club non trouvé');
       const clubData = await clubResponse.json();
       setClub(clubData);
 
+      // ── 2. Membres (route publique dédiée) ──
       try {
-        const membersResponse = await fetch(`${API_BASE_URL}/api/members`);
+        const membersResponse = await fetch(`${API_BASE_URL}/api/clubs/${id}/members`);
         if (membersResponse.ok) {
-          const allMembersData = await membersResponse.json();
-          const clubMembers = Array.isArray(allMembersData)
-            ? allMembersData.filter(m => m.club_id == id)
-            : [];
+          const arr = await membersResponse.json();
+          const clubMembers = Array.isArray(arr) ? arr : [];
           setMembers(clubMembers);
-          const pres = clubMembers.find(m => m.role === 'president' && m.status === 'active');
-          setPresident(pres || null);
+          setPresident(clubMembers.find(m => m.role === 'president') || null);
         }
       } catch (err) {
         console.error('Error fetching members:', err);
       }
 
+      // ── 3. Événements (route publique dédiée) ──
       try {
-        const eventsResponse = await fetch(`${API_BASE_URL}/api/events`);
+        const eventsResponse = await fetch(`${API_BASE_URL}/api/events/club/${id}`);
         if (eventsResponse.ok) {
-          const allEventsData = await eventsResponse.json();
-          const clubEvents = Array.isArray(allEventsData)
-            ? allEventsData.filter(e => e.club_id == id)
-            : [];
-          setEvents(clubEvents);
-          setFilteredEvents(clubEvents);
-          const uniqueCategories = [...new Set(clubEvents.map(e => e.category).filter(Boolean))];
+          const clubEvents = await eventsResponse.json();
+          const eventsArray = Array.isArray(clubEvents) ? clubEvents : [];
+          setEvents(eventsArray);
+          setFilteredEvents(eventsArray);
+          const uniqueCategories = [...new Set(eventsArray.map(e => e.category).filter(Boolean))];
           setCategories(uniqueCategories);
         }
       } catch (err) {
@@ -189,8 +180,8 @@ const ClubDetail = () => {
     );
   }
 
-  const boardMembers = members.filter(m => m.role === 'board' && m.status === 'active');
-  const regularMembers = members.filter(m => m.role === 'member' && m.status === 'active');
+  const boardMembers = members.filter(m => m.role === 'board');
+  const regularMembers = members.filter(m => m.role === 'member');
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a2c5b] via-[#1e3368] to-[#0f1e3d] dark:from-black dark:via-black dark:to-black">
@@ -330,7 +321,6 @@ const ClubDetail = () => {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0f1e3d] via-[#0f1e3d]/50 to-transparent"></div>
 
-                        {/* ── Translate button — top LEFT of each event card ── */}
                         <EventTranslateBtn eventId={event.id} />
 
                         {event.category && (
@@ -393,7 +383,11 @@ const ClubDetail = () => {
                     <div className="text-center space-y-6">
                       <div className="relative inline-block">
                         <div className="absolute inset-0 bg-[#c0392b] rounded-full blur-xl opacity-30 animate-pulse"></div>
-                        <img src={president.avatar_url || getImageUrl(president.avatar) || 'https://via.placeholder.com/200'} alt={`${president.first_name} ${president.last_name}`} className="relative w-48 h-48 rounded-full mx-auto object-cover border-4 border-[#c0392b] shadow-2xl" />
+                        <img
+                          src={president.avatar_url || getImageUrl(president.avatar) || 'https://via.placeholder.com/200'}
+                          alt={`${president.first_name} ${president.last_name}`}
+                          className="relative w-48 h-48 rounded-full mx-auto object-cover border-4 border-[#c0392b] shadow-2xl"
+                        />
                       </div>
                       <div className="space-y-2">
                         <h3 className="text-[#1a2c5b] dark:text-white text-2xl font-bold">{president.first_name} {president.last_name}</h3>
@@ -403,13 +397,17 @@ const ClubDetail = () => {
                     <div className="text-[#1a2c5b]/70 dark:text-white/70 space-y-6">
                       {president.email && (
                         <div>
-                          <p className="font-bold text-lg mb-2 flex items-center gap-2 text-[#1a2c5b] dark:text-white"><span className="w-2 h-2 rounded-full bg-[#c0392b]"></span>Email</p>
+                          <p className="font-bold text-lg mb-2 flex items-center gap-2 text-[#1a2c5b] dark:text-white">
+                            <span className="w-2 h-2 rounded-full bg-[#c0392b]"></span>Email
+                          </p>
                           <p className="pl-4">{president.email}</p>
                         </div>
                       )}
                       {president.phone && (
                         <div>
-                          <p className="font-bold text-lg mb-2 flex items-center gap-2 text-[#1a2c5b] dark:text-white"><span className="w-2 h-2 rounded-full bg-[#c0392b]"></span>Téléphone</p>
+                          <p className="font-bold text-lg mb-2 flex items-center gap-2 text-[#1a2c5b] dark:text-white">
+                            <span className="w-2 h-2 rounded-full bg-[#c0392b]"></span>Téléphone
+                          </p>
                           <p className="pl-4">{president.phone}</p>
                         </div>
                       )}
@@ -438,7 +436,11 @@ const ClubDetail = () => {
                       <div className="flex flex-col items-center text-center space-y-4">
                         <div className="relative">
                           <div className="absolute inset-0 bg-[#c0392b] rounded-full blur-md opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                          <img src={member.avatar_url || getImageUrl(member.avatar) || 'https://via.placeholder.com/100'} alt={`${member.first_name} ${member.last_name}`} className="relative w-24 h-24 rounded-full object-cover border-3 border-[#c0392b]" />
+                          <img
+                            src={member.avatar_url || getImageUrl(member.avatar) || 'https://via.placeholder.com/100'}
+                            alt={`${member.first_name} ${member.last_name}`}
+                            className="relative w-24 h-24 rounded-full object-cover border-3 border-[#c0392b]"
+                          />
                         </div>
                         <div>
                           <h4 className="font-bold text-lg text-[#1a2c5b] dark:text-white">{member.first_name} {member.last_name}</h4>
@@ -470,7 +472,11 @@ const ClubDetail = () => {
                   {regularMembers.map((member) => (
                     <div key={member.id} className="bg-white dark:bg-gray-800 border border-[#1a2c5b]/10 dark:border-white/10 hover:border-[#c0392b]/50 rounded-xl p-4 transition-all duration-300 hover:shadow-xl hover:shadow-[#c0392b]/20">
                       <div className="flex flex-col items-center text-center space-y-3">
-                        <img src={member.avatar_url || getImageUrl(member.avatar) || 'https://via.placeholder.com/80'} alt={`${member.first_name} ${member.last_name}`} className="w-20 h-20 rounded-full object-cover border-2 border-[#1a2c5b]/20 dark:border-white/20" />
+                        <img
+                          src={member.avatar_url || getImageUrl(member.avatar) || 'https://via.placeholder.com/80'}
+                          alt={`${member.first_name} ${member.last_name}`}
+                          className="w-20 h-20 rounded-full object-cover border-2 border-[#1a2c5b]/20 dark:border-white/20"
+                        />
                         <div>
                           <h4 className="font-bold text-[#1a2c5b] dark:text-white">{member.first_name} {member.last_name}</h4>
                           {member.email && <p className="text-xs text-[#1a2c5b]/50 dark:text-white/50 mt-1">{member.email}</p>}

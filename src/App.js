@@ -33,12 +33,14 @@ import PresidentMemberList from './Pages/President/MemberList';
 import ManageEvent from './Pages/President/ManageEvent';
 import Demandes from './Pages/President/Demandes';
 import ScanTicket from './Pages/President/ScanTicket';
+import ClubManagement from './Pages/President/ClubManagement';
 
 // Bureaux
 import BureauxLayout from './Layout/BureauxLayout';
 import BureauxAddMember from './Pages/Bureaux/AddMember';
 import BureauxCreateEvent from './Pages/Bureaux/CreateEvent';
 import BureauxMemberList from './Pages/Bureaux/MemberList';
+import BureauxClubManagement from './Pages/Bureaux/ClubManagement';
 
 // Event & Club Detail
 import EventDetail from './Pages/EventDetail';
@@ -132,6 +134,7 @@ function App() {
   <Route path="MemberList" element={<PresidentMemberList />} />
   <Route path="Demandes" element={<Demandes />} />
   <Route path="ScanTicket" element={<ScanTicket />} />
+  <Route path="ClubManagement" element={<ClubManagement />} />
 </Route>
 
         {/* ========== MEMBER ROUTES (PROTECTED) ========== */}
@@ -157,6 +160,7 @@ function App() {
           <Route path="MemberList" element={<BureauxMemberList />} />
           <Route path="createEvent" element={<BureauxCreateEvent />} />
           <Route path="ScanTicket" element={<ScanTicket />} />
+          <Route path="ClubManagement" element={<BureauxClubManagement />} />
         </Route>
 
         

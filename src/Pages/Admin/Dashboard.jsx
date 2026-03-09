@@ -39,19 +39,33 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+
+      // ── Clubs (unchanged) ─────────────────────────────────────────────────
       const response = await fetch(`${API_BASE_URL}/api/clubs`, { credentials: 'include' });
       if (response.ok) {
         const clubsData = await response.json();
         const clubsList = Array.isArray(clubsData) ? clubsData : [];
         setClubs(clubsList);
         const totalMembers = clubsList.reduce((sum, club) => sum + (club.total_members || 0), 0);
-        const activeUsers = clubsList.reduce((sum, club) => sum + (club.active_members || 0), 0);
-        setStats({
-          totalClubs: clubsList.length,
-          totalMembers,
-          totalEvents: clubsList.reduce((sum, club) => sum + (club.events_count || 0), 0),
-          activeUsers
-        });
+        const activeUsers  = clubsList.reduce((sum, club) => sum + (club.active_members  || 0), 0);
+
+        // ── Events : fetch real count from /api/events ─────────────────────
+        let totalEvents = 0;
+        try {
+          const eventsRes = await fetch(`${API_BASE_URL}/api/events`, { credentials: 'include' });
+          if (eventsRes.ok) {
+            const eventsData = await eventsRes.json();
+            const eventsList = Array.isArray(eventsData) ? eventsData : (eventsData.data ?? []);
+            totalEvents = eventsList.length;
+          } else {
+            totalEvents = clubsList.reduce((sum, club) => sum + (club.events_count || 0), 0);
+          }
+        } catch {
+          totalEvents = clubsList.reduce((sum, club) => sum + (club.events_count || 0), 0);
+        }
+
+        setStats({ totalClubs: clubsList.length, totalMembers, totalEvents, activeUsers });
+
         setRecentActivity([
           { action: 'Nouveau club créé', name: clubsList[0]?.name || 'Club Example', time: '2 min' },
           { action: 'Nouveau membre', name: 'Mohamed Ali', time: '15 min' },
@@ -84,10 +98,8 @@ const AdminDashboard = () => {
 
       <AdminSidebar onLogout={logout} user={user} />
 
-      {/* main area now sits directly beside sidebar, no extra left margin */}
       <div className="flex-1 relative pt-32">
 
-        {/* Main Content */}
         <div className="pt-8 px-8 pb-12 max-w-7xl mx-auto">
 
           {/* Welcome */}
@@ -102,32 +114,58 @@ const AdminDashboard = () => {
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
             {[
-              { label: 'Clubs', value: stats.totalClubs, icon: (
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-              ), color: 'bg-blue-700' },
-              { label: 'Membres', value: stats.totalMembers, icon: (
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              ), color: 'bg-red-600' },
-              { label: 'Actifs', value: stats.activeUsers, icon: (
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-              ), color: 'bg-blue-700' },
-              { label: 'Événements', value: stats.totalEvents, icon: (
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              ), color: 'bg-red-600' },
+              {
+                label: 'Clubs', value: stats.totalClubs,
+                color: 'bg-blue-700',
+                onClick: null,
+                icon: (
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  </svg>
+                ),
+              },
+              {
+                label: 'Membres', value: stats.totalMembers,
+                color: 'bg-red-600',
+                onClick: null,
+                icon: (
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ),
+              },
+              {
+                label: 'Actifs', value: stats.activeUsers,
+                color: 'bg-blue-700',
+                onClick: null,
+                icon: (
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                ),
+              },
+              {
+                label: 'Événements', value: stats.totalEvents,
+                color: 'bg-red-600',
+                // ← clicking navigates to the events management page
+                onClick: () => navigate('/admin/manageEvents'),
+                icon: (
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                ),
+              },
             ].map((stat, i) => (
-              <div key={i} className={`border rounded-3xl p-6 hover:scale-105 transition-all
-                ${dm
-                  ? 'bg-[#161b26] border-[#272f42] hover:border-[#3d4f73] hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
-                  : 'bg-white border-gray-200 hover:border-blue-700/50 shadow-sm hover:shadow-2xl'
-                }`}>
+              <div
+                key={i}
+                onClick={stat.onClick ?? undefined}
+                className={`border rounded-3xl p-6 hover:scale-105 transition-all
+                  ${stat.onClick ? 'cursor-pointer' : ''}
+                  ${dm
+                    ? 'bg-[#161b26] border-[#272f42] hover:border-[#3d4f73] hover:shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
+                    : 'bg-white border-gray-200 hover:border-blue-700/50 shadow-sm hover:shadow-2xl'
+                  }`}
+              >
                 <div className={`w-12 h-12 ${stat.color} rounded-2xl flex items-center justify-center mb-4`}>
                   {stat.icon}
                 </div>
@@ -207,7 +245,7 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Floating Orbs — subtle, professional */}
+        {/* Floating Orbs */}
         <div className={`fixed top-20 left-10 w-40 h-40 rounded-full blur-3xl pointer-events-none transition-colors duration-300 ${dm ? 'bg-blue-950/40' : 'bg-blue-100'}`}></div>
         <div className={`fixed bottom-20 right-10 w-32 h-32 rounded-full blur-3xl pointer-events-none transition-colors duration-300 ${dm ? 'bg-red-950/30' : 'bg-red-100'}`}></div>
 

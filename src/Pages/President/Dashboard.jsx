@@ -8,8 +8,16 @@ const PresidentDashboard = () => {
   const [club, setClub] = useState(null);
   const [loading, setLoading] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
-  const dm = darkMode;
 
+  // ── Real counts ───────────────────────────────────────────────────────────
+  const [membersCount, setMembersCount] = useState(0);
+  const [eventsCount,  setEventsCount]  = useState(0);
+
+  // ── Real user profile (role + email from API) ─────────────────────────────
+  const [profile, setProfile] = useState(null);
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const dm = darkMode;
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   const [typedText, setTypedText] = useState('');
@@ -25,20 +33,119 @@ const PresidentDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => { fetchMyClub(); }, []);
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains("dark");
+    setDarkMode(isDark);
+    const handleThemeChange = () =>
+      setDarkMode(document.documentElement.classList.contains("dark"));
+    window.addEventListener("themeChanged", handleThemeChange);
+    return () => window.removeEventListener("themeChanged", handleThemeChange);
+  }, []);
 
-  const fetchMyClub = async () => {
+  useEffect(() => { fetchDashboardData(); }, []);
+
+  const fetchDashboardData = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/my-club`, {
+      // ── 0. Real user profile (role + email) ───────────────────────────────
+      try {
+        const profileRes = await fetch(`${API_BASE_URL}/api/user`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          setProfile(profileData);
+        }
+      } catch {
+        // fallback to AuthContext user
+      }
+
+      // ── 1. Club info via my-club-info ─────────────────────────────────────
+      const clubRes = await fetch(`${API_BASE_URL}/api/my-club-info`, {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
-      if (response.ok) { const data = await response.json(); setClub(data); }
+      let clubData = null;
+      if (clubRes.ok) {
+        clubData = await clubRes.json();
+        setClub(clubData);
+      } else {
+        const fallbackRes = await fetch(`${API_BASE_URL}/api/my-club`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (fallbackRes.ok) {
+          clubData = await fallbackRes.json();
+          setClub(clubData);
+        }
+      }
+
+      // ── 2. Members count ──────────────────────────────────────────────────
+      if (clubData?.id) {
+        try {
+          const membersRes = await fetch(`${API_BASE_URL}/api/clubs/${clubData.id}/members`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' }
+          });
+          if (membersRes.ok) {
+            const membersData = await membersRes.json();
+            const list = Array.isArray(membersData) ? membersData : (membersData.data ?? []);
+            setMembersCount(list.length);
+          } else {
+            setMembersCount(
+              clubData?.members_count ?? clubData?.total_members ?? clubData?.memberships_count ?? 0
+            );
+          }
+        } catch {
+          setMembersCount(
+            clubData?.members_count ?? clubData?.total_members ?? clubData?.memberships_count ?? 0
+          );
+        }
+      }
+
+      // ── 3. Events count ───────────────────────────────────────────────────
+      try {
+        const eventsRes = await fetch(`${API_BASE_URL}/api/events`, {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (eventsRes.ok) {
+          const eventsData = await eventsRes.json();
+          const allEvents = Array.isArray(eventsData) ? eventsData : (eventsData.data ?? []);
+          if (clubData?.id) {
+            const clubEvents = allEvents.filter(e => e.club_id === clubData.id);
+            setEventsCount(clubEvents.length > 0 ? clubEvents.length : allEvents.length);
+          } else {
+            setEventsCount(allEvents.length);
+          }
+        } else {
+          setEventsCount(clubData?.events_count ?? 0);
+        }
+      } catch {
+        setEventsCount(clubData?.events_count ?? 0);
+      }
+
     } catch (error) {
-      console.error('Error fetching club:', error);
+      console.error('Error fetching dashboard data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helpers: prefer API profile over AuthContext user
+  const displayRole  = profile?.role  ?? profile?.roles?.[0] ?? user?.role  ?? '—';
+  const displayEmail = profile?.email ?? user?.email ?? '—';
+
+  // Make role label more readable
+  const roleLabel = (r) => {
+    const map = {
+      president: 'Président',
+      bureau: 'Bureau',
+      admin: 'Admin',
+      user: 'Membre',
+      member: 'Membre',
+    };
+    return map[r?.toLowerCase()] ?? r;
   };
 
   const getImageUrl = (path) => {
@@ -99,13 +206,19 @@ const PresidentDashboard = () => {
                   Vous avez accès à toutes les fonctionnalités de gestion du club.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
+                  {/* Rôle — real value ── */}
                   <div className={`border p-4 rounded-xl ${dm ? 'bg-red-950/40 border-red-800/30' : 'bg-blue-50 border-blue-100'}`}>
                     <p className={`text-sm ${dm ? 'text-gray-500' : 'text-gray-500'}`}>Rôle</p>
-                    <p className={`text-lg font-semibold ${dm ? 'text-white' : 'text-gray-800'}`}>{user?.role}</p>
+                    <p className={`text-lg font-semibold ${dm ? 'text-white' : 'text-gray-800'}`}>
+                      {roleLabel(displayRole)}
+                    </p>
                   </div>
+                  {/* Email — real value ── */}
                   <div className={`border p-4 rounded-xl ${dm ? 'bg-black/40 border-cyan-900/30' : 'bg-red-50 border-red-100'}`}>
                     <p className={`text-sm ${dm ? 'text-gray-500' : 'text-gray-500'}`}>Email</p>
-                    <p className={`text-lg font-semibold truncate ${dm ? 'text-white' : 'text-gray-800'}`}>{user?.email}</p>
+                    <p className={`text-lg font-semibold truncate ${dm ? 'text-white' : 'text-gray-800'}`}>
+                      {displayEmail}
+                    </p>
                   </div>
                   {club && (
                     <>
@@ -123,7 +236,7 @@ const PresidentDashboard = () => {
               </div>
             </div>
 
-            {/* Quick Settings Card — always dark as accent */}
+            {/* Quick Settings Card */}
             <div className="relative bg-[#0d0010] rounded-2xl shadow-xl p-6 border border-red-900/40 overflow-hidden">
               <div className="absolute -top-10 -right-10 w-40 h-40 bg-red-600 opacity-25 blur-3xl"></div>
               <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-cyan-500 opacity-10 blur-3xl"></div>
@@ -162,9 +275,24 @@ const PresidentDashboard = () => {
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             {[
-              { label: 'Membres Totaux', value: club?.total_members || 0, sub: 'Votre club', subColor: 'text-green-500', color: dm ? 'bg-red-700' : 'bg-blue-700', icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>, delay: '' },
-              { label: 'Événements Actifs', value: club?.events_count || '--', sub: 'Gérez vos événements', subColor: 'text-cyan-500', color: dm ? 'bg-[#0e4a4a]' : 'bg-red-600', icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>, delay: 'animation-delay-2s' },
-              { label: 'Demandes en Attente', value: '--', sub: 'Action requise', subColor: 'text-red-500', color: dm ? 'bg-red-900' : 'bg-blue-700', icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>, delay: 'animation-delay-4s' },
+              {
+                label: 'Membres Totaux', value: membersCount,
+                sub: 'Votre club', subColor: 'text-green-500',
+                color: dm ? 'bg-red-700' : 'bg-blue-700',
+                icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>,
+              },
+              {
+                label: 'Événements Actifs', value: eventsCount,
+                sub: 'Gérez vos événements', subColor: 'text-cyan-500',
+                color: dm ? 'bg-[#0e4a4a]' : 'bg-red-600',
+                icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>,
+              },
+              {
+                label: 'Demandes en Attente', value: '--',
+                sub: 'Action requise', subColor: 'text-red-500',
+                color: dm ? 'bg-red-900' : 'bg-blue-700',
+                icon: <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>,
+              },
             ].map((stat, i) => (
               <div key={i} className={`rounded-2xl shadow-sm border p-6 animate-float-card transition-colors duration-300
                 ${dm ? 'bg-[#0d0d18] border-red-900/30' : 'bg-white border-gray-200'}`}
@@ -175,7 +303,7 @@ const PresidentDashboard = () => {
                     <p className={`text-4xl font-bold mt-2 ${dm ? 'text-red-100' : 'text-gray-900'}`}>{stat.value}</p>
                     <p className={`text-sm mt-1 font-semibold ${stat.subColor}`}>{stat.sub}</p>
                   </div>
-                  <div className={`w-16 h-16 ${stat.color} rounded-full flex items-center justify-center shadow-lg animate-bounce-slow ${stat.delay}`}>
+                  <div className={`w-16 h-16 ${stat.color} rounded-full flex items-center justify-center shadow-lg animate-bounce-slow`}>
                     {stat.icon}
                   </div>
                 </div>

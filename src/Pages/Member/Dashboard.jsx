@@ -394,6 +394,7 @@ const styles = `
   .mem-activity-title { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 3px; transition: color 0.3s ease; }
   .mem-activity-date  { font-size: 11px; color: var(--grey2); font-family: 'JetBrains Mono', monospace; transition: color 0.3s ease; }
   .mem-attended-pill { margin-left: auto; flex-shrink: 0; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); font-size: 9px; font-weight: 700; padding: 3px 10px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em; }
+  .mem-registered-pill { margin-left: auto; flex-shrink: 0; background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: var(--blue-light); font-size: 9px; font-weight: 700; padding: 3px 10px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em; }
 
   .mem-achievements { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; padding: 20px; }
   @media (max-width: 700px) { .mem-achievements { grid-template-columns: 1fr; } }
@@ -416,6 +417,7 @@ const styles = `
   .mem-event-tag { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--grey2); font-family: 'JetBrains Mono', monospace; transition: color 0.3s ease; }
   .mem-event-tag svg { width: 13px; height: 13px; flex-shrink: 0; }
   .mem-validated-pill { background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em; white-space: nowrap; }
+  .mem-inscrit-pill { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.3); color: var(--blue-light); font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 20px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.06em; white-space: nowrap; }
 
   .mem-club-split { display: flex; min-height: 160px; }
   .mem-club-fields { flex: 1; padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--border); transition: border-color 0.3s ease; }
@@ -504,8 +506,11 @@ const MemberDashboard = () => {
   const [showDevs, setShowDevs] = useState(false);
   const [memberInfo, setMemberInfo] = useState(null);
   const [clubInfo, setClubInfo] = useState(null);
-  const [attendedEvents, setAttendedEvents] = useState([]);
-  const [clubEvents, setClubEvents] = useState([]);
+  const [attendedEvents, setAttendedEvents] = useState([]);   // scanned tickets (pour achievements)
+  const [registeredEvents, setRegisteredEvents] = useState([]); // ← événements où le membre est inscrit
+  const [clubEvents, setClubEvents] = useState([]);             // ← événements du club (vue d'ensemble)
+  const [clubTotalMembers, setClubTotalMembers]   = useState(0); // ← vrai count total
+  const [clubActiveMembers, setClubActiveMembers] = useState(0); // ← vrai count actifs
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
@@ -526,7 +531,6 @@ const MemberDashboard = () => {
   const [localAvatar, setLocalAvatar]           = useState(null);
 
   const fileInputRef = React.useRef(null);
-
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
@@ -569,41 +573,87 @@ const MemberDashboard = () => {
   const fetchMemberData = async () => {
     try {
       setLoading(true);
+
+      // ── 1. Club membership info ──────────────────────────────────────────
       const clubResponse = await fetch(`${API_BASE_URL}/api/my-club-membership`, {
         credentials: 'include',
         headers: { 'Accept': 'application/json' },
       });
+
+      let clubData = null;
       if (clubResponse.ok) {
-        const clubData = await clubResponse.json();
+        clubData = await clubResponse.json();
         setClubInfo(clubData.club);
         setMemberInfo(clubData.membership);
+      }
 
-        if (clubData.club?.id) {
-          try {
-            const eventsResp = await fetch(
-              `${API_BASE_URL}/api/events?club_id=${clubData.club.id}&limit=10`,
-              { credentials: 'include', headers: { 'Accept': 'application/json' } }
+      const clubId = clubData?.club?.id;
+
+      // ── 2. Club events (vue d'ensemble) ──────────────────────────────────
+      if (clubId) {
+        try {
+          const eventsRes = await fetch(
+            `${API_BASE_URL}/api/events?club_id=${clubId}`,
+            { credentials: 'include', headers: { 'Accept': 'application/json' } }
+          );
+          if (eventsRes.ok) {
+            const eventsData = await eventsRes.json();
+            const all = Array.isArray(eventsData) ? eventsData : (eventsData.events ?? eventsData.data ?? []);
+            // keep only this club's events
+            setClubEvents(all.filter(e => (e.club_id ?? e.club?.id) === clubId));
+          }
+        } catch (_) {}
+      }
+
+      // ── 3. Registered events (onglet Événements) ─────────────────────────
+      // Tickets where status = registered/pending/confirmed (not just scanned)
+      try {
+        const regRes = await fetch(
+          `${API_BASE_URL}/api/tickets?person_id=${user.id}`,
+          { credentials: 'include', headers: { 'Accept': 'application/json' } }
+        );
+        if (regRes.ok) {
+          const regData = await regRes.json();
+          const allTickets = Array.isArray(regData) ? regData : (regData.data ?? []);
+          // All tickets = inscrit; scanned ones = attended
+          setRegisteredEvents(allTickets);
+          setAttendedEvents(allTickets.filter(t => t.status === 'scanned' || t.scanned === true || t.scanned_at));
+        } else {
+          setRegisteredEvents([]);
+          setAttendedEvents([]);
+        }
+      } catch (_) {
+        setRegisteredEvents([]);
+        setAttendedEvents([]);
+      }
+
+      // ── 4. Real members count for Mon Club tab ───────────────────────────
+      if (clubId) {
+        try {
+          const membersRes = await fetch(`${API_BASE_URL}/api/clubs/${clubId}/members`, {
+            credentials: 'include',
+            headers: { 'Accept': 'application/json' },
+          });
+          if (membersRes.ok) {
+            const membersData = await membersRes.json();
+            const list = Array.isArray(membersData) ? membersData : (membersData.data ?? []);
+            setClubTotalMembers(list.length);
+            const activeList = list.filter(m =>
+              m.status === 'active' || m.status === 'approved' ||
+              m.is_active === true  || m.is_active === 1
             );
-            if (eventsResp.ok) {
-              const eventsData = await eventsResp.json();
-              const allEvents  = Array.isArray(eventsData) ? eventsData : (eventsData.events || []);
-              const myClubId   = clubData.club.id;
-              setClubEvents(allEvents.filter(e => (e.club_id || e.club?.id) === myClubId));
-            }
-          } catch (_) {}
+            setClubActiveMembers(activeList.length);
+          } else {
+            // fallback to club info fields
+            setClubTotalMembers(clubData?.club?.total_members ?? clubData?.club?.members_count ?? 0);
+            setClubActiveMembers(clubData?.club?.active_members ?? 0);
+          }
+        } catch {
+          setClubTotalMembers(clubData?.club?.total_members ?? 0);
+          setClubActiveMembers(clubData?.club?.active_members ?? 0);
         }
       }
 
-      const ticketsResponse = await fetch(
-        `${API_BASE_URL}/api/tickets?person_id=${user.id}&status=scanned`,
-        { credentials: 'include', headers: { 'Accept': 'application/json' } }
-      );
-      if (ticketsResponse.ok) {
-        const ticketsData = await ticketsResponse.json();
-        setAttendedEvents(ticketsData);
-      } else {
-        setAttendedEvents([]);
-      }
     } catch (err) {
       console.error('Error fetching data:', err);
       setError('Erreur lors du chargement des données');
@@ -667,36 +717,12 @@ const MemberDashboard = () => {
   const initials      = `${user?.first_name?.[0] || ''}${user?.last_name?.[0] || ''}`.toUpperCase();
   const currentAvatar = localAvatar || user?.avatar_url;
 
-  // Notification type helpers
-  const notifColor = (type) =>
-    type === 'event'  ? '#e74c3c'           :
-    type === 'member' ? 'var(--green)'      :
-    type === 'club'   ? 'var(--blue-light)' :
-    'var(--yellow)';
+  const notifColor  = (type) => type === 'event' ? '#e74c3c' : type === 'member' ? 'var(--green)' : type === 'club' ? 'var(--blue-light)' : 'var(--yellow)';
+  const notifBg     = (type) => type === 'event' ? 'rgba(231,76,60,0.12)' : type === 'member' ? 'rgba(16,185,129,0.12)' : type === 'club' ? 'rgba(59,130,246,0.12)' : 'rgba(251,191,36,0.12)';
+  const notifBorder = (type) => type === 'event' ? 'rgba(231,76,60,0.3)' : type === 'member' ? 'rgba(16,185,129,0.3)' : type === 'club' ? 'rgba(59,130,246,0.3)' : 'rgba(251,191,36,0.3)';
+  const notifEmoji  = (type) => type === 'event_ticket' ? '🎟️' : type === 'event' ? '🎉' : type === 'member' ? '👤' : type === 'club' ? '🏢' : '🔔';
+  const notifLabel  = (type) => type === 'event_ticket' ? 'Billet Événement' : type === 'event' ? 'Événement' : type === 'member' ? 'Membre' : type === 'club' ? 'Club' : 'Notification';
 
-  const notifBg = (type) =>
-    type === 'event'  ? 'rgba(231,76,60,0.12)'  :
-    type === 'member' ? 'rgba(16,185,129,0.12)' :
-    type === 'club'   ? 'rgba(59,130,246,0.12)' :
-    'rgba(251,191,36,0.12)';
-
-  const notifBorder = (type) =>
-    type === 'event'  ? 'rgba(231,76,60,0.3)'  :
-    type === 'member' ? 'rgba(16,185,129,0.3)' :
-    type === 'club'   ? 'rgba(59,130,246,0.3)' :
-    'rgba(251,191,36,0.3)';
-
-const notifEmoji = (type) =>
-  type === 'event_ticket' ? '🎟️' :
-  type === 'event'        ? '🎉'  :
-  type === 'member'       ? '👤'  :
-  type === 'club'         ? '🏢'  : '🔔';
-
-const notifLabel = (type) =>
-  type === 'event_ticket' ? 'Billet Événement' :
-  type === 'event'        ? 'Événement'        :
-  type === 'member'       ? 'Membre'           :
-  type === 'club'         ? 'Club'             : 'Notification';
   if (loading) {
     return (
       <>
@@ -777,7 +803,6 @@ const notifLabel = (type) =>
           </div>
 
           <div className="mem-topbar-actions">
-            {/* ── Notification bell ── */}
             <div className="notif-wrap">
               <button
                 className={`notif-btn${unreadCount > 0 ? ' has-notif' : ''}`}
@@ -785,8 +810,7 @@ const notifLabel = (type) =>
                   setNotifOpen(o => !o);
                   if (!notifOpen && unreadCount > 0) {
                     fetch(`${API_BASE_URL}/api/notifications/read-all`, {
-                      method: 'PUT',
-                      credentials: 'include',
+                      method: 'PUT', credentials: 'include',
                       headers: { 'Accept': 'application/json' },
                     }).then(() => fetchNotifications());
                   }
@@ -810,7 +834,6 @@ const notifLabel = (type) =>
                       <span className="notif-header-count">{unreadCount} non lue{unreadCount > 1 ? 's' : ''}</span>
                     )}
                   </div>
-
                   <div className="notif-list">
                     {notifications.length === 0 ? (
                       <div className="notif-empty">
@@ -829,8 +852,7 @@ const notifLabel = (type) =>
                           onClick={async () => {
                             if (!notif.read) {
                               await fetch(`${API_BASE_URL}/api/notifications/${notif.id}/read`, {
-                                method: 'PUT',
-                                credentials: 'include',
+                                method: 'PUT', credentials: 'include',
                                 headers: { 'Accept': 'application/json' },
                               });
                               fetchNotifications();
@@ -839,12 +861,7 @@ const notifLabel = (type) =>
                             setSelectedNotif(notif);
                           }}
                         >
-                          <div className={`notif-dot ${
-                            notif.type === 'event'  ? 'notif-dot-red'    :
-                            notif.type === 'member' ? 'notif-dot-green'  :
-                            notif.type === 'club'   ? 'notif-dot-blue'   :
-                            'notif-dot-yellow'
-                          }`}>
+                          <div className={`notif-dot ${notif.type === 'event' ? 'notif-dot-red' : notif.type === 'member' ? 'notif-dot-green' : notif.type === 'club' ? 'notif-dot-blue' : 'notif-dot-yellow'}`}>
                             {notifEmoji(notif.type)}
                           </div>
                           <div className="notif-item-body">
@@ -853,28 +870,21 @@ const notifLabel = (type) =>
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4, flexShrink: 0 }}>
                             <div className="notif-item-time">{notif.time_ago}</div>
-                            {!notif.read && (
-                              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#e74c3c', display: 'block' }} />
-                            )}
+                            {!notif.read && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#e74c3c', display: 'block' }} />}
                           </div>
                         </div>
                       ))
                     )}
                   </div>
-
                   <div className="notif-footer">
-                    <button
-                      className="notif-footer-btn"
-                      onClick={async () => {
-                        await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
-                          method: 'PUT',
-                          credentials: 'include',
-                          headers: { 'Accept': 'application/json' },
-                        });
-                        fetchNotifications();
-                        setNotifOpen(false);
-                      }}
-                    >✓ Tout marquer comme lu</button>
+                    <button className="notif-footer-btn" onClick={async () => {
+                      await fetch(`${API_BASE_URL}/api/notifications/read-all`, {
+                        method: 'PUT', credentials: 'include',
+                        headers: { 'Accept': 'application/json' },
+                      });
+                      fetchNotifications();
+                      setNotifOpen(false);
+                    }}>✓ Tout marquer comme lu</button>
                   </div>
                 </div>
               )}
@@ -980,15 +990,15 @@ const notifLabel = (type) =>
                   <div className="mem-stat-icon mem-stat-icon-green">✅</div>
                   <div className="mem-stat-val">{attendedEvents.length}</div>
                 </div>
-                <div className="mem-stat-lbl">Total Événements</div>
+                <div className="mem-stat-lbl">Événements Assistés</div>
                 <div className="mem-stat-bar-track"><div className="mem-stat-bar-fill-green" /></div>
               </div>
               <div className="mem-stat-card">
                 <div className="mem-stat-card-top">
                   <div className="mem-stat-icon mem-stat-icon-purple">⚡</div>
-                  <div className="mem-stat-val">100%</div>
+                  <div className="mem-stat-val">{registeredEvents.length}</div>
                 </div>
-                <div className="mem-stat-lbl">Taux de Participation</div>
+                <div className="mem-stat-lbl">Événements Inscrits</div>
                 <div className="mem-stat-bar-track"><div className="mem-stat-bar-fill-purple" /></div>
               </div>
             </div>
@@ -997,16 +1007,72 @@ const notifLabel = (type) =>
           {/* ── Tabs ── */}
           <div className="mem-tabs">
             <button className={`mem-tab${activeTab === 'overview' ? ' active' : ''}`} onClick={() => setActiveTab('overview')}>📊 Vue d'ensemble</button>
-            <button className={`mem-tab${activeTab === 'events'   ? ' active' : ''}`} onClick={() => setActiveTab('events')}>🎫 Événements ({attendedEvents.length})</button>
+            <button className={`mem-tab${activeTab === 'events'   ? ' active' : ''}`} onClick={() => setActiveTab('events')}>🎫 Mes Événements ({registeredEvents.length})</button>
             <button className={`mem-tab${activeTab === 'club'     ? ' active' : ''}`} onClick={() => setActiveTab('club')}>🏢 Mon Club</button>
           </div>
 
+          {/* ════════════════════════ VUE D'ENSEMBLE ════════════════════════ */}
           {activeTab === 'overview' && (
             <>
+              {/* Événements du club (pour débloquer des récompenses) */}
+              <div className="mem-panel">
+                <div className="mem-panel-head">
+                  <div className="mem-panel-icon">🏢</div>
+                  <div className="mem-panel-title">
+                    Événements de {clubInfo?.name || 'votre club'} — participez pour débloquer des récompenses !
+                  </div>
+                </div>
+                {clubEvents.length === 0 ? (
+                  <div className="mem-empty">
+                    <div className="mem-empty-icon">📅</div>
+                    <h3>Aucun événement pour le moment</h3>
+                    <p>Les prochains événements de votre club apparaîtront ici.</p>
+                  </div>
+                ) : (
+                  <div className="mem-activity-list">
+                    {clubEvents.slice(0, 5).map((event, index) => {
+                      const isAttended = attendedEvents.some(
+                        t => (t.event_id ?? t.id) === (event.id ?? event.event_id)
+                      );
+                      const isRegistered = registeredEvents.some(
+                        t => (t.event_id ?? t.id) === (event.id ?? event.event_id)
+                      );
+                      return (
+                        <div className="mem-activity-item" key={event.id || index}>
+                          <div className="mem-activity-dot" style={{ background: 'rgba(59,130,246,0.1)', borderColor: 'rgba(59,130,246,0.3)' }}>
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--blue-light)', width: 20, height: 20 }}>
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div className="mem-activity-title">{event.title ?? event.event_title ?? 'Événement'}</div>
+                            <div className="mem-activity-date">
+                              {event.date ?? event.event_date
+                                ? new Date(event.date ?? event.event_date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+                                : '—'}
+                              {event.location ?? event.event_location
+                                ? ` · ${event.location ?? event.event_location}`
+                                : ''}
+                            </div>
+                          </div>
+                          {isAttended
+                            ? <span className="mem-attended-pill">✓ Assisté</span>
+                            : isRegistered
+                              ? <span className="mem-registered-pill">📋 Inscrit</span>
+                              : <span style={{ marginLeft: 'auto', flexShrink: 0, fontSize: 9, fontWeight: 700, padding: '3px 10px', borderRadius: 20, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.06em', background: 'rgba(100,116,139,0.1)', border: '1px solid rgba(100,116,139,0.3)', color: 'var(--grey2)' }}>À venir</span>
+                          }
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Activité récente (événements assistés) */}
               <div className="mem-panel">
                 <div className="mem-panel-head">
                   <div className="mem-panel-icon">🕐</div>
-                  <div className="mem-panel-title">Activité Récente</div>
+                  <div className="mem-panel-title">Activité Récente — Événements assistés</div>
                 </div>
                 {attendedEvents.length === 0 ? (
                   <div className="mem-empty">
@@ -1024,9 +1090,11 @@ const notifLabel = (type) =>
                           </svg>
                         </div>
                         <div style={{ flex: 1 }}>
-                          <div className="mem-activity-title">{event.event_title}</div>
+                          <div className="mem-activity-title">{event.event_title ?? event.title}</div>
                           <div className="mem-activity-date">
-                            {new Date(event.event_date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            {(event.event_date ?? event.date)
+                              ? new Date(event.event_date ?? event.date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' })
+                              : '—'}
                           </div>
                         </div>
                         <span className="mem-attended-pill">✓ Assisté</span>
@@ -1036,6 +1104,7 @@ const notifLabel = (type) =>
                 )}
               </div>
 
+              {/* Succès */}
               <div className="mem-panel">
                 <div className="mem-panel-head">
                   <div className="mem-panel-icon">✨</div>
@@ -1062,59 +1131,75 @@ const notifLabel = (type) =>
             </>
           )}
 
+          {/* ════════════════════════ ONGLET ÉVÉNEMENTS ════════════════════════ */}
           {activeTab === 'events' && (
             <div className="mem-panel">
               <div className="mem-panel-head">
                 <div className="mem-panel-icon">📅</div>
-                <div className="mem-panel-title">Historique Complet</div>
+                <div className="mem-panel-title">Mes Événements — Inscriptions &amp; Participations</div>
               </div>
-              {attendedEvents.length === 0 ? (
+              {registeredEvents.length === 0 ? (
                 <div className="mem-empty">
                   <div className="mem-empty-icon">🎫</div>
                   <h3>Aucun événement pour le moment</h3>
-                  <p>Vos participations apparaîtront ici après validation du ticket</p>
+                  <p>Vos inscriptions aux événements apparaîtront ici</p>
                 </div>
               ) : (
                 <div className="mem-events-grid">
-                  {attendedEvents.map((event, index) => (
-                    <div className="mem-event-card" key={event.id || index}>
-                      <div className="mem-event-card-head">
-                        <div className="mem-event-card-dot">🎉</div>
-                        <span className="mem-validated-pill">✓ Validé</span>
-                      </div>
-                      <div className="mem-event-card-title">{event.event_title}</div>
-                      <div className="mem-event-card-tags">
-                        <div className="mem-event-tag">
-                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          {new Date(event.event_date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' })}
+                  {registeredEvents.map((event, index) => {
+                    const isAttended = event.status === 'scanned' || event.scanned === true || event.scanned_at;
+                    return (
+                      <div className="mem-event-card" key={event.id || index}>
+                        <div className="mem-event-card-head">
+                          <div className="mem-event-card-dot">{isAttended ? '✅' : '🎫'}</div>
+                          {isAttended
+                            ? <span className="mem-validated-pill">✓ Validé</span>
+                            : <span className="mem-inscrit-pill">📋 Inscrit</span>
+                          }
                         </div>
-                        {event.event_location && (
-                          <div className="mem-event-tag">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.event_location}</span>
-                          </div>
-                        )}
-                        {event.club_name && (
-                          <div className="mem-event-tag">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{event.club_name}</span>
-                          </div>
-                        )}
+                        <div className="mem-event-card-title">
+                          {event.event_title ?? event.title ?? 'Événement'}
+                        </div>
+                        <div className="mem-event-card-tags">
+                          {(event.event_date ?? event.date) && (
+                            <div className="mem-event-tag">
+                              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              {new Date(event.event_date ?? event.date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </div>
+                          )}
+                          {(event.event_location ?? event.location) && (
+                            <div className="mem-event-tag">
+                              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {event.event_location ?? event.location}
+                              </span>
+                            </div>
+                          )}
+                          {(event.club_name ?? clubInfo?.name) && (
+                            <div className="mem-event-tag">
+                              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                              </svg>
+                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {event.club_name ?? clubInfo?.name}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
           )}
 
+          {/* ════════════════════════ ONGLET MON CLUB ════════════════════════ */}
           {activeTab === 'club' && clubInfo && (
             <div className="mem-panel">
               <div className="mem-panel-head">
@@ -1152,14 +1237,15 @@ const notifLabel = (type) =>
                   </div>
                 </div>
               </div>
+              {/* ── Real member counts ── */}
               <div className="mem-club-stats-grid">
                 <div className="mem-club-stat">
                   <div className="mem-club-stat-lbl">Membres Totaux</div>
-                  <div className="mem-club-stat-val">{clubInfo.total_members || 0}</div>
+                  <div className="mem-club-stat-val">{clubTotalMembers}</div>
                 </div>
                 <div className="mem-club-stat">
                   <div className="mem-club-stat-lbl">Membres Actifs</div>
-                  <div className="mem-club-stat-val">{clubInfo.active_members || 0}</div>
+                  <div className="mem-club-stat-val">{clubActiveMembers}</div>
                 </div>
               </div>
             </div>
@@ -1301,215 +1387,71 @@ const notifLabel = (type) =>
 
         {/* ── Avatar Upload Modal ── */}
         {avatarUploadOpen && (
-          <div
-            onClick={e => { if (e.target === e.currentTarget) closeAvatarModal(); }}
-            style={{
-              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
-              backdropFilter: 'blur(8px)', zIndex: 1000,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              animation: 'fadeIn 0.2s ease',
-            }}
-          >
-            <div style={{
-              background: 'var(--panel)', border: '1px solid var(--border2)',
-              borderRadius: 20, padding: 28, width: 360, maxWidth: 'calc(100vw - 32px)',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
-              animation: 'fadeUp 0.25s ease',
-            }}>
+          <div onClick={e => { if (e.target === e.currentTarget) closeAvatarModal(); }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease' }}>
+            <div style={{ background: 'var(--panel)', border: '1px solid var(--border2)', borderRadius: 20, padding: 28, width: 360, maxWidth: 'calc(100vw - 32px)', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeUp 0.25s ease' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--white)', letterSpacing: '-0.02em' }}>
-                  📸 Photo de profil
-                </span>
-                <button onClick={closeAvatarModal}
-                  style={{ background: 'none', border: 'none', color: 'var(--grey2)', cursor: 'pointer', fontSize: 20, lineHeight: 1, padding: '0 4px' }}
-                >×</button>
+                <span style={{ fontSize: 15, fontWeight: 800, color: 'var(--white)', letterSpacing: '-0.02em' }}>📸 Photo de profil</span>
+                <button onClick={closeAvatarModal} style={{ background: 'none', border: 'none', color: 'var(--grey2)', cursor: 'pointer', fontSize: 20, lineHeight: 1, padding: '0 4px' }}>×</button>
               </div>
-
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
-                <div style={{
-                  width: 100, height: 100, borderRadius: 20,
-                  background: 'linear-gradient(135deg, var(--cyan), var(--blue))',
-                  border: '3px solid var(--border2)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  overflow: 'hidden', fontSize: 32, fontWeight: 800, color: '#f8fafc',
-                  boxShadow: '0 8px 32px rgba(6,182,212,0.2)',
-                }}>
-                  {(avatarPreview || currentAvatar)
-                    ? <img src={avatarPreview || currentAvatar} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : initials}
+                <div style={{ width: 100, height: 100, borderRadius: 20, background: 'linear-gradient(135deg, var(--cyan), var(--blue))', border: '3px solid var(--border2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', fontSize: 32, fontWeight: 800, color: '#f8fafc', boxShadow: '0 8px 32px rgba(6,182,212,0.2)' }}>
+                  {(avatarPreview || currentAvatar) ? <img src={avatarPreview || currentAvatar} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : initials}
                 </div>
               </div>
-
-              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }}
-                onChange={e => { if (e.target.files[0]) handleAvatarChange(e.target.files[0]); }}
-              />
-
+              <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) handleAvatarChange(e.target.files[0]); }} />
               <button className="avatar-upload-btn" disabled={avatarUploading} onClick={() => fileInputRef.current?.click()}>
-                {avatarUploading ? (
-                  <>
-                    <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />
-                    Envoi en cours...
-                  </>
-                ) : (
-                  <>
-                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
-                    Choisir une image
-                  </>
-                )}
+                {avatarUploading ? (<><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />Envoi en cours...</>) : (<><svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>Choisir une image</>)}
               </button>
-
-              <div
-                onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--cyan)'; e.currentTarget.style.background = 'rgba(6,182,212,0.06)'; }}
+              <div onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--cyan)'; e.currentTarget.style.background = 'rgba(6,182,212,0.06)'; }}
                 onDragLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--panel2)'; }}
-                onDrop={e => {
-                  e.preventDefault();
-                  e.currentTarget.style.borderColor = 'var(--border)';
-                  e.currentTarget.style.background = 'var(--panel2)';
-                  const file = e.dataTransfer.files[0];
-                  if (file && file.type.startsWith('image/')) handleAvatarChange(file);
-                }}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 16px', border: '2px dashed var(--border)', borderRadius: 10, background: 'var(--panel2)', marginTop: 12, transition: 'all 0.2s' }}
-              >
+                onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--panel2)'; const file = e.dataTransfer.files[0]; if (file && file.type.startsWith('image/')) handleAvatarChange(file); }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 16px', border: '2px dashed var(--border)', borderRadius: 10, background: 'var(--panel2)', marginTop: 12, transition: 'all 0.2s' }}>
                 <span style={{ fontSize: 11, color: 'var(--grey)', fontFamily: "'JetBrains Mono', monospace", textAlign: 'center' }}>ou glissez-déposez une image ici</span>
                 <span style={{ fontSize: 10, color: 'var(--grey)', fontFamily: "'JetBrains Mono', monospace", opacity: 0.7 }}>JPG, PNG, WEBP · Max 5 MB</span>
               </div>
-
-              {avatarError && (
-                <div style={{ marginTop: 12, padding: '10px 14px', background: 'var(--red-bg)', border: '1px solid var(--red-border)', borderRadius: 8, color: 'var(--red)', fontSize: 12 }}>{avatarError}</div>
-              )}
+              {avatarError && <div style={{ marginTop: 12, padding: '10px 14px', background: 'var(--red-bg)', border: '1px solid var(--red-border)', borderRadius: 8, color: 'var(--red)', fontSize: 12 }}>{avatarError}</div>}
             </div>
           </div>
         )}
 
         {/* ── Notification Detail Modal ── */}
         {selectedNotif && (
-          <div
-            onClick={e => { if (e.target === e.currentTarget) setSelectedNotif(null); }}
-            style={{
-              position: 'fixed', inset: 0,
-              background: 'rgba(0,0,0,0.75)',
-              backdropFilter: 'blur(10px)',
-              zIndex: 2000,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              animation: 'fadeIn 0.2s ease',
-              padding: '16px',
-            }}
-          >
-            <div style={{
-              background: 'var(--panel)',
-              border: '1px solid var(--border2)',
-              borderRadius: 20,
-              padding: 28,
-              width: 440,
-              maxWidth: 'calc(100vw - 32px)',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.5)',
-              animation: 'fadeUp 0.25s ease',
-              position: 'relative',
-            }}>
-
-              {/* Close */}
-              <button
-                onClick={() => setSelectedNotif(null)}
-                style={{
-                  position: 'absolute', top: 16, right: 16,
-                  background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)',
-                  borderRadius: 8, width: 32, height: 32,
-                  color: 'var(--grey2)', cursor: 'pointer', fontSize: 18, lineHeight: 1,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  transition: 'all 0.2s',
-                }}
+          <div onClick={e => { if (e.target === e.currentTarget) setSelectedNotif(null); }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.2s ease', padding: '16px' }}>
+            <div style={{ background: 'var(--panel)', border: '1px solid var(--border2)', borderRadius: 20, padding: 28, width: 440, maxWidth: 'calc(100vw - 32px)', boxShadow: '0 24px 80px rgba(0,0,0,0.5)', animation: 'fadeUp 0.25s ease', position: 'relative' }}>
+              <button onClick={() => setSelectedNotif(null)}
+                style={{ position: 'absolute', top: 16, right: 16, background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border)', borderRadius: 8, width: 32, height: 32, color: 'var(--grey2)', cursor: 'pointer', fontSize: 18, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(231,76,60,0.15)'; e.currentTarget.style.color = '#e74c3c'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.color = 'var(--grey2)'; }}
               >×</button>
-
-              {/* Icon + type label */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                <div style={{
-                  width: 52, height: 52, borderRadius: 14, flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24,
-                  background: notifBg(selectedNotif.type),
-                  border: `1px solid ${notifBorder(selectedNotif.type)}`,
-                }}>
+                <div style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, background: notifBg(selectedNotif.type), border: `1px solid ${notifBorder(selectedNotif.type)}` }}>
                   {notifEmoji(selectedNotif.type)}
                 </div>
                 <div>
-                  <div style={{
-                    fontSize: 9, fontWeight: 700, letterSpacing: '0.12em',
-                    textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace",
-                    color: notifColor(selectedNotif.type), marginBottom: 4,
-                  }}>
-                    {notifLabel(selectedNotif.type)}
-                  </div>
-                  <div style={{ fontSize: 12, color: 'var(--grey2)', fontFamily: "'JetBrains Mono', monospace" }}>
-                    {selectedNotif.time_ago || ''}
-                  </div>
+                  <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', fontFamily: "'JetBrains Mono', monospace", color: notifColor(selectedNotif.type), marginBottom: 4 }}>{notifLabel(selectedNotif.type)}</div>
+                  <div style={{ fontSize: 12, color: 'var(--grey2)', fontFamily: "'JetBrains Mono', monospace" }}>{selectedNotif.time_ago || ''}</div>
                 </div>
               </div>
-
-              {/* Title */}
-              <h3 style={{
-                fontSize: 17, fontWeight: 800, color: 'var(--white)',
-                letterSpacing: '-0.02em', marginBottom: 12, lineHeight: 1.3, paddingRight: 32,
-              }}>
-                {selectedNotif.title}
-              </h3>
-
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--white)', letterSpacing: '-0.02em', marginBottom: 12, lineHeight: 1.3, paddingRight: 32 }}>{selectedNotif.title}</h3>
               <div style={{ height: 1, background: 'var(--border)', marginBottom: 16 }} />
-
-              {/* Full message */}
-              <p style={{
-                fontSize: 13, color: 'var(--grey2)', lineHeight: 1.8,
-                whiteSpace: 'pre-wrap', marginBottom: 20,
-              }}>
-                {selectedNotif.message}
-              </p>
-
-              {/* ── PDF download button — event notifications only ── */}
-              {selectedNotif.type === 'event_ticket' && selectedNotif.data?.ticket_id &&(
-                <a
-                  href={`${API_BASE_URL}/api/tickets/${selectedNotif.data.ticket_id}/download-pdf`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                    width: '100%', padding: '13px 0', marginBottom: 10,
-                    background: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)',
-                    border: 'none', borderRadius: 12,
-                    color: '#fff', fontSize: 13, fontWeight: 800,
-                    fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.05em',
-                    textDecoration: 'none', cursor: 'pointer',
-                    transition: 'opacity 0.2s, transform 0.15s',
-                    boxShadow: '0 6px 20px rgba(231,76,60,0.35)',
-                  }}
+              <p style={{ fontSize: 13, color: 'var(--grey2)', lineHeight: 1.8, whiteSpace: 'pre-wrap', marginBottom: 20 }}>{selectedNotif.message}</p>
+              {selectedNotif.type === 'event_ticket' && selectedNotif.data?.ticket_id && (
+                <a href={`${API_BASE_URL}/api/tickets/${selectedNotif.data.ticket_id}/download-pdf`} target="_blank" rel="noopener noreferrer"
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: '13px 0', marginBottom: 10, background: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)', border: 'none', borderRadius: 12, color: '#fff', fontSize: 13, fontWeight: 800, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.05em', textDecoration: 'none', cursor: 'pointer', transition: 'opacity 0.2s, transform 0.15s', boxShadow: '0 6px 20px rgba(231,76,60,0.35)' }}
                   onMouseEnter={e => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.opacity = '1';   e.currentTarget.style.transform = 'translateY(0)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                   Télécharger mon billet PDF
                 </a>
               )}
-
-              {/* Close button */}
-              <button
-                onClick={() => setSelectedNotif(null)}
-                style={{
-                  width: '100%', padding: '11px 0',
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)',
-                  borderRadius: 10, color: 'var(--grey2)',
-                  fontSize: 12, fontWeight: 700,
-                  fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.06em',
-                  cursor: 'pointer', transition: 'all 0.2s',
-                }}
+              <button onClick={() => setSelectedNotif(null)}
+                style={{ width: '100%', padding: '11px 0', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border)', borderRadius: 10, color: 'var(--grey2)', fontSize: 12, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", letterSpacing: '0.06em', cursor: 'pointer', transition: 'all 0.2s' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = '#e74c3c'; e.currentTarget.style.color = '#e74c3c'; e.currentTarget.style.background = 'rgba(231,76,60,0.08)'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--grey2)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-              >
-                FERMER
-              </button>
+              >FERMER</button>
             </div>
           </div>
         )}

@@ -64,6 +64,12 @@ const PresidentLayout = () => {
         { label: 'Scanner les Tickets',   path: '/President/ScanTicket' },
       ]
     },
+    {
+      key: 'club',
+      label: 'Gestion du Club',
+      single: true,
+      path: '/President/ClubManagement',
+    },
   ];
 
   const isGroupActive = (group) => {
