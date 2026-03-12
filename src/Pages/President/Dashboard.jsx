@@ -268,6 +268,14 @@ const PresidentDashboard = () => {
                   </div>
                   <span className="font-medium text-gray-200 group-hover:text-white transition">Lier compte Google</span>
                 </button>
+                {/* ── NEW: Assigner Billets ── */}
+                <button onClick={() => navigate('/President/AssignTickets')}
+                  className="group w-full flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10 transition-all duration-300 hover:scale-105 hover:border-green-400 hover:bg-white/10">
+                  <div className="p-2 rounded-lg bg-green-600/20 group-hover:bg-green-600/30 transition">
+                    <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                  </div>
+                  <span className="font-medium text-gray-200 group-hover:text-white transition">Assigner des billets</span>
+                </button>
               </div>
             </div>
           </div>

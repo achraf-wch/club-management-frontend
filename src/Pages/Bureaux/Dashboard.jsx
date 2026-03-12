@@ -54,8 +54,6 @@ const BoardDashboard = () => {
       }
 
       // ── 2. Members : same approach as AdminDashboard ──────────────────────
-      // AdminDashboard uses /api/clubs → club.total_members per club
-      // Here we use /api/clubs/{id}/members or fallback on club fields
       if (clubData?.id) {
         try {
           const membersRes = await fetch(`${API_BASE_URL}/api/clubs/${clubData.id}/members`, {
@@ -79,7 +77,6 @@ const BoardDashboard = () => {
       }
 
       // ── 3. Events : same approach as AdminDashboard ───────────────────────
-      // AdminDashboard fetches /api/events then counts eventsList.length
       try {
         const eventsRes = await fetch(`${API_BASE_URL}/api/events`, {
           credentials: 'include',
@@ -180,7 +177,7 @@ const BoardDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {[
             {
-              value: membersCount,   // ← real value
+              value: membersCount,
               label: 'Membres du Club',
               iconColor: dm ? 'text-red-400' : 'text-red-500',
               bgColor: dm ? 'bg-red-500/10' : 'bg-red-50',
@@ -192,7 +189,7 @@ const BoardDashboard = () => {
               )
             },
             {
-              value: eventsCount,    // ← real value
+              value: eventsCount,
               label: 'Événements',
               iconColor: dm ? 'text-blue-400' : 'text-blue-500',
               bgColor: dm ? 'bg-blue-500/10' : 'bg-blue-50',
@@ -277,7 +274,7 @@ const BoardDashboard = () => {
             </div>
           </div>
 
-          {/* Conseils & Astuces */}
+          {/* Conseils & Astuces + NEW Assigner Billets shortcut */}
           <div className={`rounded-2xl p-7 border transition-colors duration-300
             ${dm ? 'bg-[#050F1E] border-white/10' : 'bg-white border-gray-100 shadow-sm'}`}>
             <h3 className={`text-lg font-bold mb-5 ${dm ? 'text-white' : 'text-gray-900'}`}>Conseils & Astuces</h3>
@@ -314,6 +311,28 @@ const BoardDashboard = () => {
                   </div>
                 </div>
               ))}
+
+              {/* ── NEW: Assigner Billets shortcut ── */}
+              <button
+                onClick={() => navigate('/Bureaux/AssignTickets')}
+                className={`w-full p-4 rounded-xl border text-left transition-all duration-200 hover:scale-[1.02]
+                  ${dm
+                    ? 'bg-green-500/5 border-green-500/20 hover:bg-green-500/10'
+                    : 'bg-green-50/50 border-green-100 hover:bg-green-50'}`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${dm ? 'bg-green-500/10' : 'bg-green-100'}`}>
+                    <svg className={`w-5 h-5 ${dm ? 'text-green-400' : 'text-green-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className={`font-semibold text-sm mb-1 ${dm ? 'text-white' : 'text-gray-800'}`}>Assigner des billets</h4>
+                    <p className={`text-xs ${dm ? 'text-gray-400' : 'text-gray-500'}`}>Envoyez des billets aux membres après paiement</p>
+                  </div>
+                </div>
+              </button>
+
             </div>
           </div>
 
