@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 
 const ClubCard = ({ id, name, image, logo, category, description, memberCount, foundingYear }) => {
   const navigate = useNavigate();
-
-  // ── Real members count ────────────────────────────────────────────────────
   const [realMemberCount, setRealMemberCount] = useState(memberCount || 0);
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -21,149 +19,95 @@ const ClubCard = ({ id, name, image, logo, category, description, memberCount, f
           const list = Array.isArray(data) ? data : (data.data ?? []);
           setRealMemberCount(list.length);
         }
-        // if endpoint fails, keep the memberCount prop as fallback
-      } catch {
-        // keep fallback value
-      }
+      } catch (err) { console.error(err); }
     };
     fetchMembers();
-  }, [id]);
-  // ─────────────────────────────────────────────────────────────────────────
+  }, [id, API_BASE_URL]);
 
   const defaultCover = 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=400&h=300&fit=crop';
-  const defaultLogo = 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&size=128&background=random';
+  const defaultLogo = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ef4444&color=fff`;
 
   return (
-    <div
+    <div 
       onClick={() => navigate(`/clubs/${id}`)}
-      className="group relative cursor-pointer h-full"
+      className="group relative h-[420px] w-full perspective-1000 cursor-pointer"
     >
-      {/* Card Container */}
-      <div className="relative h-full bg-[#0d1b2a] dark:bg-black rounded overflow-hidden transition-all duration-300 ease-out hover:scale-105 hover:z-10 hover:shadow-2xl hover:shadow-red-600/50 border border-red-600/30 hover:border-red-600 animate-border-pulse">
+      {/* Main Container */}
+      <div className="relative h-full w-full rounded-2xl overflow-hidden bg-[#0f172a] border border-white/10 transition-all duration-500 group-hover:border-red-500/50 group-hover:shadow-[0_20px_50px_rgba(220,38,38,0.2)]">
         
-        {/* Image de couverture */}
-        <div className="relative h-64 overflow-hidden bg-gradient-to-br from-[#0d1b2a] via-[#112240] to-[#0a1628] dark:from-black dark:via-gray-900 dark:to-black">
-          {image ? (
-            <img
-              src={image}
-              alt={name}
-              className="w-full h-full object-contain transition-all duration-700 ease-out group-hover:scale-110 group-hover:brightness-75"
-              onError={(e) => { e.target.src = defaultCover; }}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-[#112240] dark:bg-gray-900">
-              <div className="text-[#1e3a5f] text-6xl font-bold transition-all duration-500 group-hover:scale-110 group-hover:text-[#264d7a]">
-                {name.charAt(0)}
-              </div>
-            </div>
-          )}
-
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0a1628] dark:from-black via-[#0a1628]/60 dark:via-black/60 to-transparent transition-opacity duration-500 group-hover:from-[#0a1628]/90 dark:group-hover:from-black/90"></div>
-
-          {/* Badge TOP 10 */}
-          {realMemberCount > 100 && (
-            <div className="absolute top-4 right-4 transform transition-all duration-500 group-hover:scale-110">
-              <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0a1628]/80 backdrop-blur-sm border border-red-600/50 transition-all duration-300 group-hover:border-red-600">
-                <svg className="w-4 h-4 text-red-600 transition-transform duration-500 group-hover:rotate-12" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
-                </svg>
-                <span className="text-white text-xs font-semibold">TOP 10</span>
-              </div>
-            </div>
-          )}
-
-          {/* Logo Overlay */}
-          {logo && (
-            <div className="absolute -bottom-8 left-6 w-16 h-16 rounded-full border-4 border-[#0d1b2a] dark:border-black shadow-lg overflow-hidden bg-white z-10">
-              <img
-                src={logo}
-                alt={`${name} logo`}
-                className="w-full h-full object-cover"
-                onError={(e) => { e.target.src = defaultLogo; }}
-              />
-            </div>
-          )}
-
-          {/* Barre lumineuse en haut */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-600 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-center"></div>
-        </div>
-
-        {/* Info Section */}
-        <div className="relative bg-[#0d1b2a] dark:bg-black p-4 transition-all duration-500 ease-out group-hover:bg-[#112240] dark:group-hover:bg-gray-900">
-          <div className="mb-3 overflow-hidden">
-            <h3 className="text-white text-lg font-semibold mb-2 tracking-wide transition-all duration-300 group-hover:text-red-500 transform group-hover:translate-x-1 uppercase">
-              {name}
-            </h3>
+        {/* Cover Image Area */}
+        <div className="relative h-1/2 w-full overflow-hidden">
+          <img
+            src={image || defaultCover}
+            alt={name}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 brightness-90 group-hover:brightness-110"
+            onError={(e) => { e.target.src = defaultCover; }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] to-transparent" />
+          
+          {/* Top Badges */}
+          <div className="absolute top-4 left-4 flex gap-2">
             {category && (
-              <span className="inline-block px-2 py-1 bg-red-600 text-white text-xs font-bold uppercase tracking-wide transition-all duration-300 group-hover:bg-red-500 group-hover:px-3 group-hover:shadow-lg group-hover:shadow-red-600/50">
+              <span className="px-3 py-1 bg-red-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-full shadow-lg">
                 {category}
               </span>
             )}
           </div>
+        </div>
 
-          {/* Description */}
-          {description && (
-            <div className="overflow-hidden transition-all duration-500 ease-out max-h-0 group-hover:max-h-20">
-              <p className="text-white/50 text-sm mb-3 line-clamp-2 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-100">
-                {description}
-              </p>
+        {/* Logo - Positioned to overlap cover and info */}
+        <div className="absolute top-[40%] left-6 z-20">
+          <div className="w-20 h-20 rounded-2xl bg-white p-1 shadow-2xl transform transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110">
+            <div className="w-full h-full rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center">
+              <img
+                src={logo || defaultLogo}
+                alt="logo"
+                className="w-full h-full object-contain p-1" // object-contain ensures the whole logo shows
+                onError={(e) => { e.target.src = defaultLogo; }}
+              />
             </div>
-          )}
+          </div>
+        </div>
 
-          {/* Metadata */}
-          <div className="flex items-center gap-3 text-xs text-white/40 mb-3 transform translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 delay-150">
-            {foundingYear && (
-              <span className="text-green-500 font-semibold transition-all duration-300 hover:text-green-400 hover:scale-110 inline-block">
-                {foundingYear}
+        {/* Content Area */}
+        <div className="p-6 pt-12 flex flex-col h-1/2 justify-between">
+          <div>
+            <h3 className="text-2xl font-bold text-white mb-1 group-hover:text-red-500 transition-colors">
+              {name}
+            </h3>
+            <div className="flex items-center gap-4 text-gray-400 text-sm mb-3">
+              <span className="flex items-center gap-1 text-green-500 font-medium">
+                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                {foundingYear || '2024'}
               </span>
-            )}
-            <span className="flex items-center gap-1 transition-all duration-300 hover:text-white/60">
-              <svg className="w-3 h-3 transition-transform duration-300 group-hover:scale-110" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
-              </svg>
-              {realMemberCount} membres   {/* ← real value */}
-            </span>
+              <span className="flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                {realMemberCount}
+              </span>
+            </div>
+            <p className="text-gray-400 text-sm line-clamp-2 leading-relaxed">
+              {description || "Découvrez les activités et l'univers passionnant de notre club."}
+            </p>
           </div>
 
-          {/* Bouton Découvrir */}
-          <div className="overflow-hidden transition-all duration-500 max-h-0 group-hover:max-h-20">
-            <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-white hover:bg-red-600 text-black hover:text-white font-semibold rounded transition-all duration-300 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 delay-200 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95">
-              <svg className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"/>
-              </svg>
-              <span className="text-sm font-bold">Découvrir</span>
-            </button>
+          {/* Action Area - Slides up on hover */}
+          <div className="relative overflow-hidden h-10">
+            <div className="absolute inset-0 flex items-center transition-transform duration-500 group-hover:-translate-y-full">
+               <span className="text-red-500 font-bold text-sm tracking-widest uppercase">Voir le profil →</span>
+            </div>
+            <div className="absolute inset-0 flex items-center translate-y-full transition-transform duration-500 group-hover:translate-y-0">
+               <button className="w-full py-2 bg-red-600 text-white rounded-lg font-bold text-sm shadow-lg shadow-red-600/30">
+                 REJOINDRE LE CLUB
+               </button>
+            </div>
           </div>
-
-          {/* Barre de progression en bas */}
-          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-red-600 via-red-500 to-red-600 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></div>
         </div>
       </div>
 
-      {/* Shadow effect */}
-      <div className="absolute inset-0 -z-10 bg-red-950/20 rounded opacity-0 group-hover:opacity-100 transition-all duration-500 blur-2xl transform scale-95 group-hover:scale-100"></div>
-
-      {/* Particules décoratives */}
-      <div className="absolute -z-20 inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-red-500 rounded-full animate-ping"></div>
-        <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-red-400 rounded-full animate-ping" style={{ animationDelay: '0.3s' }}></div>
-        <div className="absolute bottom-1/4 left-3/4 w-1 h-1 bg-red-600 rounded-full animate-ping" style={{ animationDelay: '0.6s' }}></div>
-      </div>
-
-      <style jsx>{`
-        @keyframes slideUp {
-          from { transform: translateY(10px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes border-pulse {
-          0%, 100% { box-shadow: 0 0 5px 1px rgba(220, 38, 38, 0.3); }
-          50% { box-shadow: 0 0 15px 4px rgba(220, 38, 38, 0.7); }
-        }
-        .animate-border-pulse {
-          animation: border-pulse 2s ease-in-out infinite;
-        }
-      `}</style>
+      {/* Decorative Glow */}
+      <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500" />
     </div>
   );
 };

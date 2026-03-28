@@ -10,8 +10,20 @@ const PresidentCreateEvent = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [bannerPreview, setBannerPreview] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
+  
+  // Theme management consistent with other components
+  const [darkMode, setDarkMode] = useState(
+    document.documentElement.classList.contains("dark")
+  );
   const dm = darkMode;
+
+  useEffect(() => {
+    const handleThemeChange = () => {
+      setDarkMode(document.documentElement.classList.contains("dark"));
+    };
+    window.addEventListener("themeChanged", handleThemeChange);
+    return () => window.removeEventListener("themeChanged", handleThemeChange);
+  }, []);
 
   const [eventData, setEventData] = useState({
     title: '', description: '', category: '', event_date: '',
@@ -26,9 +38,15 @@ const PresidentCreateEvent = () => {
   const fetchMyClub = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/my-club`, { credentials: 'include' });
-      if (response.ok) { const data = await response.json(); setClub(data); }
-      else setErrorMessage('Impossible de charger votre club');
-    } catch (error) { setErrorMessage('Erreur de connexion'); }
+      if (response.ok) { 
+        const data = await response.json(); 
+        setClub(data); 
+      } else {
+        setErrorMessage('Impossible de charger votre club');
+      }
+    } catch (error) { 
+      setErrorMessage('Erreur de connexion'); 
+    }
   };
 
   const handleChange = (e) => {
@@ -49,8 +67,15 @@ const PresidentCreateEvent = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setSuccessMessage(''); setErrorMessage('');
-    if (!club) { setErrorMessage('Aucun club trouvé'); setLoading(false); return; }
+    setSuccessMessage(''); 
+    setErrorMessage('');
+    
+    if (!club) { 
+      setErrorMessage('Aucun club trouvé'); 
+      setLoading(false); 
+      return; 
+    }
+
     try {
       const formData = new FormData();
       formData.append('club_id', club.id);
@@ -69,8 +94,12 @@ const PresidentCreateEvent = () => {
       if (eventData.banner_image) formData.append('banner_image', eventData.banner_image);
 
       const response = await fetch(`${API_BASE_URL}/api/events`, {
-        method: 'POST', headers: { 'Accept': 'application/json' }, credentials: 'include', body: formData
+        method: 'POST', 
+        headers: { 'Accept': 'application/json' }, 
+        credentials: 'include', 
+        body: formData
       });
+      
       const data = await response.json();
       if (response.ok) {
         setSuccessMessage('Événement créé avec succès!');
@@ -78,8 +107,11 @@ const PresidentCreateEvent = () => {
       } else {
         setErrorMessage(data.message || "Erreur lors de la création de l'événement");
       }
-    } catch (error) { setErrorMessage('Erreur de connexion au serveur'); }
-    finally { setLoading(false); }
+    } catch (error) { 
+      setErrorMessage('Erreur de connexion au serveur'); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const inputCls = `w-full px-4 py-3 border-2 rounded-lg transition-all duration-300 placeholder-gray-400 focus:outline-none
@@ -90,7 +122,6 @@ const PresidentCreateEvent = () => {
 
   return (
     <div className={`min-h-screen py-8 transition-colors duration-300 ${dm ? 'bg-[#0a0a0f]' : 'bg-white'}`}>
-
       <div className="max-w-4xl mx-auto px-4">
 
         {/* Header */}
@@ -105,7 +136,7 @@ const PresidentCreateEvent = () => {
           )}
         </div>
 
-        {/* Success */}
+        {/* Messages */}
         {successMessage && (
           <div className={`mb-6 border-2 px-6 py-4 rounded-xl flex items-center gap-3 animate-slideInLeft
             ${dm ? 'bg-green-950/40 border-green-700/40 text-green-300' : 'bg-gradient-to-r from-green-100 to-green-50 border-green-400 text-green-800'}`}>
@@ -114,7 +145,6 @@ const PresidentCreateEvent = () => {
           </div>
         )}
 
-        {/* Error */}
         {errorMessage && (
           <div className={`mb-6 border-2 px-6 py-4 rounded-xl flex items-center gap-3 animate-slideInLeft
             ${dm ? 'bg-red-950/40 border-red-800/40 text-red-300' : 'bg-gradient-to-r from-red-100 to-red-50 border-red-400 text-red-800'}`}>
@@ -132,9 +162,9 @@ const PresidentCreateEvent = () => {
         ) : (
           <form onSubmit={handleSubmit} className={`rounded-2xl shadow-lg p-8 border animate-slideInUp
             ${dm ? 'bg-[#0d0d18] border-red-900/20' : 'bg-white border-gray-200'}`}>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-              {/* Club Info */}
+              {/* Club Context Info */}
               <div className={`md:col-span-2 mb-4 p-5 rounded-xl border
                 ${dm ? 'bg-black/60 border-red-900/40' : 'bg-blue-50 border-blue-200'}`}>
                 <div className="flex items-center justify-between">
@@ -152,92 +182,72 @@ const PresidentCreateEvent = () => {
                 </div>
               </div>
 
-              {/* Titre */}
+              {/* Form Fields */}
               <div className="md:col-span-2">
                 <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-800'}`}>Titre de l'événement <span className="text-red-500">*</span></label>
                 <input type="text" name="title" value={eventData.title} onChange={handleChange} required className={inputCls} placeholder="Ex: Workshop React.js" />
               </div>
 
-              {/* Description */}
               <div className="md:col-span-2">
                 <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-800'}`}>Description</label>
                 <textarea name="description" value={eventData.description} onChange={handleChange} rows="4" className={inputCls} placeholder="Décrivez l'événement..." />
               </div>
 
-              {/* Catégorie */}
               <div>
                 <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-800'}`}>Catégorie</label>
                 <input type="text" name="category" value={eventData.category} onChange={handleChange} className={inputCls} placeholder="Ex: Technology, Sport" />
               </div>
 
-              {/* Date événement */}
               <div>
                 <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-800'}`}>Date de l'événement <span className="text-red-500">*</span></label>
                 <input type="datetime-local" name="event_date" value={eventData.event_date} onChange={handleChange} required className={inputCls} />
               </div>
 
-              {/* Date limite */}
               <div>
                 <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-800'}`}>Date limite d'inscription</label>
                 <input type="datetime-local" name="registration_deadline" value={eventData.registration_deadline} onChange={handleChange} className={inputCls} />
               </div>
 
-              {/* Lieu */}
               <div>
                 <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-800'}`}>Lieu</label>
                 <input type="text" name="location" value={eventData.location} onChange={handleChange} className={inputCls} placeholder="Ex: Amphi 1" />
               </div>
 
-              {/* Capacité */}
               <div>
                 <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-800'}`}>Capacité</label>
                 <input type="number" name="capacity" value={eventData.capacity} onChange={handleChange} min="1" className={inputCls} placeholder="Ex: 100" />
               </div>
 
-              {/* Prix */}
               <div>
                 <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-800'}`}>Prix (DH)</label>
                 <input type="number" name="price" value={eventData.price} onChange={handleChange} min="0" step="0.01" className={inputCls} placeholder="0" />
               </div>
 
-              {/* Banner */}
+              {/* Banner Upload */}
               <div className="md:col-span-2">
                 <label className={`block font-semibold mb-2 ${dm ? 'text-gray-300' : 'text-gray-800'}`}>Image de bannière</label>
                 <div className="space-y-4">
                   {bannerPreview && (
                     <div className="mb-4 group">
-                      <p className={`text-sm mb-2 ${dm ? 'text-gray-500' : 'text-gray-500'}`}>Aperçu:</p>
                       <div className="relative overflow-hidden rounded-lg">
                         <img src={bannerPreview} alt="Preview" className="max-h-64 w-full object-cover rounded-lg border-2 border-red-500/50 shadow-lg transition-all duration-500 group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-red-900/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-center pb-4">
-                          <span className="text-white font-semibold text-sm bg-red-600/80 px-4 py-2 rounded-full">Aperçu de l'image</span>
-                        </div>
                       </div>
                     </div>
                   )}
-                  <div className="flex items-center justify-center w-full">
-                    <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-300 group
-                      ${dm ? 'border-red-800/50 bg-black/30 hover:bg-red-950/20 hover:border-red-600/60' : 'border-red-400 bg-gray-50 hover:bg-red-50 hover:border-red-500'}`}>
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <svg className="w-8 h-8 mb-4 text-red-500 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                        <p className={`mb-2 text-sm ${dm ? 'text-gray-400' : 'text-gray-600'}`}>
-                          <span className={`font-semibold ${dm ? 'text-red-400' : 'text-red-500'}`}>Cliquez pour uploader</span> ou glissez-déposez
-                        </p>
-                        <p className="text-xs text-gray-400">PNG, JPG, GIF (Max. 2MB)</p>
-                      </div>
-                      <input type="file" name="banner_image" accept="image/*" onChange={handleFileChange} className="hidden" />
-                    </label>
-                  </div>
-                  {eventData.banner_image && (
-                    <p className={`text-sm flex items-center gap-2 ${dm ? 'text-cyan-600' : 'text-green-600'}`}>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                      Fichier sélectionné: <span className={dm ? 'text-gray-400' : 'text-gray-600'}>{eventData.banner_image.name}</span>
-                    </p>
-                  )}
+                  <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-all duration-300 group
+                    ${dm ? 'border-red-800/50 bg-black/30 hover:bg-red-950/20 hover:border-red-600/60' : 'border-red-400 bg-gray-50 hover:bg-red-50 hover:border-red-500'}`}>
+                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                      <svg className="w-8 h-8 mb-4 text-red-500 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                      <p className={`mb-2 text-sm ${dm ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <span className={`font-semibold ${dm ? 'text-red-400' : 'text-red-500'}`}>Cliquez pour uploader</span> ou glissez-déposez
+                      </p>
+                    </div>
+                    <input type="file" name="banner_image" accept="image/*" onChange={handleFileChange} className="hidden" />
+                  </label>
                 </div>
               </div>
 
-              {/* Checkboxes */}
+              {/* Toggles */}
               <div className="md:col-span-2 space-y-3">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" name="requires_ticket" checked={eventData.requires_ticket} onChange={handleChange} className={checkboxCls} />
@@ -250,7 +260,7 @@ const PresidentCreateEvent = () => {
               </div>
             </div>
 
-            {/* Submit */}
+            {/* Submit Actions */}
             <div className="mt-8 flex gap-4">
               <button type="submit" disabled={loading}
                 className={`group flex-1 relative py-4 px-6 rounded-xl font-bold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed
