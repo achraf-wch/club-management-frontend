@@ -21,7 +21,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="relative text-gray-300 overflow-hidden bg-[#1a3a5c] dark:bg-black">
+    <footer className="relative text-gray-300 overflow-hidden" style={{backgroundColor: '#06163A'}}>
 
       {/* Ligne de séparation en haut */}
       <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />

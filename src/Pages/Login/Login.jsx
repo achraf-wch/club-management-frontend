@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import Navbar from '../../Componenets/Navbar';
-import logo from '../../imgs/CluVer.png';
+
 
 // --- SUB-COMPONENT: 2FA SCREEN (Matches AllEvents Style) ---
 const TwoFactorScreen = ({ pendingPersonId, onSuccess, onBack, API_BASE_URL, darkMode }) => {
@@ -258,7 +258,7 @@ const Login = () => {
 
   if (requires2FA) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-[#1a2c5b] to-[#0f1e3d] dark:from-[#0a0a0a] dark:to-[#0a0a0a] relative overflow-hidden">
+      <div className="min-h-screen" style={{backgroundColor: '#06163A'}}>
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-[#c0392b]/10 rounded-full blur-3xl animate-pulse"></div>
         <TwoFactorScreen
           pendingPersonId={pendingPersonId}
@@ -276,44 +276,43 @@ const Login = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1a2c5b] to-[#0f1e3d] dark:from-[#0a0a0a] dark:via-[#1a0a0a] dark:to-[#0a0a0a] transition-colors duration-500 overflow-hidden relative">
+    <div className="min-h-screen transition-colors duration-500 overflow-hidden relative" style={{backgroundColor: '#06163A'}}>
       <Navbar />
-      
       {/* Background Orbs (From AllEvents) */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-[#c0392b]/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-[#c0392b]/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }}></div>
       </div>
 
-      <div className="relative z-10 flex items-center justify-center min-h-screen px-4 pt-20">
-        <div className="w-full max-w-md">
-          {/* Header */}
-          <div className="text-center mb-10">
-            <img src={logo} alt="CluVersity" className="h-16 mx-auto mb-6 drop-shadow-2xl" />
-            <div className="w-12 h-1 bg-[#c0392b] mx-auto mb-4"></div>
-            <h1 className="text-white text-4xl font-bold">Bienvenue</h1>
-            <p className="text-white/50 mt-2">Connectez-vous à votre espace personnel</p>
+      <div className="relative z-10 flex flex-col md:flex-row items-stretch justify-center min-h-screen px-4 pt-20 gap-0 md:gap-8">
+        {/* Colonne gauche : Header/logo/texte de bienvenue */}
+        <div className="w-full md:w-1/2 flex flex-col justify-center items-center">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-10">
+              <img src="/imgs/logo2.png" alt="CluVersity" className="h-28 md:h-36 mx-auto mb-6 drop-shadow-2xl login-logo-animate" />
+              <div className="w-12 h-1 bg-[#c0392b] mx-auto mb-4"></div>
+              <h1 className="text-white text-4xl font-bold">Bienvenue</h1>
+              <p className="text-white/50 mt-2">Connectez-vous à votre espace personnel</p>
+            </div>
           </div>
-
-          {/* Login Card (Matches AllEvents Cards) */}
-          <div className={`rounded-3xl p-8 border backdrop-blur-md transition-all duration-500 ${
+        </div>
+        {/* Colonne droite : Carte de connexion (formulaire) */}
+        <div className="w-full md:w-1/2 flex flex-col justify-center items-center">
+          <div className={`w-full max-w-md rounded-3xl p-8 border backdrop-blur-md transition-all duration-500 login-card-animate ${
             darkMode 
               ? 'bg-black/40 border-white/10 shadow-2xl shadow-black' 
               : 'bg-white/5 border-white/20 shadow-xl shadow-black/20'
           }`}>
-            
             {successMessage && (
               <div className="mb-6 p-4 rounded-xl bg-green-500/10 border border-green-500/50 text-green-400 text-sm text-center">
                 {successMessage}
               </div>
             )}
-
             {errors.general && (
               <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/50 text-red-400 text-sm text-center">
                 {errors.general}
               </div>
             )}
-
             {/* Google Login */}
             <button
               onClick={() => window.location.href = `${API_BASE_URL}/api/auth/google/`}
@@ -328,12 +327,10 @@ const Login = () => {
               </svg>
               <span className="font-semibold">Continuer avec Google</span>
             </button>
-
             <div className="relative mb-8 text-center">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
               <span className="relative px-4 text-white/20 text-xs uppercase tracking-widest bg-transparent">ou avec email</span>
             </div>
-
             <div className="space-y-5">
               <div>
                 <input
@@ -343,11 +340,10 @@ const Login = () => {
                   value={loginData.email}
                   onChange={handleChange}
                   onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-                  className={`w-full px-5 py-4 bg-white/5 border rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-[#c0392b] transition-all ${errors.email ? 'border-red-500' : 'border-white/10'}`}
+                  className={`w-full px-5 py-4 bg-white/5 border rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-[#c0392b] transition-all login-input-animate ${errors.email ? 'border-red-500' : 'border-white/10'}`}
                 />
                 {errors.email && <p className="mt-1 text-xs text-red-500 ml-2">{errors.email}</p>}
               </div>
-
               <div>
                 <input
                   type="password"
@@ -356,19 +352,17 @@ const Login = () => {
                   value={loginData.password}
                   onChange={handleChange}
                   onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
-                  className={`w-full px-5 py-4 bg-white/5 border rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-[#c0392b] transition-all ${errors.password ? 'border-red-500' : 'border-white/10'}`}
+                  className={`w-full px-5 py-4 bg-white/5 border rounded-xl text-white placeholder-white/20 focus:outline-none focus:border-[#c0392b] transition-all login-input-animate ${errors.password ? 'border-red-500' : 'border-white/10'}`}
                 />
                 {errors.password && <p className="mt-1 text-xs text-red-500 ml-2">{errors.password}</p>}
               </div>
-              
               <div className="text-right">
                 <a href="/forgot-password" title="Oubli" className="text-xs text-[#c0392b] hover:text-white transition-colors">Mot de passe oublié ?</a>
               </div>
-
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="w-full py-4 bg-[#c0392b] hover:bg-[#a93226] text-white font-bold rounded-xl transition-all shadow-lg shadow-[#c0392b]/20 active:scale-95 flex items-center justify-center gap-2"
+                className="w-full py-4 bg-[#c0392b] hover:bg-[#a93226] text-white font-bold rounded-xl transition-all shadow-lg shadow-[#c0392b]/20 active:scale-95 flex items-center justify-center gap-2 login-btn-animate"
               >
                 {loading ? (
                   <>
@@ -381,7 +375,6 @@ const Login = () => {
                 ) : 'Se connecter'}
               </button>
             </div>
-
             <p className="text-center text-white/40 text-sm mt-8">
               Pas encore de compte ? <a href="/register" className="text-white hover:text-[#c0392b] font-bold transition-colors underline-offset-4 hover:underline">Créer un compte</a>
             </p>

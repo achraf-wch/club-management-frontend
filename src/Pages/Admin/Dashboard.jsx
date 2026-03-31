@@ -104,7 +104,7 @@ const AdminDashboard = () => {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#c0392b]/5 rounded-full blur-[120px] -z-10 animate-pulse"></div>
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#1a2c5b]/10 rounded-full blur-[100px] -z-10"></div>
 
-        <div className="pt-24 px-8 pb-12 max-w-7xl mx-auto relative z-10">
+        <div className="pt-32 md:pt-36 px-8 pb-12 max-w-7xl mx-auto relative z-10">
 
           {/* Header Section */}
           <div className="mb-12">

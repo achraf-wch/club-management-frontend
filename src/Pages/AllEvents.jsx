@@ -123,7 +123,7 @@ const AllEvents = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1a2c5b] to-[#0f1e3d] dark:from-[#0a0a0a] dark:via-[#1a0a0a] dark:to-[#0a0a0a]">
+    <div className="min-h-screen" style={{backgroundColor: '#06163A'}}>
       <Navbar />
 
       {/* Hero */}

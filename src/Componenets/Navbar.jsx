@@ -139,7 +139,7 @@ const toggleDarkMode = () => {
         }
         .notification-border {
           padding: 2px;
-          background: linear-gradient(270deg, #c0392b, #1a2c5b, #c0392b, #e74c3c);
+          background: linear-gradient(270deg, #C8102E, #1a2c5b, #C8102E, #C8102E);
           background-size: 300% 300%;
           animation: border-rotate 3s ease infinite;
           border-radius: 0.75rem;
@@ -153,7 +153,7 @@ const toggleDarkMode = () => {
           100% { background-position: 200% center; }
         }
         .btn-voir-events {
-          background: linear-gradient(135deg, #1a2c5b 0%, #c0392b 50%, #1a2c5b 100%);
+          background: linear-gradient(135deg, #1a2c5b 0%, #C8102E 50%, #1a2c5b 100%);
           background-size: 200% auto;
           animation: shimmer 3s linear infinite;
           transition: all 0.3s ease;
@@ -165,7 +165,7 @@ const toggleDarkMode = () => {
         }
       `}</style>
 
-     <nav className={`fixed w-full z-50 px-8 py-4 top-0 transition-all duration-300 ${darkMode ? 'bg-black/95 backdrop-blur-md shadow-lg' : 'bg-[#1a2c5b] shadow-lg'}`}>
+    <nav className={`fixed w-full z-50 px-8 py-4 top-0 transition-all duration-300 shadow-lg`} style={{backgroundColor: '#06163A'}}>
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           {/* Logo */}
           <div className="flex items-center gap-2 -my-4">
@@ -183,7 +183,7 @@ const toggleDarkMode = () => {
           <div className="flex items-center gap-6">
 
             {/* Bouton Dark Mode */}
-            <button onClick={toggleDarkMode} className="text-white hover:text-[#c0392b] transition flex items-center">
+            <button onClick={toggleDarkMode} className="text-white hover:text-[#C8102E] transition flex items-center">
               {darkMode ? (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" />
@@ -203,7 +203,7 @@ const toggleDarkMode = () => {
               >
                 Accueil
                 {activeLink === 'accueil' && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-500"></span>
+                  <span className="absolute bottom-0 left-0 w-full h-0.5" style={{background:'#C8102E'}}></span>
                 )}
               </button>
               
@@ -214,7 +214,7 @@ const toggleDarkMode = () => {
               >
                 Events
                 {activeLink === 'events' && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-red-500"></span>
+                  <span className="absolute bottom-0 left-0 w-full h-0.5" style={{background:'#C8102E'}}></span>
                 )}
               </button>
             </div>
@@ -222,7 +222,10 @@ const toggleDarkMode = () => {
             {/* Bouton Connexion */}
             <button
               onClick={handleLogin}
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-1.5 rounded-md transition text-xs flex items-center gap-2"
+              className="text-white font-semibold px-4 py-1.5 rounded-md transition text-xs flex items-center gap-2"
+              style={{background:'#C8102E', border:'1.5px solid #C8102E'}}
+              onMouseOver={e => e.currentTarget.style.background='#a50d23'}
+              onMouseOut={e => e.currentTarget.style.background='#C8102E'}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />

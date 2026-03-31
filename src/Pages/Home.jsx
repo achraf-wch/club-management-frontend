@@ -42,25 +42,25 @@ const Home = () => {
       <Navbar />
       
       {/* --- NEW HERO SECTION WITH YOUR IMAGE --- */}
-      <section className="relative h-[80vh] min-h-[600px] flex items-center overflow-hidden bg-slate-900">
+      <section className="relative h-[80vh] min-h-[600px] flex items-center overflow-hidden bg-slate-900 pt-28 pb-12 md:pt-36 md:pb-16">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0">
           <img 
-            src="/imgs/estlogo.jfif" 
-            alt="EST Fes Entrance" 
-            className="w-full h-full object-cover opacity-60"
+            src="/imgs/pic1.png" 
+            alt="EST Fès" 
+            className="w-full h-full object-cover opacity-60" 
           />
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900/90 via-blue-900/40 to-transparent"></div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-6 w-full text-white">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-red-600/90 backdrop-blur-md rounded-full px-4 py-1 mb-6 border border-red-400/50">
+        <div className="relative max-w-7xl mx-auto px-6 w-full text-white flex justify-start">
+          <div className="max-w-2xl w-full flex flex-col items-start text-left py-4 md:py-6">
+            <div className="inline-flex items-center gap-2 mb-6" style={{backgroundColor:'#C8102E', opacity:0.9, backdropFilter:'blur(4px)', borderRadius:'9999px', padding:'0.25rem 1rem', border:'1.5px solid #C8102E'}}>
               <span className="text-xs font-bold uppercase tracking-widest">EST Fès Plateforme</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-              L'Excellence <br/> 
-              <span className="text-red-500">Par la Vie Étudiante</span>
+              L'Excellence <br/>
+              <span style={{color:'#C8102E'}}>Par la Vie Étudiante</span>
             </h1>
             <p className="text-lg text-gray-200 mb-8 leading-relaxed">
               Bienvenue sur le portail officiel des clubs de l'EST de Fès. 
@@ -69,9 +69,16 @@ const Home = () => {
             <div className="flex flex-wrap gap-4">
               <button 
                 onClick={() => document.getElementById('clubs-section')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-8 py-4 bg-red-600 hover:bg-red-700 rounded-xl font-bold transition-all shadow-xl shadow-red-600/20"
+                className="explore-btn px-8 py-4 font-bold text-white rounded-xl border border-[#C8102E] shadow-xl"
+                style={{
+                  background: 'linear-gradient(90deg, #C8102E 0%, #a50d23 100%)',
+                  boxShadow: '0 4px 24px #C8102E22',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  zIndex: 1
+                }}
               >
-                Explorer les clubs
+                <span className="relative z-10">Explorer les clubs</span>
               </button>
             </div>
           </div>
@@ -85,10 +92,10 @@ const Home = () => {
               <button 
                 key={cat}
                 onClick={() => cat === 'Tous' ? navigate('/') : navigate(`/?search=${cat}`)}
-                className={`px-6 py-2 rounded-full text-sm font-semibold transition-all ${
-                    (cat === 'Tous' && !searchQuery) || searchQuery === cat 
-                    ? 'bg-blue-900 text-white shadow-md' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-600'
+                className={`category-btn px-6 py-2 rounded-full text-sm font-semibold transition-all ${
+                  (cat === 'Tous' && !searchQuery) || searchQuery === cat 
+                  ? 'bg-blue-900 text-white shadow-md' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-[#F9E6EA] hover:text-[#C8102E]'
                 }`}
               >
                 {cat}
@@ -115,7 +122,7 @@ const Home = () => {
       {/* --- NEW PHOTO GALLERY SECTION (For you and your partner) --- */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-10 text-center">Vie de Campus & <span className="text-red-600">Engagement</span></h2>
+          <h2 className="text-3xl font-bold mb-10 text-center">Vie de Campus & <span style={{color:'#C8102E'}}>Engagement</span></h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 h-[500px]">
              {/* Large Main Photo */}
              <div className="col-span-2 row-span-2 rounded-3xl overflow-hidden bg-gray-200 group relative">
