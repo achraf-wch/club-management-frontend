@@ -123,7 +123,6 @@ const Login = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-  // Keep your exact Dark Mode logic
   useEffect(() => {
     const isDark = document.documentElement.classList.contains('dark');
     setDarkMode(isDark);
@@ -138,7 +137,6 @@ const Login = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Keep your exact Redirect logic
   const handleRedirect = (role, clubRole) => {
     if (role === 'admin') navigate('/Admin/Dashboard', { replace: true });
     else if (role === 'user' && clubRole) {
@@ -153,7 +151,6 @@ const Login = () => {
     }
   };
 
-  // Keep your exact Google Callback logic
   useEffect(() => {
     const handleGoogleCallback = async () => {
       const googleLogin = searchParams.get('google_login');
@@ -210,7 +207,6 @@ const Login = () => {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  // Keep your exact Login Logic
   const handleSubmit = async () => {
     setLoading(true); 
     setErrors({}); 
@@ -220,7 +216,6 @@ const Login = () => {
     if (!loginData.email) newErrors.email = "L'email est requis";
     else if (!/\S+@\S+\.\S+/.test(loginData.email)) newErrors.email = 'Email invalide';
     if (!loginData.password) newErrors.password = 'Le mot de passe est requis';
-    
     if (Object.keys(newErrors).length > 0) { 
       setErrors(newErrors); 
       setLoading(false); 
@@ -278,14 +273,13 @@ const Login = () => {
   return (
     <div className="min-h-screen transition-colors duration-500 overflow-hidden relative" style={{backgroundColor: '#06163A'}}>
       <Navbar />
-      {/* Background Orbs (From AllEvents) */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-[#c0392b]/10 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-[#c0392b]/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.5s' }}></div>
       </div>
 
       <div className="relative z-10 flex flex-col md:flex-row items-stretch justify-center min-h-screen px-4 pt-20 gap-0 md:gap-8">
-        {/* Colonne gauche : Header/logo/texte de bienvenue */}
+        {/* Left column */}
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center">
           <div className="w-full max-w-md">
             <div className="text-center mb-10">
@@ -296,7 +290,8 @@ const Login = () => {
             </div>
           </div>
         </div>
-        {/* Colonne droite : Carte de connexion (formulaire) */}
+
+        {/* Right column */}
         <div className="w-full md:w-1/2 flex flex-col justify-center items-center">
           <div className={`w-full max-w-md rounded-3xl p-8 border backdrop-blur-md transition-all duration-500 login-card-animate ${
             darkMode 
@@ -313,6 +308,7 @@ const Login = () => {
                 {errors.general}
               </div>
             )}
+
             {/* Google Login */}
             <button
               onClick={() => window.location.href = `${API_BASE_URL}/api/auth/google/`}
@@ -327,10 +323,12 @@ const Login = () => {
               </svg>
               <span className="font-semibold">Continuer avec Google</span>
             </button>
+
             <div className="relative mb-8 text-center">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
               <span className="relative px-4 text-white/20 text-xs uppercase tracking-widest bg-transparent">ou avec email</span>
             </div>
+
             <div className="space-y-5">
               <div>
                 <input
@@ -356,9 +354,7 @@ const Login = () => {
                 />
                 {errors.password && <p className="mt-1 text-xs text-red-500 ml-2">{errors.password}</p>}
               </div>
-              <div className="text-right">
-                <a href="/forgot-password" title="Oubli" className="text-xs text-[#c0392b] hover:text-white transition-colors">Mot de passe oublié ?</a>
-              </div>
+
               <button
                 onClick={handleSubmit}
                 disabled={loading}
@@ -375,9 +371,13 @@ const Login = () => {
                 ) : 'Se connecter'}
               </button>
             </div>
-            <p className="text-center text-white/40 text-sm mt-8">
-              Pas encore de compte ? <a href="/register" className="text-white hover:text-[#c0392b] font-bold transition-colors underline-offset-4 hover:underline">Créer un compte</a>
-            </p>
+
+            {/* Note replacing "forgot password" and "create account" */}
+            <div className="mt-8 p-4 rounded-xl bg-white/5 border border-white/10 text-center">
+              <p className="text-white/30 text-xs leading-relaxed">
+                Vous n'avez pas encore de compte ? Rejoignez un club de votre établissement et votre accès sera créé par votre responsable de club.
+              </p>
+            </div>
           </div>
         </div>
       </div>

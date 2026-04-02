@@ -24,17 +24,27 @@ const EventDetail = () => {
   const refs = useRef({});
 
   /* ── dark mode synced with Navbar ── */
-  // ✅ CHANGEMENT ICI SEULEMENT : lire localStorage au montage + écouter 'themeChanged'
+  // ✅ FIXED: Safe initialization and event handling
   const [isDark, setIsDark] = useState(() => {
-    const s = localStorage.getItem('darkMode');
-    return s !== null ? s === 'true' : document.documentElement.classList.contains('dark');
+    const saved = localStorage.getItem('darkMode');
+    if (saved !== null) return saved === 'true';
+    return document.documentElement.classList.contains('dark');
   });
+  
   useEffect(() => {
-    const h = e => setIsDark(e.detail.dark);
-    window.addEventListener('themeChanged', h);
-    return () => window.removeEventListener('themeChanged', h);
+    // ✅ FIXED: Safe event handler with null check
+    const handleThemeChange = (e) => {
+      if (e && e.detail && typeof e.detail.dark !== 'undefined') {
+        setIsDark(e.detail.dark);
+      } else {
+        // Fallback: read from DOM or localStorage
+        const dark = document.documentElement.classList.contains('dark');
+        setIsDark(dark);
+      }
+    };
+    window.addEventListener('themeChanged', handleThemeChange);
+    return () => window.removeEventListener('themeChanged', handleThemeChange);
   }, []);
-  // ✅ FIN DU CHANGEMENT
 
   useEffect(() => {
     const fn = () => setScrollY(window.scrollY);

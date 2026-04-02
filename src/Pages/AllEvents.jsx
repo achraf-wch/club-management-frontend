@@ -12,8 +12,29 @@ const AllEvents = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef(null);
+  
+  // ✅ Add dark mode state
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    if (saved !== null) return saved === 'true';
+    return document.documentElement.classList.contains('dark');
+  });
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
+  // ✅ Listen for theme changes
+  useEffect(() => {
+    const handleThemeChange = (e) => {
+      if (e && e.detail && typeof e.detail.dark !== 'undefined') {
+        setIsDark(e.detail.dark);
+      } else {
+        const dark = document.documentElement.classList.contains('dark');
+        setIsDark(dark);
+      }
+    };
+    window.addEventListener('themeChanged', handleThemeChange);
+    return () => window.removeEventListener('themeChanged', handleThemeChange);
+  }, []);
 
   useEffect(() => { fetchEvents(); }, []);
 
@@ -99,8 +120,6 @@ const AllEvents = () => {
     };
   };
 
-  const isDark = document.documentElement.classList.contains('dark');
-
   const getCardBackground = (idx) => {
     if (isDark) return 'linear-gradient(145deg, #1a1a2e, #16213e)';
     return idx === activeIndex
@@ -122,8 +141,11 @@ const AllEvents = () => {
     return isDark ? '0 20px 60px rgba(0,0,0,0.6)' : '0 10px 40px rgba(0,0,0,0.15)';
   };
 
+  // ✅ Dynamic background based on dark mode
+  const pageBg = isDark ? '#060d1f' : '#f0f4ff';
+
   return (
-    <div className="min-h-screen" style={{backgroundColor: '#06163A'}}>
+    <div className="min-h-screen" style={{ backgroundColor: pageBg, transition: 'background-color 0.3s ease' }}>
       <Navbar />
 
       {/* Hero */}
@@ -134,8 +156,12 @@ const AllEvents = () => {
         </div>
         <div className="relative z-10">
           <div className="w-16 h-1 bg-[#c0392b] mx-auto mb-6"></div>
-          <h1 className="text-white text-5xl font-bold mb-2">Tous les Événements</h1>
-          <p className="text-white/60 text-lg">Découvrez les événements de tous les clubs de l'EST Fès</p>
+          <h1 className={`text-5xl font-bold mb-2 ${isDark ? 'text-white' : 'text-[#1a2c5b]'}`}>
+            Tous les Événements
+          </h1>
+          <p className={`text-lg ${isDark ? 'text-white/60' : 'text-gray-500'}`}>
+            Découvrez les événements de tous les clubs de l'EST Fès
+          </p>
         </div>
       </div>
 
@@ -152,7 +178,11 @@ const AllEvents = () => {
               placeholder="Rechercher un événement ou club..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white/10 dark:bg-white/5 border border-white/20 dark:border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-[#c0392b] transition"
+              className={`w-full pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:border-[#c0392b] transition ${
+                isDark 
+                  ? 'bg-white/10 border border-white/20 text-white placeholder-white/40' 
+                  : 'bg-white border border-gray-200 text-gray-800 placeholder-gray-400 shadow-sm'
+              }`}
             />
           </div>
 
@@ -165,7 +195,9 @@ const AllEvents = () => {
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                   selectedCategory === cat
                     ? 'bg-[#c0392b] text-white shadow-lg shadow-[#c0392b]/30'
-                    : 'bg-white/10 dark:bg-white/5 text-white/60 hover:bg-white/20 hover:text-white border border-white/20 dark:border-white/10'
+                    : isDark
+                      ? 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border border-white/20'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200'
                 }`}
               >
                 {cat === 'all' ? 'Tous' : cat}
@@ -174,7 +206,7 @@ const AllEvents = () => {
           </div>
         </div>
 
-        <p className="text-white/40 text-sm mt-3 text-center">
+        <p className={`text-sm mt-3 text-center ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
           {filtered.length} événement{filtered.length !== 1 ? 's' : ''}
         </p>
       </div>
@@ -184,11 +216,11 @@ const AllEvents = () => {
         {loading ? (
           <div className="text-center py-32">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#c0392b] mb-4"></div>
-            <p className="text-white">Chargement...</p>
+            <p className={isDark ? 'text-white' : 'text-gray-600'}>Chargement...</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-32">
-            <p className="text-white/50 text-lg">Aucun événement trouvé</p>
+            <p className={`text-lg ${isDark ? 'text-white/50' : 'text-gray-400'}`}>Aucun événement trouvé</p>
           </div>
         ) : (
           <>
@@ -271,16 +303,16 @@ const AllEvents = () => {
 
                     {/* Content */}
                     <div className="p-4">
-                      <h3 className="text-gray-800 dark:text-white font-bold text-base mb-1 line-clamp-1">
+                      <h3 className={`font-bold text-base mb-1 line-clamp-1 ${isDark ? 'text-white' : 'text-gray-800'}`}>
                         {event.title}
                       </h3>
                       {event.club && (
-                        <p className="text-gray-500 dark:text-white/40 text-xs mb-2">📍 {event.club.name}</p>
+                        <p className={`text-xs mb-2 ${isDark ? 'text-white/40' : 'text-gray-500'}`}>📍 {event.club.name}</p>
                       )}
                       {event.description && (
-                        <p className="text-gray-400 dark:text-white/30 text-xs line-clamp-2 mb-3">{event.description}</p>
+                        <p className={`text-xs line-clamp-2 mb-3 ${isDark ? 'text-white/30' : 'text-gray-400'}`}>{event.description}</p>
                       )}
-                      <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-white/40">
+                      <div className={`flex items-center gap-1 text-xs ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
                         <svg className="w-3 h-3 text-[#c0392b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
@@ -306,7 +338,11 @@ const AllEvents = () => {
             <div className="flex items-center justify-center gap-8 mt-4">
               <button
                 onClick={prev}
-                className="w-12 h-12 rounded-full bg-white/10 hover:bg-[#c0392b] border border-white/20 flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md"
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md ${
+                  isDark 
+                    ? 'bg-white/10 hover:bg-[#c0392b] border border-white/20 text-white' 
+                    : 'bg-gray-200 hover:bg-[#c0392b] border border-gray-300 text-gray-700 hover:text-white'
+                }`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -322,7 +358,7 @@ const AllEvents = () => {
                     className={`rounded-full transition-all duration-300 ${
                       idx === activeIndex
                         ? 'w-6 h-2 bg-[#c0392b]'
-                        : 'w-2 h-2 bg-white/20 hover:bg-white/40'
+                        : isDark ? 'w-2 h-2 bg-white/20 hover:bg-white/40' : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
                     }`}
                   />
                 ))}
@@ -330,7 +366,11 @@ const AllEvents = () => {
 
               <button
                 onClick={next}
-                className="w-12 h-12 rounded-full bg-white/10 hover:bg-[#c0392b] border border-white/20 flex items-center justify-center text-white transition-all duration-300 hover:scale-110 shadow-md"
+                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-md ${
+                  isDark 
+                    ? 'bg-white/10 hover:bg-[#c0392b] border border-white/20 text-white' 
+                    : 'bg-gray-200 hover:bg-[#c0392b] border border-gray-300 text-gray-700 hover:text-white'
+                }`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -339,7 +379,7 @@ const AllEvents = () => {
             </div>
 
             {/* Counter */}
-            <div className="text-center mt-4 text-white/40 text-sm">
+            <div className={`text-center mt-4 text-sm ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
               {activeIndex + 1} / {filtered.length}
             </div>
           </>
