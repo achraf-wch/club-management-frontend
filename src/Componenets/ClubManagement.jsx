@@ -106,8 +106,6 @@ const ClubManagement = () => {
 
       if (response.ok) {
         setSuccess('Informations du club mises à jour avec succès !');
-
-        // ── Reset : nom actuel mis à jour, tous les autres champs vidés ──
         setClubData({
           oldName:       data.club.name || clubData.newName.trim() || clubData.oldName,
           newName:       '',
@@ -118,10 +116,8 @@ const ClubManagement = () => {
           founding_year: '',
         });
         if (data.club.logo_url) setLogoPreview(`${data.club.logo_url}?t=${Date.now()}`);
-        // Reset file input visually
         const fileInput = document.getElementById('logo-upload');
         if (fileInput) fileInput.value = '';
-
         setTimeout(() => setSuccess(''), 4000);
       } else {
         setError(data.message || 'Erreur lors de la mise à jour');
@@ -131,39 +127,56 @@ const ClubManagement = () => {
   };
 
   // ── Styles dynamiques selon dark mode ────────────────────────────────────
-  const pageBg   = darkMode
-    ? 'min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 py-8 px-4'
-    : 'min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8 px-4';
+  // DARK MODE  : vrais noirs (bg-black, gray-950) + texte blanc
+  // LIGHT MODE : fond blanc, card blanche, inputs blancs, texte gris foncé
 
-  const cardBg   = darkMode
-    ? 'bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-700/60 shadow-2xl shadow-black/50 p-8'
-    : 'bg-slate-900/50 backdrop-blur-xl rounded-2xl border border-slate-700/50 shadow-2xl shadow-blue-950/30 p-8';
+  const pageBg = darkMode
+    ? 'min-h-screen bg-black py-8 px-4'
+    : 'min-h-screen bg-gray-100 py-8 px-4';
+
+  const cardBg = darkMode
+    ? 'bg-gray-950 rounded-2xl border border-gray-800 shadow-2xl shadow-black p-8'
+    : 'bg-white rounded-2xl border border-gray-200 shadow-xl shadow-gray-200/60 p-8';
 
   const inputCls = darkMode
-    ? 'w-full px-4 py-3.5 bg-gray-800/70 border-2 border-gray-600/60 text-gray-100 rounded-lg focus:outline-none focus:border-blue-400 focus:bg-gray-800 transition-all duration-300 placeholder-gray-500'
-    : 'w-full px-4 py-3.5 bg-slate-800/50 border-2 border-slate-700/50 text-white rounded-lg focus:outline-none focus:border-blue-500 focus:bg-slate-800/70 transition-all duration-300 placeholder-slate-500';
+    ? 'w-full px-4 py-3.5 bg-black border-2 border-gray-700 text-white rounded-lg focus:outline-none focus:border-blue-500 focus:bg-gray-950 transition-all duration-300 placeholder-gray-600'
+    : 'w-full px-4 py-3.5 bg-white border-2 border-gray-200 text-gray-800 rounded-lg focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300 placeholder-gray-400';
 
   const labelCls = darkMode
     ? 'block text-sm font-semibold text-gray-400 uppercase tracking-wider mb-2'
-    : 'block text-sm font-semibold text-slate-400 uppercase tracking-wider mb-2';
+    : 'block text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2';
+
+  const subtitleCls = darkMode ? 'text-gray-500' : 'text-gray-500';
+
+  const blobColor1 = darkMode ? 'bg-blue-900/20' : 'bg-blue-100/60';
+  const blobColor2 = darkMode ? 'bg-purple-900/15' : 'bg-purple-100/50';
+  const blobColor3 = darkMode ? 'bg-blue-800/10' : 'bg-blue-50/80';
+
+  const ringCls = darkMode ? 'ring-gray-950' : 'ring-white';
+
+  const spinnerTextCls = darkMode ? 'text-gray-500' : 'text-gray-400';
+  const errorBodyTextCls = darkMode ? 'text-gray-500' : 'text-gray-500';
+  const logoLabelTextCls = darkMode
+    ? 'text-sm text-gray-600 group-hover:text-blue-400 transition-colors'
+    : 'text-sm text-gray-400 group-hover:text-blue-500 transition-colors';
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <div className={pageBg}>
       {/* Blobs décoratifs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute top-20 left-10 w-72 h-72 ${darkMode ? 'bg-blue-800/15' : 'bg-blue-600/20'} rounded-full blur-3xl`}></div>
-        <div className={`absolute bottom-20 right-10 w-96 h-96 ${darkMode ? 'bg-purple-800/10' : 'bg-purple-600/15'} rounded-full blur-3xl`}></div>
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 ${darkMode ? 'bg-blue-700/8' : 'bg-blue-500/10'} rounded-full blur-3xl`}></div>
+        <div className={`absolute top-20 left-10 w-72 h-72 ${blobColor1} rounded-full blur-3xl`}></div>
+        <div className={`absolute bottom-20 right-10 w-96 h-96 ${blobColor2} rounded-full blur-3xl`}></div>
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 ${blobColor3} rounded-full blur-3xl`}></div>
       </div>
 
       <div className="relative z-10 max-w-4xl mx-auto">
         {/* En-tête */}
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-blue-300 to-cyan-400 bg-clip-text text-transparent mb-2">
+          <h1 className={`text-4xl font-bold mb-2 ${darkMode ? 'bg-gradient-to-r from-blue-400 via-blue-300 to-cyan-400 bg-clip-text text-transparent' : 'text-gray-800'}`}>
             Gestion du Club
           </h1>
-          <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-slate-400'}`}>
+          <p className={`text-sm ${subtitleCls}`}>
             Modifiez les informations et l'apparence de votre club
           </p>
         </div>
@@ -184,7 +197,7 @@ const ClubManagement = () => {
           {error && (
             <div className="mb-6 bg-rose-900/30 border border-rose-700/50 text-rose-200 px-5 py-4 rounded-lg flex items-center gap-3">
               <svg className="w-5 h-5 text-rose-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414-1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
               <span className="font-semibold text-sm">{error}</span>
             </div>
@@ -193,7 +206,7 @@ const ClubManagement = () => {
           {isDetectingClub ? (
             <div className="flex flex-col items-center justify-center py-16 gap-4">
               <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-500"></div>
-              <p className={`text-sm animate-pulse ${darkMode ? 'text-gray-400' : 'text-slate-400'}`}>
+              <p className={`text-sm animate-pulse ${spinnerTextCls}`}>
                 Chargement des données du club...
               </p>
             </div>
@@ -204,7 +217,7 @@ const ClubManagement = () => {
               <div className="text-center">
                 <label htmlFor="logo-upload" className="inline-block cursor-pointer group">
                   <div className="relative w-32 h-32 mx-auto mb-4">
-                    <div className={`w-32 h-32 rounded-full overflow-hidden border-4 border-blue-500/40 shadow-xl ring-4 ${darkMode ? 'ring-gray-800' : 'ring-slate-800'} group-hover:border-blue-400/80 transition-all duration-300`}>
+                    <div className={`w-32 h-32 rounded-full overflow-hidden border-4 border-blue-500/40 shadow-xl ring-4 ${ringCls} group-hover:border-blue-400/80 transition-all duration-300`}>
                       {logoPreview ? (
                         <img key={logoPreview} src={logoPreview} alt="Club Logo" className="w-full h-full object-cover" onError={() => setLogoPreview('')} />
                       ) : (
@@ -215,7 +228,7 @@ const ClubManagement = () => {
                         </div>
                       )}
                     </div>
-                    <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
                       <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -227,9 +240,7 @@ const ClubManagement = () => {
                       </div>
                     )}
                   </div>
-                  <p className={`text-sm group-hover:text-blue-400 transition-colors ${darkMode ? 'text-gray-500' : 'text-slate-500'}`}>
-                    Nouveau Logo
-                  </p>
+                  <p className={logoLabelTextCls}>Nouveau Logo</p>
                   <input id="logo-upload" type="file" name="logo" accept="image/*" onChange={handleLogoChange} className="hidden" />
                 </label>
               </div>
@@ -238,7 +249,7 @@ const ClubManagement = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className={labelCls}>Nom du Club Actuel</label>
-                  <input type="text" value={clubData.oldName} readOnly className={`${inputCls} opacity-60 cursor-not-allowed`} />
+                  <input type="text" value={clubData.oldName} readOnly className={`${inputCls} opacity-50 cursor-not-allowed`} />
                 </div>
                 <div>
                   <label className={labelCls}>Nouveau Nom du Club</label>
@@ -313,7 +324,7 @@ const ClubManagement = () => {
               </div>
               <div className="text-center max-w-md">
                 <h3 className="text-lg font-semibold text-rose-200 mb-2">Erreur de chargement</h3>
-                <p className={`text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-slate-400'}`}>{error}</p>
+                <p className={`text-sm mb-4 ${errorBodyTextCls}`}>{error}</p>
                 <button
                   onClick={fetchClubData}
                   className="px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-medium rounded-lg hover:from-blue-500 hover:to-cyan-500 transition-all duration-300 shadow-lg shadow-blue-500/30"

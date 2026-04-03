@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
-import CluVer from "../../imgs/CluVer2.png";
 import Navbar from '../../Componenets/Navbar';
+import Footer from '../../Componenets/Footer';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=JetBrains+Mono:wght@400;500;700&display=swap');
@@ -442,8 +442,6 @@ const styles = `
   .mem-error { background: var(--red-bg); border: 1px solid var(--red-border); color: var(--red); border-radius: 12px; padding: 16px 20px; font-size: 13px; display: flex; align-items: center; gap: 10px; animation: fadeUp 0.3s ease; margin-top: 16px; }
   .mem-error svg { width: 18px; height: 18px; flex-shrink: 0; }
 
-  .mem-footer { background: var(--footer-bg); border-top: 1px solid rgba(255,255,255,0.07); font-family: 'DM Sans', sans-serif; transition: background 0.4s ease; }
-
   .notif-wrap { position: relative; }
   .notif-btn { position: relative; width: 40px; height: 40px; border-radius: 10px; background: transparent; border: 1px solid var(--border); color: var(--grey2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; flex-shrink: 0; }
   .notif-btn:hover { border-color: #e74c3c; color: #e74c3c; background: rgba(231,76,60,0.08); }
@@ -501,16 +499,13 @@ const styles = `
 
 const MemberDashboard = () => {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [showDevs, setShowDevs] = useState(false);
   const [memberInfo, setMemberInfo] = useState(null);
   const [clubInfo, setClubInfo] = useState(null);
-  const [attendedEvents, setAttendedEvents] = useState([]);   // scanned tickets (pour achievements)
-  const [registeredEvents, setRegisteredEvents] = useState([]); // ← événements où le membre est inscrit
-  const [clubEvents, setClubEvents] = useState([]);             // ← événements du club (vue d'ensemble)
-  const [clubTotalMembers, setClubTotalMembers]   = useState(0); // ← vrai count total
-  const [clubActiveMembers, setClubActiveMembers] = useState(0); // ← vrai count actifs
+  const [attendedEvents, setAttendedEvents] = useState([]);
+  const [registeredEvents, setRegisteredEvents] = useState([]);
+  const [clubEvents, setClubEvents] = useState([]);
+  const [clubTotalMembers, setClubTotalMembers] = useState(0);
+  const [clubActiveMembers, setClubActiveMembers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
@@ -525,10 +520,10 @@ const MemberDashboard = () => {
   const [selectedNotif, setSelectedNotif] = useState(null);
 
   const [avatarUploadOpen, setAvatarUploadOpen] = useState(false);
-  const [avatarPreview, setAvatarPreview]       = useState(null);
-  const [avatarUploading, setAvatarUploading]   = useState(false);
-  const [avatarError, setAvatarError]           = useState('');
-  const [localAvatar, setLocalAvatar]           = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState('');
+  const [localAvatar, setLocalAvatar] = useState(null);
 
   const fileInputRef = React.useRef(null);
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -574,7 +569,6 @@ const MemberDashboard = () => {
     try {
       setLoading(true);
 
-      // ── 1. Club membership info ──────────────────────────────────────────
       const clubResponse = await fetch(`${API_BASE_URL}/api/my-club-membership`, {
         credentials: 'include',
         headers: { 'Accept': 'application/json' },
@@ -589,7 +583,6 @@ const MemberDashboard = () => {
 
       const clubId = clubData?.club?.id;
 
-      // ── 2. Club events (vue d'ensemble) ──────────────────────────────────
       if (clubId) {
         try {
           const eventsRes = await fetch(
@@ -599,14 +592,11 @@ const MemberDashboard = () => {
           if (eventsRes.ok) {
             const eventsData = await eventsRes.json();
             const all = Array.isArray(eventsData) ? eventsData : (eventsData.events ?? eventsData.data ?? []);
-            // keep only this club's events
             setClubEvents(all.filter(e => (e.club_id ?? e.club?.id) === clubId));
           }
         } catch (_) {}
       }
 
-      // ── 3. Registered events (onglet Événements) ─────────────────────────
-      // Tickets where status = registered/pending/confirmed (not just scanned)
       try {
         const regRes = await fetch(
           `${API_BASE_URL}/api/tickets?person_id=${user.id}`,
@@ -615,7 +605,6 @@ const MemberDashboard = () => {
         if (regRes.ok) {
           const regData = await regRes.json();
           const allTickets = Array.isArray(regData) ? regData : (regData.data ?? []);
-          // All tickets = inscrit; scanned ones = attended
           setRegisteredEvents(allTickets);
           setAttendedEvents(allTickets.filter(t => t.status === 'scanned' || t.scanned === true || t.scanned_at));
         } else {
@@ -627,7 +616,6 @@ const MemberDashboard = () => {
         setAttendedEvents([]);
       }
 
-      // ── 4. Real members count for Mon Club tab ───────────────────────────
       if (clubId) {
         try {
           const membersRes = await fetch(`${API_BASE_URL}/api/clubs/${clubId}/members`, {
@@ -644,7 +632,6 @@ const MemberDashboard = () => {
             );
             setClubActiveMembers(activeList.length);
           } else {
-            // fallback to club info fields
             setClubTotalMembers(clubData?.club?.total_members ?? clubData?.club?.members_count ?? 0);
             setClubActiveMembers(clubData?.club?.active_members ?? 0);
           }
@@ -694,19 +681,6 @@ const MemberDashboard = () => {
     setAvatarError('');
   };
 
-  const scrollToSection = (sectionId) => {
-    if (location.pathname !== '/') {
-      navigate('/');
-      setTimeout(() => {
-        const el = document.getElementById(sectionId);
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-      }, 300);
-    } else {
-      const el = document.getElementById(sectionId);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const getMemberLevel = (eventCount) => {
     if (eventCount >= 10) return { name: 'Platine', icon: '💎', pillClass: 'mem-level-pill mem-level-platine', progress: 100, nextLabel: 'Niveau max atteint!' };
     if (eventCount >= 5)  return { name: 'Or',      icon: '🏆', pillClass: 'mem-level-pill mem-level-or',      progress: (eventCount / 10) * 100, nextLabel: `${10 - eventCount} pour Platine` };
@@ -740,6 +714,7 @@ const MemberDashboard = () => {
   return (
     <>
       <style>{styles}</style>
+
       <div className={`mem-root${isDark ? '' : ' light-mode'}`}>
 
         <div className="mem-orbs">
@@ -1011,10 +986,9 @@ const MemberDashboard = () => {
             <button className={`mem-tab${activeTab === 'club'     ? ' active' : ''}`} onClick={() => setActiveTab('club')}>🏢 Mon Club</button>
           </div>
 
-          {/* ════════════════════════ VUE D'ENSEMBLE ════════════════════════ */}
+          {/* ════════════ VUE D'ENSEMBLE ════════════ */}
           {activeTab === 'overview' && (
             <>
-              {/* Événements du club (pour débloquer des récompenses) */}
               <div className="mem-panel">
                 <div className="mem-panel-head">
                   <div className="mem-panel-icon">🏢</div>
@@ -1068,7 +1042,6 @@ const MemberDashboard = () => {
                 )}
               </div>
 
-              {/* Activité récente (événements assistés) */}
               <div className="mem-panel">
                 <div className="mem-panel-head">
                   <div className="mem-panel-icon">🕐</div>
@@ -1104,7 +1077,6 @@ const MemberDashboard = () => {
                 )}
               </div>
 
-              {/* Succès */}
               <div className="mem-panel">
                 <div className="mem-panel-head">
                   <div className="mem-panel-icon">✨</div>
@@ -1131,7 +1103,7 @@ const MemberDashboard = () => {
             </>
           )}
 
-          {/* ════════════════════════ ONGLET ÉVÉNEMENTS ════════════════════════ */}
+          {/* ════════════ ONGLET ÉVÉNEMENTS ════════════ */}
           {activeTab === 'events' && (
             <div className="mem-panel">
               <div className="mem-panel-head">
@@ -1199,7 +1171,7 @@ const MemberDashboard = () => {
             </div>
           )}
 
-          {/* ════════════════════════ ONGLET MON CLUB ════════════════════════ */}
+          {/* ════════════ ONGLET MON CLUB ════════════ */}
           {activeTab === 'club' && clubInfo && (
             <div className="mem-panel">
               <div className="mem-panel-head">
@@ -1237,7 +1209,6 @@ const MemberDashboard = () => {
                   </div>
                 </div>
               </div>
-              {/* ── Real member counts ── */}
               <div className="mem-club-stats-grid">
                 <div className="mem-club-stat">
                   <div className="mem-club-stat-lbl">Membres Totaux</div>
@@ -1261,130 +1232,6 @@ const MemberDashboard = () => {
           )}
         </div>
 
-        {/* ── Footer ── */}
-        <footer className="mem-footer" style={{ position: 'relative', overflow: 'hidden', fontFamily: "'DM Sans', sans-serif" }}>
-          <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent)' }} />
-          <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', opacity: 0.05 }}>
-            <div style={{ position: 'absolute', top: 0, right: 0, width: 384, height: 384, borderRadius: '50%', background: '#c0392b', filter: 'blur(80px)' }} />
-            <div style={{ position: 'absolute', bottom: 0, left: 0, width: 384, height: 384, borderRadius: '50%', background: '#a93226', filter: 'blur(80px)' }} />
-            <div style={{ position: 'absolute', top: '50%', left: '33%', width: 288, height: 288, borderRadius: '50%', background: '#0f1e3d', filter: 'blur(80px)' }} />
-          </div>
-          <div style={{ maxWidth: 1160, margin: '0 auto', position: 'relative', zIndex: 10 }}>
-            <div style={{ padding: '32px 48px', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 48 }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                <img src={CluVer} alt="CluVersity Logo" style={{ width: 160, height: 160, objectFit: 'contain' }} />
-              </div>
-              <div>
-                <h3 style={{ color: '#f8fafc', fontSize: 15, fontWeight: 700, marginBottom: 20, position: 'relative', display: 'inline-block' }}>
-                  Navigation
-                  <div style={{ position: 'absolute', bottom: -4, left: 0, right: 0, height: 2, background: '#c0392b' }} />
-                </h3>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {[
-                    { label: 'Accueil', id: 'accueil' },
-                    { label: 'Notre Plateforme', id: 'notre-plateforme' },
-                    { label: 'Nos Clubs', id: 'clubs-section' },
-                    { label: 'Pourquoi nous choisir', id: 'why-choose-us' },
-                  ].map(({ label, id }) => (
-                    <li key={id}>
-                      <button onClick={() => scrollToSection(id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: 13, transition: 'color 0.2s', padding: 0 }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#c0392b'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-                      >{label}</button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 style={{ color: '#f8fafc', fontSize: 15, fontWeight: 700, marginBottom: 20, position: 'relative', display: 'inline-block' }}>
-                  Clubs Populaires
-                  <div style={{ position: 'absolute', bottom: -4, left: 0, right: 0, height: 2, background: '#c0392b' }} />
-                </h3>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
-                  {['Cultisio Club', 'Rotaract EST Fès', 'NEXUS Club', 'ESTF News'].map(name => (
-                    <li key={name}>
-                      <button onClick={() => scrollToSection('clubs-section')}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: 13, transition: 'color 0.2s', padding: 0 }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#c0392b'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-                      >{name}</button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 style={{ color: '#f8fafc', fontSize: 15, fontWeight: 700, marginBottom: 20, position: 'relative', display: 'inline-block' }}>
-                  Contact
-                  <div style={{ position: 'absolute', bottom: -4, left: 0, right: 0, height: 2, background: '#c0392b' }} />
-                </h3>
-                <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  <li style={{ display: 'flex', alignItems: 'flex-start', gap: 10, color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
-                    <svg style={{ width: 16, height: 16, color: '#c0392b', flexShrink: 0, marginTop: 2 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>EST Fès, Route d'Imouzzer, Fès, Maroc</span>
-                  </li>
-                  <li style={{ display: 'flex', alignItems: 'flex-start', gap: 10, color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
-                    <svg style={{ width: 16, height: 16, color: '#c0392b', flexShrink: 0, marginTop: 2 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <button onClick={() => setShowDevs(!showDevs)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.6)', fontSize: 12, textAlign: 'left', padding: 0, transition: 'color 0.2s' }}
-                        onMouseEnter={e => e.currentTarget.style.color = '#c0392b'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-                      >contact@cluversity.ma</button>
-                      {showDevs && (
-                        <div style={{ marginTop: 6, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                          <a href="mailto:achraf-wch@gmail.com" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, textDecoration: 'none' }}
-                            onMouseEnter={e => e.currentTarget.style.color = '#c0392b'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
-                          >achraf-wch@gmail.com</a>
-                          <a href="mailto:souhaylaelabboudy2@gmail.com" style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, textDecoration: 'none' }}
-                            onMouseEnter={e => e.currentTarget.style.color = '#c0392b'}
-                            onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
-                          >souhaylaelabboudy2@gmail.com</a>
-                        </div>
-                      )}
-                    </div>
-                  </li>
-                  <li style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
-                    <svg style={{ width: 16, height: 16, color: '#c0392b', flexShrink: 0 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>Lun - Sam: 7h - 17h</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            <div style={{ padding: '0 48px' }}>
-              <div style={{ height: 1, background: 'linear-gradient(to right, transparent, rgba(192,57,43,0.4), transparent)' }} />
-            </div>
-            <div style={{ padding: '16px 48px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <div style={{ display: 'flex', gap: 10 }}>
-                {[
-                  { href: 'https://facebook.com',  path: 'M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z' },
-                  { href: 'https://instagram.com', path: 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z' },
-                  { href: 'https://twitter.com',   path: 'M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z' },
-                ].map(({ href, path }) => (
-                  <a key={href} href={href} target="_blank" rel="noopener noreferrer"
-                    style={{ width: 36, height: 36, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', textDecoration: 'none' }}
-                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#c0392b'; e.currentTarget.style.background = 'rgba(192,57,43,0.12)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    <svg style={{ width: 16, height: 16, fill: 'rgba(255,255,255,0.5)' }} viewBox="0 0 24 24"><path d={path} /></svg>
-                  </a>
-                ))}
-              </div>
-              <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: 11, fontFamily: "'JetBrains Mono', monospace" }}>
-                © 2025 <span style={{ color: '#c0392b', fontWeight: 700 }}>CluVersity</span> - EST Fès. Tous droits réservés.
-              </p>
-            </div>
-          </div>
-        </footer>
-
         {/* ── Avatar Upload Modal ── */}
         {avatarUploadOpen && (
           <div onClick={e => { if (e.target === e.currentTarget) closeAvatarModal(); }}
@@ -1401,12 +1248,17 @@ const MemberDashboard = () => {
               </div>
               <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { if (e.target.files[0]) handleAvatarChange(e.target.files[0]); }} />
               <button className="avatar-upload-btn" disabled={avatarUploading} onClick={() => fileInputRef.current?.click()}>
-                {avatarUploading ? (<><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />Envoi en cours...</>) : (<><svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>Choisir une image</>)}
+                {avatarUploading
+                  ? (<><div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite', flexShrink: 0 }} />Envoi en cours...</>)
+                  : (<><svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>Choisir une image</>)
+                }
               </button>
-              <div onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--cyan)'; e.currentTarget.style.background = 'rgba(6,182,212,0.06)'; }}
+              <div
+                onDragOver={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--cyan)'; e.currentTarget.style.background = 'rgba(6,182,212,0.06)'; }}
                 onDragLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--panel2)'; }}
                 onDrop={e => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--panel2)'; const file = e.dataTransfer.files[0]; if (file && file.type.startsWith('image/')) handleAvatarChange(file); }}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 16px', border: '2px dashed var(--border)', borderRadius: 10, background: 'var(--panel2)', marginTop: 12, transition: 'all 0.2s' }}>
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 16px', border: '2px dashed var(--border)', borderRadius: 10, background: 'var(--panel2)', marginTop: 12, transition: 'all 0.2s' }}
+              >
                 <span style={{ fontSize: 11, color: 'var(--grey)', fontFamily: "'JetBrains Mono', monospace", textAlign: 'center' }}>ou glissez-déposez une image ici</span>
                 <span style={{ fontSize: 10, color: 'var(--grey)', fontFamily: "'JetBrains Mono', monospace", opacity: 0.7 }}>JPG, PNG, WEBP · Max 5 MB</span>
               </div>
@@ -1456,7 +1308,10 @@ const MemberDashboard = () => {
           </div>
         )}
 
-      </div>
+      </div>{/* ── fin mem-root ── */}
+
+      <Footer />
+
     </>
   );
 };

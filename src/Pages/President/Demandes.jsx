@@ -11,8 +11,16 @@ const PresidentDemandes = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+
+  // ✅ Dark mode synced with global theme (same pattern as PresidentDashboard)
+  const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
   const dm = darkMode;
+
+  useEffect(() => {
+    const handleThemeChange = () => setDarkMode(document.documentElement.classList.contains("dark"));
+    window.addEventListener("themeChanged", handleThemeChange);
+    return () => window.removeEventListener("themeChanged", handleThemeChange);
+  }, []);
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
@@ -178,7 +186,7 @@ const PresidentDemandes = () => {
   };
 
   return (
-    <div className={`min-h-screen py-8 transition-colors duration-300 ${dm ? 'bg-[#0a0a0f]' : 'bg-white'}`}>
+    <div className={`min-h-screen py-8 transition-colors duration-300 ${dm ? 'bg-[#0a0a0f] text-white' : 'bg-white text-[#1a2c5b]'}`}>
 
       {/* Animated Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">

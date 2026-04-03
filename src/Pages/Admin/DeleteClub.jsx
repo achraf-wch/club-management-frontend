@@ -68,8 +68,8 @@ const ManageClubs = () => {
 
       <div className="flex-1 relative overflow-hidden flex flex-col h-screen">
         
-        {/* Header - Fixed height */}
-        <div className="pt-24 px-8 pb-6 max-w-7xl mx-auto w-full">
+        {/* ── Header — pt-36 pour respecter la double navbar ── */}
+        <div style={{ paddingTop: '140px' }} className="px-8 pb-6 max-w-7xl mx-auto w-full">
            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
               <div>
                 <div className="w-16 h-1 bg-[#c0392b] mb-4"></div>
@@ -98,7 +98,7 @@ const ManageClubs = () => {
            </div>
         </div>
 
-        {/* Content - Responsive Scrollable Area */}
+        {/* Content */}
         <div className="flex-1 overflow-y-auto px-8 pb-12 custom-scrollbar">
            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredClubs.map((club) => (
