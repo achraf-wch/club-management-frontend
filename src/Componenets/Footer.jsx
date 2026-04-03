@@ -23,10 +23,8 @@ const Footer = () => {
   return (
     <footer className="relative text-gray-300 overflow-hidden" style={{backgroundColor: '#06163A'}}>
 
-      {/* Ligne de séparation en haut */}
       <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-      {/* Effets décoratifs */}
       <div className="absolute inset-0 overflow-hidden opacity-5 pointer-events-none">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#c0392b] rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#a93226] rounded-full blur-3xl" />
@@ -35,10 +33,9 @@ const Footer = () => {
 
       <div className="max-w-7xl mx-auto relative z-10">
 
-        {/* Section principale */}
         <div className="px-8 py-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
 
-          {/* Colonne 1 - Logo uniquement */}
+          {/* Colonne 1 - Logo */}
           <div className="lg:col-span-1 flex items-start">
             <img
               src={CluVer}
@@ -114,6 +111,7 @@ const Footer = () => {
               <div className="absolute -bottom-1 left-0 w-full h-0.5 bg-[#c0392b]" />
             </h3>
             <ul className="space-y-4 text-sm">
+
               <li className="flex items-start gap-3 text-white/60">
                 <svg className="w-5 h-5 text-[#c0392b] flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -135,11 +133,21 @@ const Footer = () => {
                   </button>
                   {showDevs && (
                     <div className="mt-2 flex flex-col space-y-1 text-xs text-white/40">
-                      <a href="mailto:achraf-wch@gmail.com" className="hover:text-[#c0392b] transition">
-                        achraf-wch@gmail.com
+                      <a
+                        href="https://mail.google.com/mail/?view=cm&to=souhayla.elabboudy1@usmba.ac.ma"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-[#c0392b] transition cursor-pointer"
+                      >
+                        souhayla.elabboudy1@usmba.ac.ma
                       </a>
-                      <a href="mailto:souhaylaelabboudy2@gmail.com" className="hover:text-[#c0392b] transition">
-                        souhaylaelabboudy2@gmail.com
+                      <a
+                        href="https://mail.google.com/mail/?view=cm&to=achraf.wandich@usmba.ac.ma"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-[#c0392b] transition cursor-pointer"
+                      >
+                        achraf.wandich@usmba.ac.ma
                       </a>
                     </div>
                   )}
@@ -152,19 +160,18 @@ const Footer = () => {
                 </svg>
                 <span>Lun - Sam: 7h - 17h</span>
               </li>
+
             </ul>
           </div>
+
         </div>
 
-        {/* Ligne de séparation */}
         <div className="px-8">
           <div className="h-px bg-gradient-to-r from-transparent via-[#c0392b]/40 to-transparent" />
         </div>
 
-        {/* Section copyright + réseaux sociaux */}
         <div className="px-8 py-4 flex flex-col items-center gap-3 text-sm">
 
-          {/* Réseaux sociaux */}
           <div className="flex gap-3">
             <a href="https://facebook.com" target="_blank" rel="noopener noreferrer"
               className="w-10 h-10 rounded-full border-2 border-white/20 hover:border-[#c0392b] flex items-center justify-center transition-all duration-300 group">
@@ -188,10 +195,10 @@ const Footer = () => {
             </a>
           </div>
 
-          {/* Copyright */}
           <p className="text-white/40">
             © 2025 <span className="text-[#c0392b] font-semibold">CluVersity</span> - EST Fès. Tous droits réservés.
           </p>
+
         </div>
 
       </div>

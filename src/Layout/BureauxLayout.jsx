@@ -83,27 +83,32 @@ const BureauxLayout = () => {
           <div className="flex items-center gap-2 flex-shrink-0">
 
             <div
-              className="flex items-center gap-2.5 px-3 py-1 rounded-xl bg-white/5 border border-white/10 cursor-pointer hover:bg-white/10 transition"
-              onClick={() => navigate('/Login/AccountSetup')}
-            >
-              <div className="w-7 h-7 rounded-lg overflow-hidden ring-2 ring-red-500 flex-shrink-0 bg-blue-700 flex items-center justify-center">
-                {avatarSrc && !imgError ? (
-                  <img
-                    key={avatarSrc}
-                    src={avatarSrc}
-                    alt="avatar"
-                    className="w-full h-full object-cover"
-                    onError={() => setImgError(true)}
-                  />
-                ) : (
-                  <span className="text-white font-bold text-[11px]">{initials || 'B'}</span>
-                )}
-              </div>
-              <div className="leading-tight">
-                <p className="text-white text-xs font-semibold">{user?.first_name} {user?.last_name}</p>
-                <p className="text-red-400 text-[10px]">Bureau</p>
-              </div>
-            </div>
+  className="flex items-center gap-3 px-3 py-1.5 rounded-xl cursor-pointer hover:bg-white/5 transition group"
+  onClick={() => navigate('/Login/AccountSetup')}
+>
+  <div className="relative flex-shrink-0">
+    <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-red-500/60 group-hover:ring-red-500 transition">
+      {avatarSrc && !imgError ? (
+        <img
+          key={avatarSrc}
+          src={avatarSrc}
+          alt="avatar"
+          className="w-full h-full object-cover"
+          onError={() => setImgError(true)}
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-[#c0392b] to-[#922b21] flex items-center justify-center">
+          <span className="text-white font-bold text-[11px]">{initials || 'B'}</span>
+        </div>
+      )}
+    </div>
+    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[#0f1e3d]" />
+  </div>
+  <div className="leading-tight">
+    <p className="text-white text-xs font-semibold">{user?.first_name} {user?.last_name}</p>
+    <p className="text-red-400 text-[10px] font-medium tracking-wide">Bureau</p>
+  </div>
+</div>
 
             <div className="w-px h-6 bg-white/10 mx-1" />
 
