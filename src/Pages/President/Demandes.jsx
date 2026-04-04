@@ -11,8 +11,8 @@ const PresidentDemandes = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [myClub, setMyClub] = useState(null);
 
-  // ✅ Dark mode synced with global theme (same pattern as PresidentDashboard)
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
   const dm = darkMode;
 
@@ -25,16 +25,41 @@ const PresidentDemandes = () => {
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
-    fetchRequests();
-  }, [filter]);
+    fetchMyClub();
+  }, []);
 
-  const fetchRequests = async () => {
+  useEffect(() => {
+    if (myClub) {
+      fetchRequests();
+    }
+  }, [filter, myClub]);
+
+  const fetchMyClub = async () => {
     try {
-      setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/requests?status=${filter}`, {
+      const response = await fetch(`${API_BASE_URL}/api/my-club`, {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
+      if (response.ok) {
+        const data = await response.json();
+        setMyClub(data.club || data);
+      }
+    } catch (error) {
+      console.error('Error fetching club:', error);
+    }
+  };
+
+  const fetchRequests = async () => {
+    if (!myClub?.id) return;
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${API_BASE_URL}/api/requests?status=${filter}&club_id=${myClub.id}`,
+        {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        }
+      );
       const data = await response.json();
       setRequests(Array.isArray(data) ? data : []);
     } catch (error) {
@@ -48,6 +73,7 @@ const PresidentDemandes = () => {
   const handleApprove = async (requestId) => {
     setActionLoading(true);
     try {
+      // 1. Validate the request
       const response = await fetch(`${API_BASE_URL}/api/requests/${requestId}/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -62,6 +88,7 @@ const PresidentDemandes = () => {
       if (response.ok) {
         const request = requests.find(r => r.id === requestId);
 
+        // 2. Handle EVENT type requests
         if (request.type === 'event' && request.metadata) {
           const metadata = typeof request.metadata === 'string'
             ? JSON.parse(request.metadata)
@@ -77,11 +104,23 @@ const PresidentDemandes = () => {
               status: 'approved'
             })
           });
-        } else if (request.type === 'other' && request.metadata) {
+        } 
+        // 3. Handle MEMBER/OTHER type requests
+        else if (request.type === 'other' && request.metadata) {
           const metadata = typeof request.metadata === 'string'
             ? JSON.parse(request.metadata)
             : request.metadata;
-          const personResponse = await fetch(`${API_BASE_URL}/api/persons`, {
+          
+          console.log("📦 Creating member with:", {
+            club_id: metadata.club_id,
+            first_name: metadata.first_name,
+            last_name: metadata.last_name,
+            email: metadata.email,
+            role: metadata.role || 'member'
+          });
+
+          // Use the president-specific endpoint
+          const personResponse = await fetch(`${API_BASE_URL}/api/persons/new-member`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
             credentials: 'include',
@@ -92,35 +131,28 @@ const PresidentDemandes = () => {
               phone: metadata.phone || null,
               cne: metadata.cne || null,
               password: metadata.password,
-              password_confirmation: metadata.password_confirmation
+              password_confirmation: metadata.password_confirmation,
+              club_id: parseInt(metadata.club_id),
+              role: metadata.role || 'member',
+              position: metadata.position || 'Membre'
             })
           });
+
           const personData = await personResponse.json();
-          if (personResponse.ok && personData.person) {
-            const memberResponse = await fetch(`${API_BASE_URL}/api/members`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-              credentials: 'include',
-              body: JSON.stringify({
-                person_id: personData.person.id,
-                club_id: parseInt(metadata.club_id),
-                role: metadata.role || 'member',
-                position: metadata.position || 'Membre',
-                status: 'active'
-              })
-            });
-            const memberData = await memberResponse.json();
-            if (!memberResponse.ok) throw new Error(`Failed to create member: ${memberData.message}`);
-          } else {
-            throw new Error(`Failed to create person: ${personData.message || 'Unknown error'}`);
+          
+          if (!personResponse.ok) {
+            throw new Error(`Failed to create member: ${personData.message || 'Unknown error'}`);
           }
+
+          console.log("✅ Member created successfully:", personData);
         }
 
         alert('Demande approuvée avec succès!');
         setShowModal(false);
         fetchRequests();
       } else {
-        alert('Erreur lors de l\'approbation de la demande');
+        const errorData = await response.json();
+        alert(`Erreur ${response.status}: ${errorData.message || 'Erreur lors de l\'approbation'}`);
       }
     } catch (error) {
       console.error('Error approving request:', error);
@@ -148,7 +180,8 @@ const PresidentDemandes = () => {
         setShowModal(false);
         fetchRequests();
       } else {
-        alert('Erreur lors du refus de la demande');
+        const errorData = await response.json();
+        alert(`Erreur ${response.status}: ${errorData.message || 'Erreur lors du refus'}`);
       }
     } catch (error) {
       console.error('Error rejecting request:', error);
@@ -187,16 +220,12 @@ const PresidentDemandes = () => {
 
   return (
     <div className={`min-h-screen py-8 transition-colors duration-300 ${dm ? 'bg-[#0a0a0f] text-white' : 'bg-white text-[#1a2c5b]'}`}>
-
-      {/* Animated Background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className={`absolute top-20 left-10 w-40 h-40 rounded-full blur-2xl animate-float ${dm ? 'bg-red-900/20' : 'bg-red-500/10'}`}></div>
         <div className={`absolute bottom-32 right-20 w-48 h-48 rounded-full blur-2xl animate-float-delayed ${dm ? 'bg-red-900/15' : 'bg-red-500/10'}`}></div>
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4">
-
-        {/* Header */}
         <div className="mb-8 animate-fadeInDown">
           <div className="flex items-center gap-3 mb-2">
             <svg className={`w-10 h-10 animate-float ${dm ? 'text-red-500' : 'text-red-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,9 +238,13 @@ const PresidentDemandes = () => {
           <p className={`font-medium mt-1 ml-1 ${dm ? 'text-gray-400' : 'text-gray-600'}`}>
             Approuvez ou refusez les demandes du bureau
           </p>
+          {myClub && (
+            <p className={`text-sm mt-2 ml-1 ${dm ? 'text-gray-500' : 'text-gray-500'}`}>
+              Club: <span className="font-semibold text-red-500">{myClub.name}</span>
+            </p>
+          )}
         </div>
 
-        {/* Filters */}
         <div className={`rounded-2xl shadow-md p-4 mb-6 border animate-slideInUp ${dm ? 'bg-[#0d0d18] border-red-900/20' : 'bg-white border-gray-200'}`}>
           <div className="flex gap-4">
             <button onClick={() => setFilter('pending')}
@@ -241,7 +274,6 @@ const PresidentDemandes = () => {
           </div>
         </div>
 
-        {/* Requests List */}
         {loading ? (
           <div className="text-center py-16 animate-fadeIn">
             <div className={`inline-block animate-spin rounded-full h-16 w-16 border-4 mb-4 ${dm ? 'border-red-900/30 border-t-red-500' : 'border-red-400/30 border-t-red-400'}`}></div>
@@ -288,7 +320,6 @@ const PresidentDemandes = () => {
           </div>
         )}
 
-        {/* Modal */}
         {showModal && selectedRequest && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fadeIn">
             <div className={`rounded-3xl shadow-2xl border max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scaleIn

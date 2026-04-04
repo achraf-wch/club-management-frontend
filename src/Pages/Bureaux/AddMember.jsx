@@ -29,7 +29,7 @@ const BureauxAddMember = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [userClubs, setUserClubs] = useState([]);
-  const [status, setStatus] = useState({ type: '', message: '' }); // 'success' ou 'error'
+  const [status, setStatus] = useState({ type: '', message: '' });
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains("dark"));
 
   const [memberData, setMemberData] = useState({
@@ -47,7 +47,6 @@ const BureauxAddMember = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-  // --- Effets ---
   useEffect(() => {
     const handleThemeChange = () => setDarkMode(document.documentElement.classList.contains("dark"));
     window.addEventListener("themeChanged", handleThemeChange);
@@ -88,7 +87,6 @@ const BureauxAddMember = () => {
     setLoading(true);
     setStatus({ type: '', message: '' });
 
-    // Validation basique
     if (memberData.password !== memberData.password_confirmation) {
       setStatus({ type: 'error', message: 'Les mots de passe ne correspondent pas.' });
       setLoading(false);
@@ -96,14 +94,28 @@ const BureauxAddMember = () => {
     }
 
     try {
+      // IMPORTANT: Explicitly include club_id in metadata
       const payload = {
         club_id: parseInt(memberData.club_id),
         requested_by: user.id,
         type: 'other',
         title: `Ajout: ${memberData.first_name} ${memberData.last_name}`,
         description: `Nouveau ${memberData.role === 'board' ? 'Bureau' : 'Membre'}`,
-        metadata: { ...memberData, email: memberData.email.toLowerCase().trim() }
+        metadata: {
+          club_id: parseInt(memberData.club_id),  // ← EXPLICITLY ADD THIS
+          first_name: memberData.first_name,
+          last_name: memberData.last_name,
+          email: memberData.email.toLowerCase().trim(),
+          phone: memberData.phone,
+          cne: memberData.cne,
+          password: memberData.password,
+          password_confirmation: memberData.password_confirmation,
+          position: memberData.position,
+          role: memberData.role
+        }
       };
+
+      console.log("📤 Sending request payload:", payload);
 
       const response = await fetch(`${API_BASE_URL}/api/requests`, {
         method: 'POST',
@@ -114,12 +126,25 @@ const BureauxAddMember = () => {
 
       if (response.ok) {
         setStatus({ type: 'success', message: `Demande envoyée ! Mot de passe : ${memberData.password}` });
-        // Reset optionnel ici
+        // Reset form
+        setMemberData({
+          club_id: memberData.club_id,
+          first_name: '',
+          last_name: '',
+          email: '',
+          phone: '',
+          cne: '',
+          password: '',
+          password_confirmation: '',
+          position: 'Membre',
+          role: 'member'
+        });
       } else {
         const errorData = await response.json();
         setStatus({ type: 'error', message: errorData.message || 'Erreur lors de l\'envoi' });
       }
     } catch (error) {
+      console.error("Error:", error);
       setStatus({ type: 'error', message: 'Erreur réseau.' });
     } finally {
       setLoading(false);
@@ -132,7 +157,6 @@ const BureauxAddMember = () => {
     <div className={`min-h-screen py-10 transition-colors ${darkMode ? 'bg-black text-white' : 'bg-gray-50 text-gray-900'}`}>
       <div className="max-w-4xl mx-auto px-4">
         
-        {/* En-tête Dynamique */}
         <header className="mb-10">
           <h1 className="text-4xl font-extrabold italic">
             AJOUTER UN <span className="text-red-600">MEMBRE</span>
@@ -142,7 +166,6 @@ const BureauxAddMember = () => {
           </p>
         </header>
 
-        {/* Alertes */}
         {status.message && (
           <div className={`mb-8 p-4 rounded-lg border-l-4 animate-bounce-in ${
             status.type === 'success' ? 'bg-green-500/10 border-green-500 text-green-500' : 'bg-red-500/10 border-red-500 text-red-500'

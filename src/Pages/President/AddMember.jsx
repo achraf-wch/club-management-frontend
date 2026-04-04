@@ -15,7 +15,7 @@ const PresidentAddMember = () => {
     first_name: '', last_name: '', email: '', phone: '', cne: '',
     password: '', password_confirmation: '', 
     position: 'Membre', 
-    role: 'member' // 'member' or 'board'
+    role: 'member'
   });
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
@@ -34,7 +34,6 @@ const PresidentAddMember = () => {
       });
       if (response.ok) { 
         const data = await response.json(); 
-        // Logic: handle both {club: {}} and direct object responses
         setClub(data.club || data); 
       }
       else setErrorMessage('Impossible de charger votre club');
@@ -60,12 +59,15 @@ const PresidentAddMember = () => {
     if (!club?.id) { setErrorMessage('Aucun club trouvé'); setLoading(false); return; }
     
     try {
-      // 1. Create Person
-      const pRes = await fetch(`${API_BASE_URL}/api/persons`, {
+      // 1. Create Person — using president-only route with club_id for middleware
+      const pRes = await fetch(`${API_BASE_URL}/api/persons/new-member`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(memberData)
+        body: JSON.stringify({
+          ...memberData,
+          club_id: club.id  // needed for ClubRoleMiddleware to verify president's club
+        })
       });
       
       const pData = await pRes.json();
@@ -74,7 +76,7 @@ const PresidentAddMember = () => {
         setLoading(false); return;
       }
 
-      // 2. Link Member (Your ID logic fix here)
+      // 2. Link Member to Club
       const personId = pData.person?.id || pData.id;
 
       const mRes = await fetch(`${API_BASE_URL}/api/members`, {
@@ -92,7 +94,10 @@ const PresidentAddMember = () => {
 
       if (mRes.ok) {
         setSuccessMessage(`✓ ${memberData.role === 'board' ? 'Membre du Bureau' : 'Membre'} ajouté avec succès!`);
-        setMemberData({ first_name: '', last_name: '', email: '', phone: '', cne: '', password: '', password_confirmation: '', position: 'Membre', role: 'member' });
+        setMemberData({ 
+          first_name: '', last_name: '', email: '', phone: '', cne: '', 
+          password: '', password_confirmation: '', position: 'Membre', role: 'member' 
+        });
       } else {
         const mData = await mRes.json();
         setErrorMessage(mData.message || "Erreur lors de l'affiliation au club");
@@ -128,7 +133,7 @@ const PresidentAddMember = () => {
 
         <div className={`rounded-2xl shadow-sm p-8 border ${dm ? 'bg-[#0d0d18] border-red-900/20' : 'bg-gray-50 border-gray-200'}`}>
           
-          {/* ROLE SELECTOR (Restored logic with your styling) */}
+          {/* ROLE SELECTOR */}
           <div className="grid grid-cols-2 gap-4 mb-8">
              <button 
                 type="button"
@@ -171,7 +176,7 @@ const PresidentAddMember = () => {
               />
             </div>
 
-            {/* Password Section (Your original design) */}
+            {/* Password Section */}
             <div className="md:col-span-2">
               <label className="block font-semibold mb-2">Mot de passe temporaire *</label>
               <div className="flex gap-3">
