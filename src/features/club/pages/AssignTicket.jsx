@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../Context/AuthContext';
-import AdminSidebar from '../Admin/AdminSidebar'; // Ajustez le chemin selon votre structure
 
 const AssignTickets = () => {
-  const { user } = useAuth();
   const [club, setClub] = useState(null);
   const [events, setEvents] = useState([]);
   const [members, setMembers] = useState([]);
@@ -146,10 +143,8 @@ const AssignTickets = () => {
   }`;
 
   return (
-    <div className={`min-h-screen flex ${dm ? 'bg-[#050505] text-white' : 'bg-gray-50 text-gray-900'}`}>
-      <AdminSidebar />
-
-      <main className="flex-1 p-4 lg:p-8 ml-0 lg:ml-64 transition-all duration-300">
+    <div className={`min-h-screen ${dm ? 'bg-[#050505] text-white' : 'bg-gray-50 text-gray-900'}`}>
+      <main className="p-4 lg:p-8 transition-all duration-300">
         <div className="max-w-6xl mx-auto space-y-8">
           
           {/* Header Section */}

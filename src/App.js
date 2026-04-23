@@ -14,38 +14,29 @@ import DeleteClub from './Pages/Admin/DeleteClub';
 import AdminLogin from './Pages/Admin/Login';
 import AddPresident from './Pages/Admin/AddPresident';
 
-// Dashboards
-import BoardDashboard from './Pages/Bureaux/Dashboard';
+// Member
 import MemberDashboard from './Pages/Member/Dashboard';
-import PresidentDashboard from './Pages/President/Dashboard';
 
 // Login & Account Setup
 import Login from './Pages/Login/Login';
 import AccountSetup from './Pages/Login/AccountSetup';
 
-// President
-import PresidentLayout from './Layout/PresidentLayout';
-import AddMember from './Pages/President/AddMember';
-import CreateEvent from './Pages/President/CreateEvent';
-import PresidentMemberList from './Pages/President/MemberList';
-import ManageEvent from './Pages/President/ManageEvent';
-import Demandes from './Pages/President/Demandes';
-import ScanTicket from './Pages/President/ScanTicket';
-import ClubManagement from './Pages/President/ClubManagement';
-import AssignTickets from "./Pages/President/Assigntickets";
-// Bureaux
-import BureauxLayout from './Layout/BureauxLayout';
-import BureauxAddMember from './Pages/Bureaux/AddMember';
-import BureauxCreateEvent from './Pages/Bureaux/CreateEvent';
-import BureauxMemberList from './Pages/Bureaux/MemberList';
-import BureauxClubManagement from './Pages/Bureaux/ClubManagement';
-import BureauxAssignTickets from './Pages/Bureaux/Bureauxassigntickets '; // ← NEW
+// Club shared area
+import ClubLayout from './layouts/ClubLayout';
+import ClubDashboard from './features/club/pages/ClubDashboard';
+import AddMember from './features/club/pages/AddMember';
+import CreateEvent from './features/club/pages/CreateEvent';
+import ClubMemberList from './features/club/pages/MemberList';
+import ManageEvent from './features/club/pages/ManageEvent';
+import Demandes from './features/club/pages/Demandes';
+import ScanTicket from './features/club/pages/ScanTicket';
+import ManageClub from './features/club/pages/ManageClub';
+import AssignTicket from './features/club/pages/AssignTicket';
 
 // Event & Club Detail
 import EventDetail from './Pages/EventDetail';
 import ClubDetail from './Pages/Clubs';
 
-// Protected Route Component
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
 
@@ -69,14 +60,11 @@ function ProtectedRoute({ children, allowedRoles }) {
     if (user.role === 'admin') {
       return children;
     }
-    console.warn('Access denied. User role:', user.role, 'Required: admin');
     return <Navigate to="/Login/login" replace />;
   }
 
   const userRole = user.role === 'user' ? user.club_role : user.role;
-
   if (!allowedRoles.includes(userRole)) {
-    console.warn('Access denied. User role:', userRole, 'Allowed roles:', allowedRoles);
     return <Navigate to="/Login/login" replace />;
   }
 
@@ -95,8 +83,6 @@ function App() {
     <div className="min-h-screen bg-white text-black dark:bg-black dark:text-white transition-colors duration-300">
       <Router>
         <Routes>
-
-          {/* ========== PUBLIC ROUTES ========== */}
           <Route path="/" element={<Home />} />
           <Route path="/clubs" element={<Clubs />} />
           <Route path="/clubs/:id" element={<ClubDetail />} />
@@ -105,7 +91,6 @@ function App() {
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/Login/login" element={<Login />} />
 
-          {/* ========== ACCOUNT SETUP (PROTECTED - ANY LOGGED IN USER) ========== */}
           <Route
             path="/Login/AccountSetup"
             element={
@@ -115,27 +100,57 @@ function App() {
             }
           />
 
-          {/* ========== PRESIDENT ROUTES (PROTECTED WITH LAYOUT) ========== */}
           <Route
-            path="/President"
+            path="/club"
             element={
-              <ProtectedRoute allowedRoles={['president']}>
-                <PresidentLayout />
+              <ProtectedRoute allowedRoles={['president', 'board']}>
+                <ClubLayout />
               </ProtectedRoute>
             }
           >
-            <Route path="Dashboard"       element={<PresidentDashboard />} />
-            <Route path="addMember"       element={<AddMember />} />
-            <Route path="ManageEvent"     element={<ManageEvent />} />
-            <Route path="CreateEvent"     element={<CreateEvent />} />
-            <Route path="MemberList"      element={<PresidentMemberList />} />
-            <Route path="Demandes"        element={<Demandes />} />
-            <Route path="ScanTicket"      element={<ScanTicket />} />
-            <Route path="ClubManagement"  element={<ClubManagement />} />
-            <Route path="AssignTickets"   element={<AssignTickets />} /> {/* ← NEW */}
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<ClubDashboard />} />
+            <Route path="members/add" element={<AddMember />} />
+            <Route path="members" element={<ClubMemberList />} />
+            <Route path="events/create" element={<CreateEvent />} />
+            <Route path="events/scan" element={<ScanTicket />} />
+            <Route path="manage" element={<ManageClub />} />
+            <Route path="tickets/assign" element={<AssignTicket />} />
+            <Route
+              path="events/manage"
+              element={
+                <ProtectedRoute allowedRoles={['president']}>
+                  <ManageEvent />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="demandes"
+              element={
+                <ProtectedRoute allowedRoles={['president']}>
+                  <Demandes />
+                </ProtectedRoute>
+              }
+            />
           </Route>
 
-          {/* ========== MEMBER ROUTES (PROTECTED) ========== */}
+          <Route path="/President/Dashboard" element={<Navigate to="/club/dashboard" replace />} />
+          <Route path="/President/addMember" element={<Navigate to="/club/members/add" replace />} />
+          <Route path="/President/MemberList" element={<Navigate to="/club/members" replace />} />
+          <Route path="/President/CreateEvent" element={<Navigate to="/club/events/create" replace />} />
+          <Route path="/President/ManageEvent" element={<Navigate to="/club/events/manage" replace />} />
+          <Route path="/President/Demandes" element={<Navigate to="/club/demandes" replace />} />
+          <Route path="/President/ScanTicket" element={<Navigate to="/club/events/scan" replace />} />
+          <Route path="/President/ClubManagement" element={<Navigate to="/club/manage" replace />} />
+          <Route path="/President/AssignTickets" element={<Navigate to="/club/tickets/assign" replace />} />
+          <Route path="/Bureaux/Dashboard" element={<Navigate to="/club/dashboard" replace />} />
+          <Route path="/Bureaux/addMember" element={<Navigate to="/club/members/add" replace />} />
+          <Route path="/Bureaux/MemberList" element={<Navigate to="/club/members" replace />} />
+          <Route path="/Bureaux/createEvent" element={<Navigate to="/club/events/create" replace />} />
+          <Route path="/Bureaux/ScanTicket" element={<Navigate to="/club/events/scan" replace />} />
+          <Route path="/Bureaux/ClubManagement" element={<Navigate to="/club/manage" replace />} />
+          <Route path="/Bureaux/AssignTickets" element={<Navigate to="/club/tickets/assign" replace />} />
+
           <Route
             path="/Member/Dashboard"
             element={
@@ -145,25 +160,6 @@ function App() {
             }
           />
 
-          {/* ========== BUREAUX ROUTES (avec sidebar BureauxLayout) ========== */}
-          <Route
-            path="/Bureaux"
-            element={
-              <ProtectedRoute allowedRoles={['board']}>
-                <BureauxLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="Dashboard"       element={<BoardDashboard />} />
-            <Route path="addMember"       element={<BureauxAddMember />} />
-            <Route path="MemberList"      element={<BureauxMemberList />} />
-            <Route path="createEvent"     element={<BureauxCreateEvent />} />
-            <Route path="ScanTicket"      element={<ScanTicket />} />
-            <Route path="ClubManagement"  element={<BureauxClubManagement />} />
-            <Route path="AssignTickets"   element={<BureauxAssignTickets />} /> {/* ← NEW */}
-          </Route>
-
-          {/* ========== ADMIN ROUTES (PROTECTED WITH LAYOUT) ========== */}
           <Route
             path="/admin"
             element={
@@ -172,15 +168,14 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index            element={<Dashboard />} />
+            <Route index element={<Dashboard />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="addPresident" element={<AddPresident />} />
-            <Route path="addClub"   element={<AddClub />} />
+            <Route path="addClub" element={<AddClub />} />
             <Route path="manageClubs" element={<ManageClubs />} />
-            <Route path="deleteClub"  element={<DeleteClub />} />
+            <Route path="deleteClub" element={<DeleteClub />} />
           </Route>
 
-          {/* ========== 404 FALLBACK ========== */}
           <Route
             path="*"
             element={
@@ -195,7 +190,6 @@ function App() {
               </div>
             }
           />
-
         </Routes>
       </Router>
     </div>

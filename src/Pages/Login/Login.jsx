@@ -141,8 +141,8 @@ const Login = () => {
     if (role === 'admin') navigate('/Admin/Dashboard', { replace: true });
     else if (role === 'user' && clubRole) {
       switch (clubRole) {
-        case 'president': navigate('/President/Dashboard', { replace: true }); break;
-        case 'board': navigate('/Bureaux/Dashboard', { replace: true }); break;
+        case 'president': navigate('/club/dashboard', { replace: true }); break;
+        case 'board': navigate('/club/dashboard', { replace: true }); break;
         case 'member': navigate('/Member/Dashboard', { replace: true }); break;
         default: setErrors({ general: 'Rôle club non reconnu' });
       }

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../Context/AuthContext';
 
 const PresidentManageEvents = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [club, setClub] = useState(null);
   const [loading, setLoading] = useState(true);

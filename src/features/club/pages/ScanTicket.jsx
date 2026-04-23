@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
-import { useAuth } from '../../Context/AuthContext';
+import { useAuth } from '../../../Context/AuthContext';
 
 const ScanTicket = () => {
   const { user } = useAuth();
@@ -147,7 +147,7 @@ const ScanTicket = () => {
         {/* En-tête avec bouton retour */}
         <div className="flex items-center justify-between mb-8 animate-fadeInDown">
           <button 
-            onClick={() => navigate('/President/Dashboard')}
+            onClick={() => navigate('/club/dashboard')}
             className={`p-3 rounded-xl transition-all ${dm ? 'bg-white/5 text-gray-400 hover:text-white' : 'bg-white text-gray-600 shadow-sm hover:bg-gray-50'}`}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
