@@ -1,70 +1,184 @@
-# Getting Started with Create React App
+# Club Management Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React frontend for the Club Management Platform. This application provides the user interface for admins, presidents, board members, and club members to manage clubs, events, profiles, requests, and tickets.
+
+## Overview
+
+The frontend is designed around a role-aware experience:
+
+- `admin` manages clubs and presidents
+- `president` manages club operations directly
+- `board` uses the shared club workspace with approval-driven actions where required
+- `member` accesses the member dashboard and participation flows
+
+The current architecture centralizes president and board club features into a shared `/club` area to avoid duplicated components.
+
+## Core Features
+
+- authentication and role-based redirection
+- shared club workspace for `president` and `board`
+- member creation and request flows
+- club management and profile pages
+- event creation, management, recap, and ticket assignment
+- QR ticket scanning with `html5-qrcode`
+- public club and event browsing
+- admin dashboard for club setup
+
+## Stack
+
+- React 19
+- React Router DOM 7
+- Create React App tooling
+- Tailwind CSS
+- Axios
+- i18next / react-i18next
+- html5-qrcode
+
+## Project Structure
+
+```text
+src/
+  Componenets/
+  Context/
+  features/
+    club/
+      pages/
+  Layout/
+  layouts/
+  Pages/
+    Admin/
+    Login/
+    Member/
+```
+
+## Requirements
+
+- Node.js 18+
+- npm
+- Running backend API, typically on `http://localhost:8000`
+
+## Configuration
+
+This app reads the backend base URL from:
+
+```env
+REACT_APP_API_URL=http://localhost:8000
+```
+
+If `REACT_APP_API_URL` is not set, several pages fall back to `http://localhost:8000`.
+
+Create a `.env` file in the frontend root if you want to override the API URL locally.
+
+## Installation
+
+```bash
+npm install
+```
+
+## Development
+
+Start the frontend locally:
+
+```bash
+npm start
+```
+
+The app will usually run at:
+
+```text
+http://localhost:3000
+```
 
 ## Available Scripts
 
-In the project directory, you can run:
+```bash
+npm start
+npm run build
+npm test
+```
 
-### `npm start`
+## Shared Club Architecture
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+President and board features now live in the shared club module under:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- [src/features/club/pages](./src/features/club/pages)
+- [src/layouts/ClubLayout.jsx](./src/layouts/ClubLayout.jsx)
 
-### `npm test`
+This means:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- one dashboard implementation for both roles
+- one add-member flow
+- one create-event flow
+- one member-list flow
+- one assign-ticket flow
+- one manage-club flow
 
-### `npm run build`
+Role differences are handled inside the shared pages and through route protection instead of duplicating entire screens.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Routing Summary
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+- `/` public home
+- `/clubs` public club listing
+- `/events` public event listing
+- `/admin/*` admin area
+- `/club/*` shared president/board workspace
+- `/Member/Dashboard` member dashboard
+- `/Login/login` authentication
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Legacy president and board URLs are redirected to the shared `/club` routes for compatibility.
 
-### `npm run eject`
+## Backend Integration Notes
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+- Authenticated requests use `credentials: include`
+- The backend should allow cookies/sessions for local development
+- Most club-aware pages resolve context through `/api/my-club-info` and fall back when needed
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Build
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Create a production build with:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm run build
+```
 
-## Learn More
+The output is generated in:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+```text
+build/
+```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Known Development Notes
 
-### Code Splitting
+- Some builds may show source-map warnings from `html5-qrcode`; these do not necessarily block compilation
+- The repository currently contains some pre-existing ESLint warnings unrelated to the shared club refactor
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+## Troubleshooting
 
-### Analyzing the Bundle Size
+If login succeeds but role-based navigation looks wrong:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- confirm the backend is returning both `role` and `club_role`
+- clear local storage and log in again
 
-### Making a Progressive Web App
+If authenticated pages fail to load data:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- verify `REACT_APP_API_URL`
+- verify the backend is running
+- confirm cookies are accepted in the browser
 
-### Advanced Configuration
+If QR scanning does not work:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+- use HTTPS or localhost where camera APIs are allowed
+- confirm browser camera permissions are granted
 
-### Deployment
+## Recommended Workflow
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+For local development:
 
-### `npm run build` fails to minify
+1. Start the backend and database first.
+2. Start the frontend with `npm start`.
+3. Log in with a role-based test account.
+4. Verify the shared `/club` flows for president and board.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## License
+
+This project is part of the Club Management Platform codebase. Adjust final licensing details based on your delivery or organization requirements.
