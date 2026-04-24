@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../Context/AuthContext';
-import Navbar from '../../Componenets/Navbar';
-import Footer from '../../Componenets/Footer';
+import { useAuth } from '../../../Context/AuthContext';
+import MemberLayout from '../components/MemberLayout';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=JetBrains+Mono:wght@400;500;700&display=swap');
@@ -715,16 +713,7 @@ const MemberDashboard = () => {
     <>
       <style>{styles}</style>
 
-      <div className={`mem-root${isDark ? '' : ' light-mode'}`}>
-
-        <div className="mem-orbs">
-          <div className="mem-orb mem-orb-1" />
-          <div className="mem-orb mem-orb-2" />
-          <div className="mem-orb mem-orb-3" />
-          <div className="mem-orb mem-orb-4" />
-        </div>
-
-        <Navbar />
+      <MemberLayout isDark={isDark}>
 
         {/* ── Topbar ── */}
         <header className="mem-topbar">
@@ -1308,9 +1297,7 @@ const MemberDashboard = () => {
           </div>
         )}
 
-      </div>{/* ── fin mem-root ── */}
-
-      <Footer />
+      </MemberLayout>
 
     </>
   );

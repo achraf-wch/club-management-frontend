@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../Context/AuthContext';
-import AdminSidebar from '../Admin/AdminSidebar';
+import { useAuth } from '../../../Context/AuthContext';
 
 const AdminDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [darkMode, setDarkMode] = useState(
@@ -125,14 +124,12 @@ const AdminDashboard = () => {
 
   return (
     <div
-      className="min-h-screen flex transition-colors duration-500"
+      className="min-h-screen transition-colors duration-500"
       style={{
         background: dm ? '#0a0a0a' : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
       }}
     >
-      <AdminSidebar onLogout={logout} user={user} />
-
-      <div className="flex-1 relative overflow-hidden">
+      <div className="relative overflow-hidden">
         <div
           className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[160px] -z-10"
           style={{ background: dm ? 'rgba(192,57,43,0.06)' : 'rgba(192,57,43,0.05)' }}
@@ -142,7 +139,7 @@ const AdminDashboard = () => {
           style={{ background: dm ? 'rgba(255,255,255,0.02)' : 'rgba(26,44,91,0.08)' }}
         />
 
-        <div className="pt-32 md:pt-36 px-8 pb-12 max-w-7xl mx-auto relative z-10">
+        <div className="pt-8 md:pt-12 px-8 pb-12 max-w-7xl mx-auto relative z-10">
 
           {/* Header */}
           <div className="mb-10">

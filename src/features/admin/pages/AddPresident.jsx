@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../Context/AuthContext';
-import AdminSidebar from '../Admin/AdminSidebar';
 
 const AddPresident = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
   const [darkMode, setDarkMode] = useState(
     document.documentElement.classList.contains("dark")
   );
@@ -361,12 +358,10 @@ const AddPresident = () => {
       `}</style>
 
       <div
-        className={`ap ${dm ? 'dm' : ''} min-h-screen flex`}
+        className={`ap ${dm ? 'dm' : ''} min-h-screen`}
         style={{ background: 'var(--bg)', transition: 'background 0.3s' }}
       >
-        <AdminSidebar onLogout={logout} user={user} />
-
-        <div className="ap-scroll flex-1 overflow-y-auto" style={{ paddingTop: '140px', paddingBottom: '60px' }}>
+        <div className="ap-scroll overflow-y-auto" style={{ paddingBottom: '60px' }}>
           <div style={{ maxWidth: '660px', margin: '0 auto', padding: '0 24px' }}>
 
             {/* ── Page title ── */}

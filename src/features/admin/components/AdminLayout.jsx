@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
-import { useAuth } from '../../Context/AuthContext';
-import Navbar from '../../Componenets/Navbar';
+import { useAuth } from '../../../Context/AuthContext';
+import Navbar from '../../../Componenets/Navbar';
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();

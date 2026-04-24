@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../Context/AuthContext';
-import AdminSidebar from '../Admin/AdminSidebar';
 
 const ManageClubs = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
   const [darkMode, setDarkMode] = useState(
     document.documentElement.classList.contains("dark")
   );
@@ -63,13 +60,11 @@ const ManageClubs = () => {
   const getIcon = (cat) => ({ culture: '🎭', sport: '⚽', tech: '💻', art: '🎨' }[cat] || '📚');
 
   return (
-    <div className={`min-h-screen flex transition-colors duration-500 ${dm ? 'bg-[#0a0a0a]' : 'bg-[#f8fafc]'}`}>
-      <AdminSidebar onLogout={logout} user={user} />
-
-      <div className="flex-1 relative overflow-hidden flex flex-col h-screen">
+    <div className={`min-h-screen transition-colors duration-500 ${dm ? 'bg-[#0a0a0a]' : 'bg-[#f8fafc]'}`}>
+      <div className="relative overflow-hidden flex flex-col h-screen">
         
         {/* ── Header — pt-36 pour respecter la double navbar ── */}
-        <div style={{ paddingTop: '140px' }} className="px-8 pb-6 max-w-7xl mx-auto w-full">
+        <div className="px-8 pt-8 pb-6 max-w-7xl mx-auto w-full">
            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
               <div>
                 <div className="w-16 h-1 bg-[#c0392b] mb-4"></div>

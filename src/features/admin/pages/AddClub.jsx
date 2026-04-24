@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../Context/AuthContext';
-import AdminSidebar from '../Admin/AdminSidebar';
 
 /* ── Global keyframe animations injected once ── */
 const STYLES = `
@@ -83,7 +81,6 @@ const STYLES = `
 
 const AddClub = () => {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
   const [darkMode, setDarkMode] = useState(
     document.documentElement.classList.contains("dark")
   );
@@ -235,11 +232,9 @@ const AddClub = () => {
     : null;
 
   return (
-    <div className="min-h-screen flex transition-colors duration-500" style={{ background: bg }}>
-      <AdminSidebar onLogout={logout} user={user} />
-
-      <div className="flex-1 overflow-y-auto">
-        <div style={{ paddingTop: '140px' }} className="px-4 md:px-10 pb-16 max-w-3xl mx-auto">
+    <div className="min-h-screen transition-colors duration-500" style={{ background: bg }}>
+      <div className="overflow-y-auto">
+        <div className="px-4 pt-8 md:px-10 md:pt-10 pb-16 max-w-3xl mx-auto">
 
           {/* ── Breadcrumb ── */}
           <div className="mb-6 flex items-center gap-2 anim-left d-0">

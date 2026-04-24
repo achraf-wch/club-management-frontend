@@ -6,20 +6,19 @@ import Clubs from './Pages/Clubs';
 import AllEvents from './Pages/AllEvents';
 
 // Admin
-import AdminLayout from './Layout/AdminLayout';
-import Dashboard from './Pages/Admin/Dashboard';
-import AddClub from './Pages/Admin/AddClub';
-import ManageClubs from './Pages/Admin/DeleteClub';
-import DeleteClub from './Pages/Admin/DeleteClub';
-import AdminLogin from './Pages/Admin/Login';
-import AddPresident from './Pages/Admin/AddPresident';
+import AdminLayout from './features/admin/components/AdminLayout';
+import Dashboard from './features/admin/pages/Dashboard';
+import AddClub from './features/admin/pages/AddClub';
+import ManageClubs from './features/admin/pages/ManageClubs';
+import AdminLogin from './features/admin/pages/Login';
+import AddPresident from './features/admin/pages/AddPresident';
 
 // Member
-import MemberDashboard from './Pages/Member/Dashboard';
+import MemberDashboard from './features/member/pages/Dashboard';
 
 // Login & Account Setup
-import Login from './Pages/Login/Login';
-import AccountSetup from './Pages/Login/AccountSetup';
+import Login from './features/login/Login';
+import AccountSetup from './features/login/AccountSetup';
 
 // Club shared area
 import ClubLayout from './layouts/ClubLayout';
@@ -173,7 +172,7 @@ function App() {
             <Route path="addPresident" element={<AddPresident />} />
             <Route path="addClub" element={<AddClub />} />
             <Route path="manageClubs" element={<ManageClubs />} />
-            <Route path="deleteClub" element={<DeleteClub />} />
+            <Route path="deleteClub" element={<ManageClubs />} />
           </Route>
 
           <Route
