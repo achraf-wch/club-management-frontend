@@ -91,6 +91,9 @@ const ClubMemberList = () => {
       if (response.ok) {
         setShowModal(false);
         await refetchMembers();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        alert(errorData.message || 'Impossible de supprimer ce membre');
       }
     } catch {
       alert('Erreur de connexion');
@@ -115,6 +118,9 @@ const ClubMemberList = () => {
       if (response.ok) {
         setShowModal(false);
         await refetchMembers();
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        alert(errorData.message || 'Impossible de mettre à jour ce membre');
       }
     } catch {
       alert('Erreur de connexion');
