@@ -195,6 +195,13 @@ const EventDetail = () => {
   const isCompleted = event.status === 'completed';
   const bannerUrl   = event.banner_url || getImg(event.banner_image);
   const sc          = statusMap[event.status] || statusMap.default;
+  const isPaidTicketEvent = Boolean(event.requires_ticket) && Number(event.price || 0) > 0;
+  const clubContactLinks = [
+    event.club?.contact_email && { label: 'Email', value: event.club.contact_email, href: `mailto:${event.club.contact_email}` },
+    event.club?.instagram_url && { label: 'Instagram', value: 'Instagram', href: event.club.instagram_url },
+    event.club?.linkedin_url && { label: 'LinkedIn', value: 'LinkedIn', href: event.club.linkedin_url },
+    event.club?.facebook_url && { label: 'Facebook', value: 'Facebook', href: event.club.facebook_url },
+  ].filter(Boolean);
 
   return (
     <div style={{ minHeight:'100vh', fontFamily:'system-ui,-apple-system,sans-serif', background:C.pageBg }}>
@@ -493,6 +500,44 @@ const EventDetail = () => {
                     <div style={{ background:C.neuBg, borderRadius:13, padding:'13px 15px', boxShadow:neu(false) }}>
                       <p style={{ fontSize:9, fontWeight:800, letterSpacing:'.22em', textTransform:'uppercase', color:C.tl, marginBottom:6 }}>Catégorie</p>
                       <span style={{ display:'inline-block', padding:'5px 14px', background:C.neuBg, boxShadow:neu(false), color:C.red, borderRadius:8, fontSize:12, fontWeight:800 }}>{event.category}</span>
+                    </div>
+                  )}
+
+                  {isPaidTicketEvent && (
+                    <div style={{ background:C.neuBg, borderRadius:13, padding:'15px', boxShadow:neu(false) }}>
+                      <p style={{ fontSize:9, fontWeight:800, letterSpacing:'.22em', textTransform:'uppercase', color:C.tl, marginBottom:8 }}>Billet payant</p>
+                      <p style={{ color:C.tp, fontSize:22, fontWeight:900, marginBottom:8 }}>{Number(event.price || 0).toFixed(2)} DH</p>
+                      <p style={{ color:C.ts, fontSize:12, lineHeight:1.55, marginBottom:12 }}>
+                        Contactez {event.club?.name || 'le club'} pour récupérer votre ticket.
+                      </p>
+                      {clubContactLinks.length > 0 && (
+                        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                          {clubContactLinks.map((link) => (
+                            <a
+                              key={link.label}
+                              href={link.href}
+                              target={link.href.startsWith('mailto:') ? undefined : '_blank'}
+                              rel={link.href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                              style={{
+                                display:'flex',
+                                justifyContent:'space-between',
+                                alignItems:'center',
+                                gap:10,
+                                padding:'9px 11px',
+                                borderRadius:10,
+                                background:isDark?'rgba(30,144,255,.08)':'rgba(26,60,180,.06)',
+                                color:C.tp,
+                                textDecoration:'none',
+                                fontSize:12,
+                                fontWeight:800,
+                              }}
+                            >
+                              <span>{link.label}</span>
+                              <span style={{ color:C.red, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{link.value}</span>
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

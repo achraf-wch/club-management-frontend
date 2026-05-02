@@ -191,6 +191,12 @@ const ClubDetail = () => {
 
   const boardMembers = members.filter(m => m.role === 'board');
   const regularMembers = members.filter(m => m.role === 'member');
+  const contactLinks = [
+    club.contact_email && { label: 'Email', value: club.contact_email, href: `mailto:${club.contact_email}` },
+    club.instagram_url && { label: 'Instagram', value: 'Instagram', href: club.instagram_url },
+    club.linkedin_url && { label: 'LinkedIn', value: 'LinkedIn', href: club.linkedin_url },
+    club.facebook_url && { label: 'Facebook', value: 'Facebook', href: club.facebook_url },
+  ].filter(Boolean);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#1a2c5b] via-[#1e3368] to-[#0f1e3d] dark:from-black dark:via-black dark:to-black">
@@ -499,6 +505,29 @@ const ClubDetail = () => {
                   <p className="text-[#1a2c5b]/60 dark:text-white/60">Aucun membre pour le moment</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {contactLinks.length > 0 && (
+            <div className="mt-16 bg-[#1a2c5b]/5 dark:bg-white/5 border border-[#1a2c5b]/10 dark:border-white/10 rounded-2xl p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1 h-8 bg-[#c0392b] rounded-full"></div>
+                <h2 className="text-[#1a2c5b] dark:text-white text-3xl font-bold">Contact</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {contactLinks.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target={link.href.startsWith('mailto:') ? undefined : '_blank'}
+                    rel={link.href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+                    className="group rounded-xl border border-[#1a2c5b]/10 dark:border-white/10 bg-white dark:bg-gray-800 p-5 hover:border-[#c0392b]/50 transition-all"
+                  >
+                    <p className="text-xs font-black uppercase tracking-widest text-[#c0392b] mb-2">{link.label}</p>
+                    <p className="text-[#1a2c5b] dark:text-white font-bold truncate group-hover:text-[#c0392b] transition-colors">{link.value}</p>
+                  </a>
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -7,6 +7,7 @@ const ClubManagement = () => {
   const [clubData, setClubData] = useState({
     oldName: '', newName: '', description: '',
     mission: '', logo: null, category: '', founding_year: '',
+    instagram_url: '', linkedin_url: '', facebook_url: '', contact_email: '',
   });
   const [logoPreview, setLogoPreview] = useState('');
   const [isDetectingClub, setIsDetectingClub] = useState(true);
@@ -51,6 +52,10 @@ const ClubManagement = () => {
           logo:          null,
           category:      data.category || '',
           founding_year: data.founding_year || '',
+          instagram_url: data.instagram_url || '',
+          linkedin_url:  data.linkedin_url || '',
+          facebook_url:  data.facebook_url || '',
+          contact_email: data.contact_email || '',
         });
         if (data.logo_url) setLogoPreview(`${data.logo_url}?t=${Date.now()}`);
       } else {
@@ -93,6 +98,10 @@ const ClubManagement = () => {
       formData.append('mission',       clubData.mission);
       formData.append('category',      clubData.category);
       formData.append('founding_year', clubData.founding_year);
+      formData.append('instagram_url', clubData.instagram_url || '');
+      formData.append('linkedin_url',  clubData.linkedin_url || '');
+      formData.append('facebook_url',  clubData.facebook_url || '');
+      formData.append('contact_email', clubData.contact_email || '');
       formData.append('_method',       'PUT');
       if (clubData.logo instanceof File) formData.append('logo', clubData.logo);
 
@@ -109,11 +118,15 @@ const ClubManagement = () => {
         setClubData({
           oldName:       data.club.name || clubData.newName.trim() || clubData.oldName,
           newName:       '',
-          description:   '',
-          mission:       '',
+          description:   data.club.description || '',
+          mission:       data.club.mission || '',
           logo:          null,
-          category:      '',
-          founding_year: '',
+          category:      data.club.category || '',
+          founding_year: data.club.founding_year || '',
+          instagram_url: data.club.instagram_url || '',
+          linkedin_url:  data.club.linkedin_url || '',
+          facebook_url:  data.club.facebook_url || '',
+          contact_email: data.club.contact_email || '',
         });
         if (data.club.logo_url) setLogoPreview(`${data.club.logo_url}?t=${Date.now()}`);
         const fileInput = document.getElementById('logo-upload');
@@ -287,6 +300,35 @@ const ClubManagement = () => {
               <div>
                 <label className={labelCls}>Mission</label>
                 <textarea name="mission" value={clubData.mission} onChange={handleInputChange} className={`${inputCls} resize-none`} rows={3} placeholder="La mission principale de votre club..." />
+              </div>
+
+              {/* Contact & réseaux sociaux */}
+              <div className="border-t pt-8" style={{ borderColor: darkMode ? 'rgba(255,255,255,0.08)' : '#e5e7eb' }}>
+                <div className="mb-5">
+                  <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Contact & réseaux sociaux</h2>
+                  <p className={`text-sm mt-1 ${subtitleCls}`}>
+                    Ces liens seront affichés sur la page du club et sur les événements payants.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className={labelCls}>Email du club</label>
+                    <input type="email" name="contact_email" value={clubData.contact_email} onChange={handleInputChange} className={inputCls} placeholder="club@example.com" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Instagram</label>
+                    <input type="url" name="instagram_url" value={clubData.instagram_url} onChange={handleInputChange} className={inputCls} placeholder="https://instagram.com/votre_club" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>LinkedIn</label>
+                    <input type="url" name="linkedin_url" value={clubData.linkedin_url} onChange={handleInputChange} className={inputCls} placeholder="https://linkedin.com/company/votre-club" />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Facebook</label>
+                    <input type="url" name="facebook_url" value={clubData.facebook_url} onChange={handleInputChange} className={inputCls} placeholder="https://facebook.com/votre.club" />
+                  </div>
+                </div>
               </div>
 
               {/* Submit */}
