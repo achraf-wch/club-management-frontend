@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../Context/AuthContext';
+
+// ─── Icons (unchanged) ────────────────────────────────────────────────────────
 
 const IconUsers = ({ className = 'w-8 h-8' }) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -57,34 +59,115 @@ const IconShield = ({ className = 'w-5 h-5' }) => (
   </svg>
 );
 
+// ─── Styles (outside component — never recreated) ─────────────────────────────
+
+const DASHBOARD_STYLES = `
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  .animate-float { animation: float 5s ease-in-out infinite; }
+
+  @keyframes ping-slow {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.5); opacity: 0; }
+  }
+  .animate-ping-slow { animation: ping-slow 1.6s ease-out infinite; }
+
+  @keyframes icon-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  .icon-bounce { animation: icon-bounce 3s ease-in-out infinite; }
+
+  .stat-card { animation: fadeUp 0.5s ease both; }
+  .action-card { animation: fadeUp 0.4s ease both; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+// ─── Cache duration constant (outside component) ──────────────────────────────
+
+const CACHE_DURATION = 60000; // 1 minute
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 const ClubDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
   const [club, setClub] = useState(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains('dark'));
+
+  // FIX 1: lazy initializer — reads DOM only once instead of every render
+  const [darkMode, setDarkMode] = useState(
+    () => document.documentElement.classList.contains('dark')
+  );
+
   const [membersCount, setMembersCount] = useState(0);
   const [eventsCount, setEventsCount] = useState(0);
   const [pendingCount, setPendingCount] = useState(0);
   const [typedText, setTypedText] = useState('');
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+
   const effectiveRole = user?.role === 'user' ? user?.club_role : user?.role;
   const isPresident = effectiveRole === 'president';
   const dm = darkMode;
   const roleLabel = isPresident ? 'Président' : 'Bureau';
   const roleHeading = isPresident ? 'PRESIDENT' : 'BOARD';
-  const fullText = isPresident
-    ? `Commandant ${user?.first_name}, votre club vous attend.`
-    : `${user?.first_name}, votre bureau est prêt à agir.`;
 
+  // FIX 2: memoize fullText so the typing effect doesn't reset on unrelated renders
+  const fullText = useMemo(
+    () =>
+      isPresident
+        ? `Commandant ${user?.first_name}, votre club vous attend.`
+        : `${user?.first_name}, votre bureau est prêt à agir.`,
+    [isPresident, user?.first_name]
+  );
+
+  // Cache ref — stable across renders, no need to be in state
+  const cacheRef = useRef({});
+
+  // FIX 3: useCallback so fetchWithCache keeps the same reference across renders
+  const fetchWithCache = useCallback(async (url, cacheKey) => {
+    const cached = cacheRef.current[cacheKey];
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data;
+    }
+    const response = await fetch(url, {
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    cacheRef.current[cacheKey] = { data, timestamp: Date.now() };
+    return data;
+  }, []); // cacheRef is a ref — always stable
+
+  // FIX 4: memoize getImageUrl
+  const getImageUrl = useCallback(
+    (path) => {
+      if (!path) return null;
+      if (path.startsWith('http')) return path;
+      return `${API_BASE_URL}/storage/${path.replace(/^\//, '')}`;
+    },
+    [API_BASE_URL]
+  );
+
+  // Theme listener
   useEffect(() => {
-    const handleThemeChange = () => setDarkMode(document.documentElement.classList.contains('dark'));
+    const handleThemeChange = () =>
+      setDarkMode(document.documentElement.classList.contains('dark'));
     window.addEventListener('themeChanged', handleThemeChange);
     return () => window.removeEventListener('themeChanged', handleThemeChange);
   }, []);
 
+  // Typing animation — only re-runs when fullText actually changes
   useEffect(() => {
     let index = 0;
     setTypedText('');
@@ -96,74 +179,91 @@ const ClubDashboard = () => {
     return () => clearInterval(interval);
   }, [fullText]);
 
+  // FIX 5: truly parallel - no sequential fallback, use Promise.allSettled
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const profileRes = await fetch(`${API_BASE_URL}/api/user`, { credentials: 'include' });
-        if (profileRes.ok) {
-          setProfile(await profileRes.json());
+        setLoading(true);
+
+        const summary = await fetchWithCache(`${API_BASE_URL}/api/club-dashboard-summary`, 'club-dashboard-summary');
+        if (summary) {
+          setProfile(summary.profile || null);
+          setClub(summary.club || null);
+          setMembersCount(summary.counts?.members ?? summary.club?.active_members ?? summary.club?.total_members ?? 0);
+          setEventsCount(summary.counts?.events ?? 0);
+          setPendingCount(summary.counts?.pending_requests ?? 0);
+          setLoading(false);
+          return;
+        }
+      } catch (error) {
+        console.warn('Dashboard summary unavailable, using fallback requests:', error);
+      }
+
+      try {
+        const clubId = user?.club_id;
+
+        // Fire ALL requests in parallel from the start
+        const results = await Promise.allSettled([
+          fetchWithCache(`${API_BASE_URL}/api/user`, 'user-profile'),
+          fetchWithCache(`${API_BASE_URL}/api/my-club-info`, 'my-club-info'),
+          clubId ? fetchWithCache(`${API_BASE_URL}/api/clubs/${clubId}/members`, `members-${clubId}`) : Promise.resolve(null),
+          clubId ? fetchWithCache(`${API_BASE_URL}/api/events?club_id=${clubId}`, `events-${clubId}`) : fetchWithCache(`${API_BASE_URL}/api/events`, 'all-events'),
+          isPresident && clubId ? fetchWithCache(`${API_BASE_URL}/api/clubs/${clubId}/requests/stats`, `requests-${clubId}`) : Promise.resolve({ pending_requests: 0 }),
+        ]);
+
+        const [profileResult, clubResult, membersResult, eventsResult, requestsResult] = results;
+
+        // Handle profile
+        if (profileResult.status === 'fulfilled' && profileResult.value) {
+          setProfile(profileResult.value);
         }
 
-        const clubRes = await fetch(`${API_BASE_URL}/api/my-club-info`, { credentials: 'include' });
-        let clubData = clubRes.ok ? await clubRes.json() : null;
-        if (!clubData) {
-          const fallbackRes = await fetch(`${API_BASE_URL}/api/my-club`, { credentials: 'include' });
-          if (fallbackRes.ok) {
-            const fallbackData = await fallbackRes.json();
-            clubData = fallbackData.club || fallbackData;
-          }
+        // Handle club - use result directly or try fallback
+        let clubData = null;
+        if (clubResult.status === 'fulfilled' && clubResult.value) {
+          clubData = clubResult.value;
+        } else if (!clubId) {
+          // Only fallback if we don't have clubId from auth
+          try {
+            const fallbackRes = await fetch(`${API_BASE_URL}/api/my-club`, { credentials: 'include' });
+            if (fallbackRes.ok) {
+              const fallbackData = await fallbackRes.json();
+              clubData = fallbackData.club || fallbackData;
+            }
+          } catch (_) {}
         }
         setClub(clubData);
 
-        if (clubData?.id) {
+        const resolvedClubId = clubData?.id || clubId;
+
+        // Handle members
+        let membersData = null;
+        if (membersResult.status === 'fulfilled' && membersResult.value) {
+          membersData = membersResult.value;
+        } else if (resolvedClubId && !clubId) {
+          // Fetch if we now have clubId but didn't have it before
           try {
-            const membersRes = await fetch(`${API_BASE_URL}/api/clubs/${clubData.id}/members`, {
-              credentials: 'include',
-              headers: { Accept: 'application/json' },
-            });
-            if (membersRes.ok) {
-              const membersData = await membersRes.json();
-              const list = Array.isArray(membersData) ? membersData : (membersData.data ?? []);
-              setMembersCount(list.length);
-            } else {
-              setMembersCount(clubData.total_members ?? clubData.members_count ?? 0);
-            }
-          } catch {
-            setMembersCount(clubData.total_members ?? clubData.members_count ?? 0);
-          }
+            membersData = await fetchWithCache(`${API_BASE_URL}/api/clubs/${resolvedClubId}/members`, `members-${resolvedClubId}`);
+          } catch (_) {}
         }
 
-        try {
-          const eventsRes = await fetch(`${API_BASE_URL}/api/events`, {
-            credentials: 'include',
-            headers: { Accept: 'application/json' },
-          });
-          if (eventsRes.ok) {
-            const eventsData = await eventsRes.json();
-            const allEvents = Array.isArray(eventsData) ? eventsData : (eventsData.data ?? []);
-            setEventsCount(clubData?.id ? allEvents.filter((event) => event.club_id === clubData.id).length : allEvents.length);
-          } else {
-            setEventsCount(clubData?.events_count ?? 0);
-          }
-        } catch {
-          setEventsCount(clubData?.events_count ?? 0);
+        if (membersData) {
+          const membersList = Array.isArray(membersData) ? membersData : (membersData?.data ?? []);
+          const totalMembers = clubData?.total_members ?? clubData?.members_count ?? 0;
+          setMembersCount(membersList.length || totalMembers);
         }
 
-        if (isPresident && clubData?.id) {
-          try {
-            const requestsRes = await fetch(`${API_BASE_URL}/api/clubs/${clubData.id}/requests/stats`, {
-              credentials: 'include',
-            });
-            if (requestsRes.ok) {
-              const requestsData = await requestsRes.json();
-              setPendingCount(requestsData.pending_requests ?? 0);
-            }
-          } catch {
-            setPendingCount(0);
-          }
-        } else {
-          setPendingCount(0);
+        // Handle events
+        if (eventsResult.status === 'fulfilled' && eventsResult.value) {
+          const allEvents = Array.isArray(eventsResult.value) ? eventsResult.value : (eventsResult.value?.data ?? []);
+          setEventsCount(resolvedClubId ? allEvents.filter((e) => e.club_id === resolvedClubId).length : allEvents.length);
         }
+
+        // Handle requests
+        if (requestsResult.status === 'fulfilled' && requestsResult.value) {
+          setPendingCount(requestsResult.value?.pending_requests ?? 0);
+        }
+
       } catch (error) {
         console.error('Error loading club dashboard:', error);
       } finally {
@@ -172,54 +272,60 @@ const ClubDashboard = () => {
     };
 
     fetchDashboardData();
-  }, [API_BASE_URL, isPresident]);
+  }, [API_BASE_URL, isPresident, fetchWithCache, user?.club_id]);
 
-  const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    return `${API_BASE_URL}/storage/${path.replace(/^\//, '')}`;
-  };
+  // FIX 6: memoize stats array — only rebuilt when its dependencies change
+  const stats = useMemo(
+    () => [
+      {
+        label: 'Effectif',
+        value: membersCount,
+        sub: 'Membres Actifs',
+        Icon: IconUsers,
+        color: '#c0392b',
+        bg: dm ? 'rgba(192,57,43,0.12)' : 'rgba(192,57,43,0.08)',
+        delay: '0ms',
+      },
+      {
+        label: 'Agenda',
+        value: eventsCount,
+        sub: 'Événements',
+        Icon: IconCalendar,
+        color: '#1a2c5b',
+        bg: dm ? 'rgba(26,44,91,0.18)' : 'rgba(26,44,91,0.07)',
+        delay: '80ms',
+      },
+      {
+        label: isPresident ? 'Demandes' : 'Accès',
+        value: isPresident ? pendingCount : roleLabel,
+        sub: isPresident ? 'En Attente' : 'Gestion Club',
+        Icon: isPresident ? IconInbox : IconShield,
+        color: '#f39c12',
+        bg: dm ? 'rgba(243,156,18,0.12)' : 'rgba(243,156,18,0.08)',
+        delay: '160ms',
+      },
+    ],
+    [membersCount, eventsCount, pendingCount, dm, isPresident, roleLabel]
+  );
 
-  const stats = [
-    {
-      label: 'Effectif',
-      value: membersCount,
-      sub: 'Membres Actifs',
-      Icon: IconUsers,
-      color: '#c0392b',
-      bg: dm ? 'rgba(192,57,43,0.12)' : 'rgba(192,57,43,0.08)',
-      delay: '0ms',
-    },
-    {
-      label: 'Agenda',
-      value: eventsCount,
-      sub: 'Événements',
-      Icon: IconCalendar,
-      color: '#1a2c5b',
-      bg: dm ? 'rgba(26,44,91,0.18)' : 'rgba(26,44,91,0.07)',
-      delay: '80ms',
-    },
-    {
-      label: isPresident ? 'Demandes' : 'Accès',
-      value: isPresident ? pendingCount : roleLabel,
-      sub: isPresident ? 'En Attente' : 'Gestion Club',
-      Icon: isPresident ? IconInbox : IconShield,
-      color: '#f39c12',
-      bg: dm ? 'rgba(243,156,18,0.12)' : 'rgba(243,156,18,0.08)',
-      delay: '160ms',
-    },
-  ];
-
-  const actions = [
-    { label: 'Assigner Billets', Icon: IconTicket, path: '/club/tickets/assign', accent: '#22c55e' },
-    { label: 'Gérer les Membres', Icon: IconSettings, path: '/club/members', accent: '#3b82f6' },
-    { label: 'Nouvel Événement', Icon: IconPlus, path: '/club/events/create', accent: '#c0392b' },
-    { label: 'Mon Profil', Icon: IconUser, path: '/Login/AccountSetup', accent: '#6b7280' },
-  ];
+  // FIX 7: memoize actions array — never changes after mount
+  const actions = useMemo(
+    () => [
+      { label: 'Assigner Billets', Icon: IconTicket, path: '/club/tickets/assign', accent: '#22c55e' },
+      { label: 'Gérer les Membres', Icon: IconSettings, path: '/club/members', accent: '#3b82f6' },
+      { label: 'Nouvel Événement', Icon: IconPlus, path: '/club/events/create', accent: '#c0392b' },
+      { label: 'Mon Profil', Icon: IconUser, path: '/Login/AccountSetup', accent: '#6b7280' },
+    ],
+    []
+  );
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${dm ? 'bg-[#0a0a0f]' : 'bg-[#f8fafc]'}`}>
+      <div
+        className={`min-h-screen flex items-center justify-center ${
+          dm ? 'bg-[#0a0a0f]' : 'bg-[#f8fafc]'
+        }`}
+      >
         <div className="relative w-20 h-20">
           <div className="absolute inset-0 border-4 border-red-600/20 rounded-full"></div>
           <div className="absolute inset-0 border-4 border-red-600 rounded-full border-t-transparent animate-spin"></div>
@@ -229,11 +335,16 @@ const ClubDashboard = () => {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 overflow-x-hidden ${dm ? 'bg-[#0a0a0f] text-white' : 'bg-[#f8fafc] text-[#1a2c5b]'}`}>
+    <div
+      className={`min-h-screen transition-colors duration-500 overflow-x-hidden ${
+        dm ? 'bg-[#0a0a0f] text-white' : 'bg-[#f8fafc] text-[#1a2c5b]'
+      }`}
+    >
       <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-[#c0392b]/5 rounded-full blur-[120px] -z-10 animate-pulse"></div>
       <div className="fixed bottom-0 left-0 w-[400px] h-[400px] bg-[#1a2c5b]/10 rounded-full blur-[100px] -z-10"></div>
 
       <div className="max-w-7xl mx-auto px-8 py-12">
+        {/* Header */}
         <header className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <div className="w-20 h-1.5 bg-[#c0392b] mb-4 rounded-full"></div>
@@ -241,21 +352,32 @@ const ClubDashboard = () => {
               DASHBOARD <span className="text-[#c0392b]">{roleHeading}</span>
             </h1>
             <p className={`text-xl font-medium ${dm ? 'text-white/40' : 'text-gray-500'}`}>
-              {typedText}<span className="animate-ping text-[#c0392b]">_</span>
+              {typedText}
+              <span className="animate-ping text-[#c0392b]">_</span>
             </p>
           </div>
 
           {club && (
-            <div className={`flex items-center gap-4 p-4 rounded-[2rem] border backdrop-blur-md shadow-2xl ${dm ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100'}`}>
+            <div
+              className={`flex items-center gap-4 p-4 rounded-[2rem] border backdrop-blur-md shadow-2xl ${
+                dm ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100'
+              }`}
+            >
               <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-[#c0392b]/30">
                 <img
-                  src={getImageUrl(club.logo || club.logo_url) || `https://ui-avatars.com/api/?name=${club.name}&background=c0392b&color=fff`}
+                  src={
+                    getImageUrl(club.logo || club.logo_url) ||
+                    `https://ui-avatars.com/api/?name=${club.name}&background=c0392b&color=fff`
+                  }
                   alt={club.name || 'Club'}
                   className="w-full h-full object-cover"
+                  loading="lazy"
                 />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-[#c0392b]">Organisation</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#c0392b]">
+                  Organisation
+                </p>
                 <p className="text-lg font-black leading-tight">{club.name}</p>
               </div>
             </div>
@@ -263,8 +385,14 @@ const ClubDashboard = () => {
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left column */}
           <div className="lg:col-span-8 space-y-8">
-            <div className={`relative rounded-[3rem] p-10 overflow-hidden border transition-all ${dm ? 'bg-white/5 border-white/10' : 'bg-[#1a2c5b] text-white shadow-2xl'}`}>
+            {/* Welcome card */}
+            <div
+              className={`relative rounded-[3rem] p-10 overflow-hidden border transition-all ${
+                dm ? 'bg-white/5 border-white/10' : 'bg-[#1a2c5b] text-white shadow-2xl'
+              }`}
+            >
               <div className="absolute top-0 right-0 p-8 opacity-10">
                 <svg className="w-40 h-40" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2L1 21h22L12 2zm0 3.45l8.15 14.1H3.85L12 5.45z" />
@@ -279,23 +407,39 @@ const ClubDashboard = () => {
               </p>
 
               <div className="flex flex-wrap gap-4 mb-8">
-                <div className={`px-6 py-3 rounded-2xl border text-sm font-bold flex items-center gap-3 ${dm ? 'bg-white/5 border-white/10' : 'bg-white/10 border-white/20'}`}>
+                <div
+                  className={`px-6 py-3 rounded-2xl border text-sm font-bold flex items-center gap-3 ${
+                    dm ? 'bg-white/5 border-white/10' : 'bg-white/10 border-white/20'
+                  }`}
+                >
                   <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                   {profile?.email || user?.email}
                 </div>
-                <div className={`px-6 py-3 rounded-2xl border text-sm font-bold ${dm ? 'bg-white/5 border-white/10' : 'bg-white/10 border-white/20'}`}>
+                <div
+                  className={`px-6 py-3 rounded-2xl border text-sm font-bold ${
+                    dm ? 'bg-white/5 border-white/10' : 'bg-white/10 border-white/20'
+                  }`}
+                >
                   Role: {roleHeading}
                 </div>
               </div>
 
-              <div className={`relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 rounded-2xl border ${dm ? 'bg-white/5 border-white/10' : 'bg-white/10 border-white/20'}`}>
+              <div
+                className={`relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 rounded-2xl border ${
+                  dm ? 'bg-white/5 border-white/10' : 'bg-white/10 border-white/20'
+                }`}
+              >
                 <div className="flex items-center gap-3 flex-1">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/20">
                     <IconShield className="w-5 h-5 text-red-400" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-0.5">Sécurité &amp; Compte</p>
-                    <p className="text-sm font-semibold text-white/80">Gérez vos identifiants d'accès</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-0.5">
+                      Sécurité &amp; Compte
+                    </p>
+                    <p className="text-sm font-semibold text-white/80">
+                      Gérez vos identifiants d'accès
+                    </p>
                   </div>
                 </div>
 
@@ -310,51 +454,83 @@ const ClubDashboard = () => {
               </div>
             </div>
 
+            {/* Stat cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className={`stat-card p-8 rounded-[2.5rem] border group hover:scale-[1.03] transition-all duration-300 ${dm ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100 shadow-xl'}`}
+                  className={`stat-card p-8 rounded-[2.5rem] border group hover:scale-[1.03] transition-all duration-300 ${
+                    dm ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100 shadow-xl'
+                  }`}
                   style={{ animationDelay: stat.delay }}
                 >
                   <div className="flex justify-between items-start mb-6">
-                    <div className="relative w-14 h-14 rounded-2xl flex items-center justify-center icon-bounce" style={{ background: stat.bg }}>
+                    <div
+                      className="relative w-14 h-14 rounded-2xl flex items-center justify-center icon-bounce"
+                      style={{ background: stat.bg }}
+                    >
                       <span
                         className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-ping-slow"
                         style={{ boxShadow: `0 0 0 6px ${stat.color}30` }}
                       ></span>
                       <stat.Icon className="w-7 h-7" style={{ color: stat.color }} />
                     </div>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${dm ? 'text-white/30' : 'text-gray-400'}`}>
+                    <span
+                      className={`text-[10px] font-black uppercase tracking-widest ${
+                        dm ? 'text-white/30' : 'text-gray-400'
+                      }`}
+                    >
                       {stat.label}
                     </span>
                   </div>
 
                   <h3
                     className="text-5xl font-black mb-1 tabular-nums transition-all duration-300 group-hover:scale-110 group-hover:origin-left"
-                    style={{ color: dm ? 'white' : stat.color === '#f39c12' ? '#f39c12' : undefined }}
+                    style={{
+                      color:
+                        dm
+                          ? 'white'
+                          : stat.color === '#f39c12'
+                          ? '#f39c12'
+                          : undefined,
+                    }}
                   >
                     {stat.value}
                   </h3>
-                  <p className="text-xs font-bold uppercase tracking-tighter" style={{ color: '#c0392b' }}>
+                  <p
+                    className="text-xs font-bold uppercase tracking-tighter"
+                    style={{ color: '#c0392b' }}
+                  >
                     {stat.sub}
                   </p>
 
                   <div
                     className="mt-6 h-0.5 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"
-                    style={{ background: `linear-gradient(to right, ${stat.color}, transparent)` }}
+                    style={{
+                      background: `linear-gradient(to right, ${stat.color}, transparent)`,
+                    }}
                   ></div>
                 </div>
               ))}
             </div>
           </div>
 
+          {/* Right column — quick actions */}
           <div className="lg:col-span-4">
-            <div className={`relative rounded-[3rem] p-8 border overflow-hidden h-full flex flex-col ${dm ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100 shadow-xl'}`}>
-              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-20" style={{ background: '#c0392b' }}></div>
+            <div
+              className={`relative rounded-[3rem] p-8 border overflow-hidden h-full flex flex-col ${
+                dm ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100 shadow-xl'
+              }`}
+            >
+              <div
+                className="absolute -top-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-20"
+                style={{ background: '#c0392b' }}
+              ></div>
 
               <div className="relative z-10 mb-8">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#c0392b] mb-1">Navigation</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#c0392b] mb-1">
+                  Navigation
+                </p>
                 <h3 className="text-3xl font-black leading-tight">
                   ACTIONS
                   <br />
@@ -376,7 +552,9 @@ const ClubDashboard = () => {
                   >
                     <span
                       className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[1.5rem]"
-                      style={{ background: `radial-gradient(circle at 30% 30%, ${action.accent}15, transparent 70%)` }}
+                      style={{
+                        background: `radial-gradient(circle at 30% 30%, ${action.accent}15, transparent 70%)`,
+                      }}
                     ></span>
 
                     <div
@@ -386,7 +564,11 @@ const ClubDashboard = () => {
                       <action.Icon className="w-5 h-5" />
                     </div>
 
-                    <span className={`relative z-10 text-[10px] font-black uppercase tracking-wider leading-tight ${dm ? 'text-white/70' : 'text-[#1a2c5b]'}`}>
+                    <span
+                      className={`relative z-10 text-[10px] font-black uppercase tracking-wider leading-tight ${
+                        dm ? 'text-white/70' : 'text-[#1a2c5b]'
+                      }`}
+                    >
                       {action.label}
                     </span>
 
@@ -400,7 +582,11 @@ const ClubDashboard = () => {
 
               <div className="relative z-10 mt-6 flex gap-1">
                 {actions.map((action) => (
-                  <div key={action.label} className="h-0.5 flex-1 rounded-full" style={{ background: `${action.accent}60` }}></div>
+                  <div
+                    key={action.label}
+                    className="h-0.5 flex-1 rounded-full"
+                    style={{ background: `${action.accent}60` }}
+                  ></div>
                 ))}
               </div>
             </div>
@@ -408,33 +594,8 @@ const ClubDashboard = () => {
         </div>
       </div>
 
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        .animate-float { animation: float 5s ease-in-out infinite; }
-
-        @keyframes ping-slow {
-          0% { transform: scale(1); opacity: 0.6; }
-          100% { transform: scale(1.5); opacity: 0; }
-        }
-        .animate-ping-slow { animation: ping-slow 1.6s ease-out infinite; }
-
-        @keyframes icon-bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-4px); }
-        }
-        .icon-bounce { animation: icon-bounce 3s ease-in-out infinite; }
-
-        .stat-card { animation: fadeUp 0.5s ease both; }
-        .action-card { animation: fadeUp 0.4s ease both; }
-
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
+      {/* FIX 8: styles defined outside component — injected once, never recreated */}
+      <style>{DASHBOARD_STYLES}</style>
     </div>
   );
 };

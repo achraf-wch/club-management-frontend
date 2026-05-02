@@ -563,80 +563,85 @@ const MemberDashboard = () => {
     }
   }, [user]);
 
+  // Cache for API responses
+  const cacheRef = React.useRef({});
+  const CACHE_DURATION = 60000; // 1 minute cache
+
+  const fetchWithCache = async (url, cacheKey) => {
+    const cached = cacheRef.current[cacheKey];
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data;
+    }
+    const response = await fetch(url, {
+      credentials: 'include',
+      headers: { 'Accept': 'application/json' },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    cacheRef.current[cacheKey] = { data, timestamp: Date.now() };
+    return data;
+  };
+
   const fetchMemberData = async () => {
     try {
       setLoading(true);
 
-      const clubResponse = await fetch(`${API_BASE_URL}/api/my-club-membership`, {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' },
-      });
+      // Parallelize all API calls for better performance
+      const [clubResponse, regRes] = await Promise.all([
+        fetchWithCache(`${API_BASE_URL}/api/my-club-membership`, 'club-membership'),
+        fetchWithCache(`${API_BASE_URL}/api/tickets?person_id=${user.id}`, `tickets-${user.id}`).catch(() => ({ data: [] }))
+      ]);
 
       let clubData = null;
-      if (clubResponse.ok) {
-        clubData = await clubResponse.json();
+      if (clubResponse) {
+        clubData = clubResponse;
         setClubInfo(clubData.club);
         setMemberInfo(clubData.membership);
       }
 
       const clubId = clubData?.club?.id;
 
+      // Process tickets data
+      if (regRes) {
+        const regData = regRes;
+        const allTickets = Array.isArray(regData) ? regData : (regData.data ?? []);
+        setRegisteredEvents(allTickets);
+        setAttendedEvents(allTickets.filter(t => t.status === 'scanned' || t.scanned === true || t.scanned_at));
+      }
+
+      // Fetch remaining data in parallel
       if (clubId) {
-        try {
-          const eventsRes = await fetch(
-            `${API_BASE_URL}/api/events?club_id=${clubId}`,
-            { credentials: 'include', headers: { 'Accept': 'application/json' } }
+        const hasClubCounts = clubData.club?.total_members !== undefined || clubData.club?.active_members !== undefined;
+        const [eventsRes, membersRes] = await Promise.all([
+          fetchWithCache(`${API_BASE_URL}/api/events?club_id=${clubId}`, `events-${clubId}`).catch(() => ({ events: [], data: [] })),
+          hasClubCounts
+            ? Promise.resolve(null)
+            : fetchWithCache(`${API_BASE_URL}/api/clubs/${clubId}/members`, `members-${clubId}`).catch(() => ({ data: [] }))
+        ]);
+
+        // Process events
+        if (eventsRes) {
+          const all = Array.isArray(eventsRes) ? eventsRes : (eventsRes.events ?? eventsRes.data ?? []);
+          setClubEvents(all.filter(e => (e.club_id ?? e.club?.id) === clubId));
+        }
+
+        if (hasClubCounts) {
+          setClubTotalMembers(clubData.club.total_members ?? 0);
+          setClubActiveMembers(clubData.club.active_members ?? clubData.club.total_members ?? 0);
+        } else if (membersRes) {
+          const membersData = membersRes;
+          const list = Array.isArray(membersData) ? membersData : (membersData.data ?? []);
+          setClubTotalMembers(list.length);
+          const activeList = list.filter(m =>
+            m.status === 'active' || m.status === 'approved' ||
+            m.is_active === true  || m.is_active === 1
           );
-          if (eventsRes.ok) {
-            const eventsData = await eventsRes.json();
-            const all = Array.isArray(eventsData) ? eventsData : (eventsData.events ?? eventsData.data ?? []);
-            setClubEvents(all.filter(e => (e.club_id ?? e.club?.id) === clubId));
-          }
-        } catch (_) {}
-      }
-
-      try {
-        const regRes = await fetch(
-          `${API_BASE_URL}/api/tickets?person_id=${user.id}`,
-          { credentials: 'include', headers: { 'Accept': 'application/json' } }
-        );
-        if (regRes.ok) {
-          const regData = await regRes.json();
-          const allTickets = Array.isArray(regData) ? regData : (regData.data ?? []);
-          setRegisteredEvents(allTickets);
-          setAttendedEvents(allTickets.filter(t => t.status === 'scanned' || t.scanned === true || t.scanned_at));
-        } else {
-          setRegisteredEvents([]);
-          setAttendedEvents([]);
+          setClubActiveMembers(activeList.length);
         }
-      } catch (_) {
-        setRegisteredEvents([]);
-        setAttendedEvents([]);
-      }
-
-      if (clubId) {
-        try {
-          const membersRes = await fetch(`${API_BASE_URL}/api/clubs/${clubId}/members`, {
-            credentials: 'include',
-            headers: { 'Accept': 'application/json' },
-          });
-          if (membersRes.ok) {
-            const membersData = await membersRes.json();
-            const list = Array.isArray(membersData) ? membersData : (membersData.data ?? []);
-            setClubTotalMembers(list.length);
-            const activeList = list.filter(m =>
-              m.status === 'active' || m.status === 'approved' ||
-              m.is_active === true  || m.is_active === 1
-            );
-            setClubActiveMembers(activeList.length);
-          } else {
-            setClubTotalMembers(clubData?.club?.total_members ?? clubData?.club?.members_count ?? 0);
-            setClubActiveMembers(clubData?.club?.active_members ?? 0);
-          }
-        } catch {
-          setClubTotalMembers(clubData?.club?.total_members ?? 0);
-          setClubActiveMembers(clubData?.club?.active_members ?? 0);
-        }
+      } else if (clubData?.club) {
+        // Fallback to club data if no clubId
+        setClubTotalMembers(clubData.club.total_members ?? clubData.club.members_count ?? 0);
+        setClubActiveMembers(clubData.club.active_members ?? 0);
       }
 
     } catch (err) {

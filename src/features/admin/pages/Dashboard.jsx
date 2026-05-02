@@ -31,6 +31,22 @@ const AdminDashboard = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
+  // Cache for API responses
+  const cacheRef = React.useRef({});
+  const CACHE_DURATION = 60000; // 1 minute cache
+
+  const fetchWithCache = async (url, cacheKey) => {
+    const cached = cacheRef.current[cacheKey];
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.data;
+    }
+    const response = await fetch(url, { credentials: 'include' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    cacheRef.current[cacheKey] = { data, timestamp: Date.now() };
+    return data;
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -38,37 +54,31 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/clubs`, { credentials: 'include' });
-      if (response.ok) {
-        const clubsData = await response.json();
-        const clubsList = Array.isArray(clubsData) ? clubsData : [];
-        setClubs(clubsList);
-        const totalMembers = clubsList.reduce((sum, club) => sum + (club.total_members || 0), 0);
-        const activeUsers  = clubsList.reduce((sum, club) => sum + (club.active_members  || 0), 0);
+      
+      // Parallelize API calls for better performance
+      const [clubsData, eventsData] = await Promise.all([
+        fetchWithCache(`${API_BASE_URL}/api/clubs`, 'admin-clubs').catch(() => []),
+        fetchWithCache(`${API_BASE_URL}/api/events`, 'admin-events').catch(() => ({ data: [] }))
+      ]);
 
-        let totalEvents = 0;
-        try {
-          const eventsRes = await fetch(`${API_BASE_URL}/api/events`, { credentials: 'include' });
-          if (eventsRes.ok) {
-            const eventsData = await eventsRes.json();
-            const eventsList = Array.isArray(eventsData) ? eventsData : (eventsData.data ?? []);
-            totalEvents = eventsList.length;
-          } else {
-            totalEvents = clubsList.reduce((sum, club) => sum + (club.events_count || 0), 0);
-          }
-        } catch {
-          totalEvents = clubsList.reduce((sum, club) => sum + (club.events_count || 0), 0);
-        }
+      const clubsList = Array.isArray(clubsData) ? clubsData : [];
+      setClubs(clubsList);
+      
+      const totalMembers = clubsList.reduce((sum, club) => sum + (club.total_members || 0), 0);
+      const activeUsers  = clubsList.reduce((sum, club) => sum + (club.active_members  || 0), 0);
 
-        setStats({ totalClubs: clubsList.length, totalMembers, totalEvents, activeUsers });
+      // Get events count from cached data
+      const eventsList = Array.isArray(eventsData) ? eventsData : (eventsData.data ?? []);
+      const totalEvents = eventsList.length || clubsList.reduce((sum, club) => sum + (club.events_count || 0), 0);
 
-        setRecentActivity([
-          { action: 'Nouveau club créé', name: clubsList[0]?.name || 'Club Example', time: '2 min' },
-          { action: 'Nouveau membre', name: 'Mohamed Ali', time: '15 min' },
-          { action: 'Événement publié', name: 'Workshop React', time: '1 h' },
-          { action: 'Membre activé', name: 'Sara Bennani', time: '2 h' },
-        ]);
-      }
+      setStats({ totalClubs: clubsList.length, totalMembers, totalEvents, activeUsers });
+
+      setRecentActivity([
+        { action: 'Nouveau club créé', name: clubsList[0]?.name || 'Club Example', time: '2 min' },
+        { action: 'Nouveau membre', name: 'Mohamed Ali', time: '15 min' },
+        { action: 'Événement publié', name: 'Workshop React', time: '1 h' },
+        { action: 'Membre activé', name: 'Sara Bennani', time: '2 h' },
+      ]);
     } catch (err) {
       console.error(err);
     } finally {

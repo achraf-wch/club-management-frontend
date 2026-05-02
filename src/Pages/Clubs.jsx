@@ -104,44 +104,53 @@ const ClubDetail = () => {
       setLoading(true);
       setError(null);
 
-      // ── 1. Club ──
-      const clubResponse = await fetch(`${API_BASE_URL}/api/clubs/${id}`);
+      const detailResponse = await fetch(`${API_BASE_URL}/api/clubs/${id}/detail`);
+
+      if (detailResponse.ok) {
+        const detail = await detailResponse.json();
+        const membersArray = Array.isArray(detail.members) ? detail.members : [];
+        const eventsArray = Array.isArray(detail.events) ? detail.events : [];
+
+        setClub(detail.club);
+        setMembers(membersArray);
+        setPresident(membersArray.find(m => m.role === 'president') || null);
+        setEvents(eventsArray);
+        setFilteredEvents(eventsArray);
+        setCategories(Array.isArray(detail.categories) ? detail.categories : [...new Set(eventsArray.map(e => e.category).filter(Boolean))]);
+        return;
+      }
+
+      if (detailResponse.status !== 404) {
+        throw new Error('Club non trouvé');
+      }
+
+      const [clubResponse, membersResponse, eventsResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/clubs/${id}`),
+        fetch(`${API_BASE_URL}/api/clubs/${id}/members`).catch(() => null),
+        fetch(`${API_BASE_URL}/api/events/club/${id}`).catch(() => null),
+      ]);
+
       if (!clubResponse.ok) throw new Error('Club non trouvé');
-      const clubData = await clubResponse.json();
-      setClub(clubData);
+      setClub(await clubResponse.json());
 
-      // ── 2. Membres (route publique dédiée) ──
-      try {
-        const membersResponse = await fetch(`${API_BASE_URL}/api/clubs/${id}/members`);
-        if (membersResponse.ok) {
-          const arr = await membersResponse.json();
-          const clubMembers = Array.isArray(arr) ? arr : [];
-          setMembers(clubMembers);
-          setPresident(clubMembers.find(m => m.role === 'president') || null);
-        }
-      } catch (err) {
-        console.error('Error fetching members:', err);
+      if (membersResponse?.ok) {
+        const clubMembers = await membersResponse.json();
+        const membersArray = Array.isArray(clubMembers) ? clubMembers : [];
+        setMembers(membersArray);
+        setPresident(membersArray.find(m => m.role === 'president') || null);
       }
 
-      // ── 3. Événements (route publique dédiée) ──
-      try {
-        const eventsResponse = await fetch(`${API_BASE_URL}/api/events/club/${id}`);
-        if (eventsResponse.ok) {
-          const clubEvents = await eventsResponse.json();
-          const eventsArray = Array.isArray(clubEvents) ? clubEvents : [];
-          setEvents(eventsArray);
-          setFilteredEvents(eventsArray);
-          const uniqueCategories = [...new Set(eventsArray.map(e => e.category).filter(Boolean))];
-          setCategories(uniqueCategories);
-        }
-      } catch (err) {
-        console.error('Error fetching events:', err);
+      if (eventsResponse?.ok) {
+        const clubEvents = await eventsResponse.json();
+        const eventsArray = Array.isArray(clubEvents) ? clubEvents : [];
+        setEvents(eventsArray);
+        setFilteredEvents(eventsArray);
+        setCategories([...new Set(eventsArray.map(e => e.category).filter(Boolean))]);
       }
-
-      setLoading(false);
     } catch (error) {
       console.error('Error fetching club data:', error);
       setError(error.message);
+    } finally {
       setLoading(false);
     }
   };

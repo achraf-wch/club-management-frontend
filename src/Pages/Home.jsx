@@ -359,6 +359,10 @@ const Home = () => {
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
   const searchQuery = new URLSearchParams(location.search).get('search') || '';
 
+  // Cache for clubs data
+  const clubsCacheRef = React.useRef({ clubs: null, timestamp: 0 });
+  const CACHE_DURATION = 60000; // 1 minute
+
   useEffect(() => {
     const handleThemeChange = (e) => {
       if (e && e.detail && typeof e.detail.dark !== 'undefined') {
@@ -374,12 +378,29 @@ const Home = () => {
   useEffect(() => { fetchClubs(); }, []);
 
   const fetchClubs = async () => {
+    // Check cache first
+    const now = Date.now();
+    if (clubsCacheRef.current.clubs && (now - clubsCacheRef.current.timestamp) < CACHE_DURATION) {
+      setClubs(clubsCacheRef.current.clubs);
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/clubs`);
       const data = await response.json();
-      setClubs(Array.isArray(data) ? data : []);
+      const clubsArray = Array.isArray(data) ? data : [];
+      setClubs(clubsArray);
+      // Store in cache
+      clubsCacheRef.current = { clubs: clubsArray, timestamp: now };
       setLoading(false);
-    } catch (error) { setLoading(false); }
+    } catch (error) { 
+      // Try to use cached data on error
+      if (clubsCacheRef.current.clubs) {
+        setClubs(clubsCacheRef.current.clubs);
+      }
+      setLoading(false); 
+    }
   };
 
   const getImageUrl = (path) => {
@@ -477,7 +498,7 @@ const Home = () => {
                 logo={getImageUrl(club.logo)}
                 category={club.category}
                 description={club.description}
-                memberCount={club.active_members || club.total_members || 0}
+                memberCount={club.active_members_count ?? club.active_members ?? club.total_members_count ?? club.total_members ?? 0}
                 foundingYear={club.founding_year}
               />
             ))}

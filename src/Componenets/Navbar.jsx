@@ -14,7 +14,31 @@ const Navbar = () => {
 
   const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-const [darkMode, setDarkMode] = useState(
+  // Cache for notifications - stored in sessionStorage to persist across page navigation
+  const getCachedNotifications = () => {
+    try {
+      const cached = sessionStorage.getItem('navbar_notifications');
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        // Cache valid for 2 minutes
+        if (Date.now() - timestamp < 120000) {
+          return data;
+        }
+      }
+    } catch (_) {}
+    return null;
+  };
+
+  const setCachedNotifications = (notifications) => {
+    try {
+      sessionStorage.setItem('navbar_notifications', JSON.stringify({
+        data: notifications,
+        timestamp: Date.now()
+      }));
+    } catch (_) {}
+  };
+
+  const [darkMode, setDarkMode] = useState(
   document.documentElement.classList.contains("dark")
 );
 
@@ -35,14 +59,31 @@ const toggleDarkMode = () => {
 
   useEffect(() => {
     const fetchRecentEvents = async () => {
+      // Check cache first
+      const cached = getCachedNotifications();
+      if (cached) {
+        setNotifications(cached);
+        const readIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
+        const unread = cached.filter(e => !readIds.includes(e.id)).length;
+        setUnreadCount(unread);
+        return;
+      }
+
       try {
-        const response = await fetch(`${API_BASE_URL}/api/events`);
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const params = new URLSearchParams({
+          status: 'approved',
+          created_after: oneWeekAgo.toISOString(),
+          order_by: 'created_at',
+          order_dir: 'desc',
+          limit: '5',
+        });
+
+        const response = await fetch(`${API_BASE_URL}/api/events?${params.toString()}`);
         if (!response.ok) return;
         const data = await response.json();
         const events = Array.isArray(data) ? data : [];
-
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
         const recentEvents = events
           .filter(e => new Date(e.created_at) >= oneWeekAgo && e.status === 'approved')
@@ -50,6 +91,7 @@ const toggleDarkMode = () => {
           .slice(0, 5);
 
         setNotifications(recentEvents);
+        setCachedNotifications(recentEvents);
 
         const readIds = JSON.parse(localStorage.getItem('readNotifications') || '[]');
         const unread = recentEvents.filter(e => !readIds.includes(e.id)).length;
