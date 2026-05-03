@@ -1,6 +1,6 @@
 // filepath: src/features/login/AccountSetup.jsx
 import React, { useCallback, useState, useEffect } from 'react';
-import { useNavigate, Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { Button, Input, Alert } from '../../Componenets';
 import { API_BASE_URL } from '../../config/api';
@@ -232,9 +232,9 @@ const GoogleAccountLink = ({ API_BASE_URL }) => {
 };
 
 const AccountSetup = () => {
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
+  const { user, updateUser, loading: authLoading } = useAuth();
   const [searchParams] = useSearchParams();
+  const [showProfileForm, setShowProfileForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -272,7 +272,7 @@ const AccountSetup = () => {
   useEffect(() => {
     if (!authLoading && user) {
       setFormData({
-        name: user.name || '',
+        name: user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim(),
         phone: user.phone || '',
         cne: user.cne || '',
         apogee: user.apogee || '',
@@ -296,9 +296,6 @@ const AccountSetup = () => {
     if (!formData.name) newErrors.name = 'Le nom est requis';
     if (!formData.phone) newErrors.phone = 'Le téléphone est requis';
     if (!formData.cne) newErrors.cne = 'Le CNE est requis';
-    if (!formData.apogee) newErrors.apogee = "Le numéro apogée est requis";
-    if (!formData.filiere) newErrors.filiere = 'La filière est requise';
-    if (!formData.niveau) newErrors.niveau = 'Le niveau est requis';
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -316,7 +313,8 @@ const AccountSetup = () => {
       const data = await res.json();
       if (res.ok) {
         setSuccessMsg('Compte mis à jour avec succès!');
-        setTimeout(() => navigate('/'), 1500);
+        if (data.user && updateUser) updateUser(data.user);
+        setShowProfileForm(false);
       } else {
         setErrors(data.errors || { general: data.message || 'Erreur' });
       }
@@ -342,8 +340,8 @@ const AccountSetup = () => {
   return (
     <div className="min-h-screen bg-slate-900 py-12 px-4">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-2">Configuration du compte</h1>
-        <p className="text-slate-400 mb-8">Complétez votre profil pour accéder à toutes les fonctionnalités</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Sécurité du compte</h1>
+        <p className="text-slate-400 mb-8">Configurez la connexion Google et la double authentification.</p>
 
         {successMsg && (
           <Alert type="success" className="mb-6">{successMsg}</Alert>
@@ -353,66 +351,78 @@ const AccountSetup = () => {
           <Alert type="error" className="mb-6">{errors.general}</Alert>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input
-              label="Nom complet"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              error={errors.name}
-              required
-            />
-            <Input
-              label="Téléphone"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              error={errors.phone}
-              required
-            />
-            <Input
-              label="CNE"
-              name="cne"
-              value={formData.cne}
-              onChange={handleChange}
-              error={errors.cne}
-              required
-            />
-            <Input
-              label="Numéro Apogée"
-              name="apogee"
-              value={formData.apogee}
-              onChange={handleChange}
-              error={errors.apogee}
-              required
-            />
-            <Input
-              label="Filière"
-              name="filiere"
-              value={formData.filiere}
-              onChange={handleChange}
-              error={errors.filiere}
-              required
-            />
-            <Input
-              label="Niveau"
-              name="niveau"
-              value={formData.niveau}
-              onChange={handleChange}
-              error={errors.niveau}
-              required
-            />
-          </div>
-
+        <div className="space-y-6">
           <GoogleAccountLink API_BASE_URL={API_BASE_URL} />
 
           <TwoFactorSetup user={user} API_BASE_URL={API_BASE_URL} />
 
-          <Button type="submit" variant="primary" loading={saving} size="lg" fullWidth>
-            Enregistrer
-          </Button>
-        </form>
+          <div className="max-w-md mx-auto">
+            <Button
+              variant="ghost"
+              onClick={() => setShowProfileForm((current) => !current)}
+              fullWidth
+            >
+              {showProfileForm ? 'Masquer les informations' : 'Modifier mes informations'}
+            </Button>
+          </div>
+
+          {showProfileForm && (
+            <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 bg-slate-800/50 rounded-xl border border-slate-700 space-y-6">
+              <h3 className="text-xl font-bold text-white">Informations personnelles</h3>
+              <div className="grid grid-cols-1 gap-6">
+                <Input
+                  label="Nom complet"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  error={errors.name}
+                  required
+                />
+                <Input
+                  label="Téléphone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  error={errors.phone}
+                  required
+                />
+                <Input
+                  label="CNE"
+                  name="cne"
+                  value={formData.cne}
+                  onChange={handleChange}
+                  error={errors.cne}
+                  required
+                />
+                <Input
+                  label="Numéro Apogée"
+                  name="apogee"
+                  value={formData.apogee}
+                  onChange={handleChange}
+                  error={errors.apogee}
+                />
+                <Input
+                  label="Filière"
+                  name="filiere"
+                  value={formData.filiere}
+                  onChange={handleChange}
+                  error={errors.filiere}
+                />
+                <Input
+                  label="Niveau"
+                  name="niveau"
+                  value={formData.niveau}
+                  onChange={handleChange}
+                  error={errors.niveau}
+                />
+              </div>
+
+              <Button type="submit" variant="primary" loading={saving} size="lg" fullWidth>
+                Enregistrer les modifications
+              </Button>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   );
