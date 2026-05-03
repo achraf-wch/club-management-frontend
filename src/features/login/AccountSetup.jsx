@@ -1,5 +1,5 @@
 // filepath: src/features/login/AccountSetup.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { Button, Input, Alert } from '../../Componenets';
@@ -152,6 +152,85 @@ const TwoFactorSetup = ({ user, API_BASE_URL }) => {
   );
 };
 
+const GoogleAccountLink = ({ API_BASE_URL }) => {
+  const [status, setStatus] = useState({ is_linked: false, google_email: null, has_password: true });
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState(null);
+
+  const fetchStatus = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/google/status`, {
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setStatus(data);
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Impossible de charger le statut Google.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Erreur de connexion.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [API_BASE_URL]);
+
+  useEffect(() => {
+    fetchStatus();
+  }, [fetchStatus]);
+
+  const handleLink = () => {
+    window.location.href = `${API_BASE_URL}/api/auth/google/link`;
+  };
+
+  const handleUnlink = async () => {
+    setLoading(true);
+    setMessage(null);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/google/unlink`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({ type: 'success', text: data.message || 'Compte Google délié.' });
+        await fetchStatus();
+      } else {
+        setMessage({ type: 'error', text: data.message || 'Impossible de délier ce compte Google.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Erreur de connexion.' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto p-6 bg-slate-800/50 rounded-xl border border-slate-700">
+      <h3 className="text-xl font-bold text-white mb-4">Connexion Google</h3>
+      {message && <Alert type={message.type} className="mb-4">{message.text}</Alert>}
+      <p className="text-slate-400 text-sm mb-4">
+        {status.is_linked
+          ? `Votre compte est lié à ${status.google_email}. Vous pourrez utiliser Google à la prochaine connexion.`
+          : 'Liez votre compte Google ici avant de pouvoir utiliser le bouton Google sur la page de connexion.'}
+      </p>
+
+      {status.is_linked ? (
+        <Button variant="danger" onClick={handleUnlink} loading={loading} fullWidth>
+          Délier Google
+        </Button>
+      ) : (
+        <Button variant="outline" onClick={handleLink} loading={loading} fullWidth>
+          Lier mon compte Google
+        </Button>
+      )}
+    </div>
+  );
+};
+
 const AccountSetup = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -167,6 +246,28 @@ const AccountSetup = () => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const error = searchParams.get('error');
+
+    if (success === 'google_linked') {
+      setSuccessMsg('Compte Google lié avec succès. Vous pouvez maintenant vous connecter avec Google.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return;
+    }
+
+    if (error) {
+      const messages = {
+        google_error: 'Erreur lors de la liaison avec Google. Veuillez réessayer.',
+        google_already_linked: 'Ce compte Google est déjà lié à un autre utilisateur.',
+        session_expired: 'Session expirée. Reconnectez-vous puis réessayez.',
+        user_not_found: 'Utilisateur introuvable.',
+      };
+      setErrors({ general: messages[error] || 'Impossible de lier le compte Google.' });
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!authLoading && user) {
@@ -238,8 +339,6 @@ const AccountSetup = () => {
     return <Navigate to="/Login/login" replace />;
   }
 
-  const isProfileComplete = user.name && user.phone && user.cne && user.apogee;
-
   return (
     <div className="min-h-screen bg-slate-900 py-12 px-4">
       <div className="max-w-2xl mx-auto">
@@ -305,6 +404,8 @@ const AccountSetup = () => {
               required
             />
           </div>
+
+          <GoogleAccountLink API_BASE_URL={API_BASE_URL} />
 
           <TwoFactorSetup user={user} API_BASE_URL={API_BASE_URL} />
 
