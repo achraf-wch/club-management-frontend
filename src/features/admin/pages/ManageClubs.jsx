@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../../config/api';
 
 const ManageClubs = () => {
   const navigate = useNavigate();
@@ -23,8 +24,6 @@ const ManageClubs = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => { fetchClubs(); }, []);
 

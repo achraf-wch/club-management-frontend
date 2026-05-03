@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../../../config/api';
 
 const AssignTickets = () => {
   const [club, setClub] = useState(null);
@@ -16,8 +17,6 @@ const AssignTickets = () => {
     document.documentElement.classList.contains("dark")
   );
   const dm = darkMode;
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   // Theme Synchronization
   useEffect(() => {

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { Button, Input, Alert } from '../../Componenets';
+import { API_BASE_URL } from '../../config/api';
 
 const TwoFactorSetup = ({ user, API_BASE_URL }) => {
   const [status, setStatus] = useState(null);
@@ -166,7 +167,6 @@ const AccountSetup = () => {
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     if (!authLoading && user) {

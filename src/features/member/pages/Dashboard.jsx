@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../Context/AuthContext';
 import MemberLayout from '../components/MemberLayout';
+import { API_BASE_URL } from '../../../config/api';
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&family=JetBrains+Mono:wght@400;500;700&display=swap');
@@ -524,7 +525,6 @@ const MemberDashboard = () => {
   const [localAvatar, setLocalAvatar] = useState(null);
 
   const fileInputRef = React.useRef(null);
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     const handler = () => setIsDark(document.documentElement.classList.contains('dark'));

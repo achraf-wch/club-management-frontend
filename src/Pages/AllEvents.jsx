@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../Componenets/Navbar';
 import Footer from '../Componenets/Footer';
+import { API_BASE_URL } from '../config/api';
 
 const AllEvents = () => {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ const AllEvents = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef(null);
   
@@ -19,8 +21,6 @@ const AllEvents = () => {
     if (saved !== null) return saved === 'true';
     return document.documentElement.classList.contains('dark');
   });
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   // ✅ Listen for theme changes
   useEffect(() => {
@@ -61,11 +61,26 @@ const AllEvents = () => {
 
   const categories = ['all', ...new Set(events.map(e => e.category).filter(Boolean))];
 
+  const getEventState = (event) => {
+    const isCompleted = event.status === 'completed';
+    const isPast = new Date(event.event_date) < new Date();
+
+    if (isCompleted) {
+      return { key: 'completed', label: 'Terminé', color: 'bg-purple-500/90' };
+    }
+    if (isPast) {
+      return { key: 'past_unfinished', label: 'Passé non terminé', color: 'bg-amber-500/90' };
+    }
+    return { key: 'upcoming', label: 'À venir', color: 'bg-green-500/90' };
+  };
+
   const filtered = events.filter(e => {
     const matchSearch = e.title.toLowerCase().includes(search.toLowerCase()) ||
       (e.club?.name || '').toLowerCase().includes(search.toLowerCase());
     const matchCat = selectedCategory === 'all' || e.category === selectedCategory;
-    return matchSearch && matchCat;
+    const state = getEventState(e).key;
+    const matchStatus = selectedStatus === 'all' || state === selectedStatus;
+    return matchSearch && matchCat && matchStatus;
   });
 
   const formatDate = (dateStr) => {
@@ -77,7 +92,7 @@ const AllEvents = () => {
   const prev = () => setActiveIndex(i => (i - 1 + filtered.length) % filtered.length);
   const next = () => setActiveIndex(i => (i + 1) % filtered.length);
 
-  useEffect(() => { setActiveIndex(0); }, [search, selectedCategory]);
+  useEffect(() => { setActiveIndex(0); }, [search, selectedCategory, selectedStatus]);
 
   const handleMouseDown = (e) => { dragStart.current = e.clientX; setIsDragging(false); };
   const handleMouseMove = () => { if (dragStart.current !== null) setIsDragging(true); };
@@ -206,6 +221,29 @@ const AllEvents = () => {
           </div>
         </div>
 
+        <div className="flex gap-2 flex-wrap justify-center mt-4">
+          {[
+            { key: 'all', label: 'Tous les états' },
+            { key: 'upcoming', label: 'À venir' },
+            { key: 'completed', label: 'Terminés' },
+            { key: 'past_unfinished', label: 'Passés non terminés' },
+          ].map(status => (
+            <button
+              key={status.key}
+              onClick={() => setSelectedStatus(status.key)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
+                selectedStatus === status.key
+                  ? 'bg-[#1a2c5b] text-white shadow-lg'
+                  : isDark
+                    ? 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border border-white/20'
+                    : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+              }`}
+            >
+              {status.label}
+            </button>
+          ))}
+        </div>
+
         <p className={`text-sm mt-3 text-center ${isDark ? 'text-white/40' : 'text-gray-400'}`}>
           {filtered.length} événement{filtered.length !== 1 ? 's' : ''}
         </p>
@@ -234,6 +272,9 @@ const AllEvents = () => {
               onMouseLeave={handleMouseUp}
             >
               {filtered.map((event, idx) => (
+                (() => {
+                  const eventState = getEventState(event);
+                  return (
                 <div
                   key={idx}
                   style={getCardStyle(idx)}
@@ -277,10 +318,8 @@ const AllEvents = () => {
 
                       {/* Status */}
                       <div className="absolute top-3 left-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${
-                          event.status === 'completed' ? 'bg-purple-500/90' : 'bg-green-500/90'
-                        } text-white`}>
-                          {event.status === 'completed' ? '✓ Terminé' : '✓ À venir'}
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold ${eventState.color} text-white`}>
+                          {eventState.label}
                         </span>
                       </div>
 
@@ -331,6 +370,8 @@ const AllEvents = () => {
                     </div>
                   </div>
                 </div>
+                  );
+                })()
               ))}
             </div>
 

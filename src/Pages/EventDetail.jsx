@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../Componenets/Navbar';
 import Footer from '../Componenets/Footer';
+import { API_BASE_URL } from '../config/api';
 
 const LANGUAGES = [
   { code: 'fr', label: 'FR', flag: '🇫🇷', name: 'Français' },
@@ -61,8 +62,7 @@ const EventDetail = () => {
     Object.values(refs.current).forEach(r => r && obs.observe(r));
     return () => obs.disconnect();
   }, [event]);
-
-  const API = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+  const API = API_BASE_URL;
 
   useEffect(() => { const s = localStorage.getItem('selectedLang'); if (s) setCurrentLang(s); }, []);
   useEffect(() => { fetchData(); }, [id]);

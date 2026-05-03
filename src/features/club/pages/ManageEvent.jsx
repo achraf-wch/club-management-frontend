@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../../../Context/ToastContext';
+import { API_BASE_URL, storageUrl } from '../../../config/api';
 
 const PresidentManageEvents = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [events, setEvents] = useState([]);
   const [club, setClub] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,13 +31,8 @@ const PresidentManageEvents = () => {
     return () => window.removeEventListener("themeChanged", handleThemeChange);
   }, []);
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-
   const getImageUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith('http')) return path;
-    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
-    return `${API_BASE_URL}/storage/${cleanPath}`;
+    return storageUrl(path);
   };
 
   useEffect(() => {
@@ -124,12 +122,13 @@ const PresidentManageEvents = () => {
       if (response.ok) {
         setShowRecapModal(false);
         fetchEvents();
+        toast.success('Récapitulatif enregistré avec succès.');
       } else {
-        const errorData = await response.json();
-        alert(`❌ Erreur: ${errorData.message || "Impossible d'enregistrer"}`);
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.message || "Impossible d'enregistrer le récapitulatif");
       }
     } catch (error) {
-      alert(`❌ Erreur de connexion: ${error.message}`);
+      toast.error(`Erreur de connexion: ${error.message}`);
     } finally {
       setLoadingRecap(false);
     }
@@ -144,10 +143,13 @@ const PresidentManageEvents = () => {
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({ status: 'completed' })
       });
-      if (response.ok) { fetchEvents(); }
-      else alert('❌ Erreur lors de la mise à jour');
+      if (response.ok) {
+        fetchEvents();
+        toast.success('Événement marqué comme terminé.');
+      }
+      else toast.error('Erreur lors de la mise à jour');
     } catch (error) {
-      alert(`❌ Erreur de connexion: ${error.message}`);
+      toast.error(`Erreur de connexion: ${error.message}`);
     }
   };
 

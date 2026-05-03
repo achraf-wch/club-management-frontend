@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../Context/AuthContext';
+import { API_BASE_URL } from '../config/api';
 
 const ClubManagement = () => {
   const { user } = useAuth();
@@ -27,8 +28,6 @@ const ClubManagement = () => {
     return () => window.removeEventListener('themeChanged', onThemeChange);
   }, []);
   // ─────────────────────────────────────────────────────────────────────────
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => { fetchClubData(); }, []);
 

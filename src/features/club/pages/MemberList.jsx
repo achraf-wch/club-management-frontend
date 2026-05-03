@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../../Context/AuthContext';
+import { useToast } from '../../../Context/ToastContext';
+import { API_BASE_URL } from '../../../config/api';
 
 const ClubMemberList = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [members, setMembers] = useState([]);
   const [club, setClub] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,7 +16,6 @@ const ClubMemberList = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains('dark'));
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
   const effectiveRole = user?.role === 'user' ? user?.club_role : user?.role;
   const isPresident = effectiveRole === 'president';
   const dm = darkMode;
@@ -66,7 +68,7 @@ const ClubMemberList = () => {
     };
 
     fetchData();
-  }, [API_BASE_URL]);
+  }, []);
 
   const refetchMembers = async () => {
     if (!club?.id) return;
@@ -91,12 +93,13 @@ const ClubMemberList = () => {
       if (response.ok) {
         setShowModal(false);
         await refetchMembers();
+        toast.success('Membre supprimé avec succès.');
       } else {
         const errorData = await response.json().catch(() => ({}));
-        alert(errorData.message || 'Impossible de supprimer ce membre');
+        toast.error(errorData.message || 'Impossible de supprimer ce membre');
       }
     } catch {
-      alert('Erreur de connexion');
+      toast.error('Erreur de connexion. Vérifiez le serveur et réessayez.');
     } finally {
       setActionLoading(false);
     }
@@ -118,12 +121,13 @@ const ClubMemberList = () => {
       if (response.ok) {
         setShowModal(false);
         await refetchMembers();
+        toast.success('Membre mis à jour avec succès.');
       } else {
         const errorData = await response.json().catch(() => ({}));
-        alert(errorData.message || 'Impossible de mettre à jour ce membre');
+        toast.error(errorData.message || 'Impossible de mettre à jour ce membre');
       }
     } catch {
-      alert('Erreur de connexion');
+      toast.error('Erreur de connexion. Vérifiez le serveur et réessayez.');
     } finally {
       setActionLoading(false);
     }

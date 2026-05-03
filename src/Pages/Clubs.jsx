@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../Componenets/Navbar';
 import Footer from '../Componenets/Footer';
+import { API_BASE_URL } from '../config/api';
 
 const LANGUAGES = [
   { code: 'fr', label: 'FR', flag: '🇫🇷', name: 'Français' },
@@ -74,9 +75,8 @@ const ClubDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchCategory, setSearchCategory] = useState('');
+  const [eventStatusFilter, setEventStatusFilter] = useState('all');
   const [categories, setCategories] = useState([]);
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   const getImageUrl = (path) => {
     if (!path) return null;
@@ -90,14 +90,26 @@ const ClubDetail = () => {
   }, [id]);
 
   useEffect(() => {
-    if (searchCategory === '') {
-      setFilteredEvents(events);
-    } else {
-      setFilteredEvents(events.filter(event =>
-        event.category && event.category.toLowerCase().includes(searchCategory.toLowerCase())
-      ));
+    setFilteredEvents(events.filter((event) => {
+      const matchCategory = searchCategory === '' ||
+        (event.category && event.category.toLowerCase().includes(searchCategory.toLowerCase()));
+      const matchStatus = eventStatusFilter === 'all' || getEventState(event).key === eventStatusFilter;
+      return matchCategory && matchStatus;
+    }));
+  }, [searchCategory, eventStatusFilter, events]);
+
+  const getEventState = (event) => {
+    const isCompleted = event.status === 'completed';
+    const isPast = new Date(event.event_date) < new Date();
+
+    if (isCompleted) {
+      return { key: 'completed', label: 'Terminé', className: 'bg-purple-600 text-white' };
     }
-  }, [searchCategory, events]);
+    if (isPast) {
+      return { key: 'past_unfinished', label: 'Passé non terminé', className: 'bg-amber-500 text-white' };
+    }
+    return { key: 'upcoming', label: 'À venir', className: 'bg-emerald-500 text-white' };
+  };
 
   const fetchClubData = async () => {
     try {
@@ -320,9 +332,35 @@ const ClubDetail = () => {
                 </div>
               )}
 
+              <div className="bg-[#1a2c5b]/5 dark:bg-white/5 backdrop-blur-sm border border-[#1a2c5b]/20 dark:border-white/10 rounded-2xl p-5">
+                <label className="block text-[#1a2c5b] dark:text-white text-sm font-semibold mb-3">Filtrer par état</label>
+                <div className="flex gap-3 flex-wrap">
+                  {[
+                    { key: 'all', label: 'Tous' },
+                    { key: 'upcoming', label: 'À venir' },
+                    { key: 'completed', label: 'Terminés' },
+                    { key: 'past_unfinished', label: 'Passés non terminés' },
+                  ].map((status) => (
+                    <button
+                      key={status.key}
+                      onClick={() => setEventStatusFilter(status.key)}
+                      className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                        eventStatusFilter === status.key
+                          ? 'bg-[#1a2c5b] text-white'
+                          : 'bg-[#1a2c5b]/10 dark:bg-white/10 text-[#1a2c5b] dark:text-white hover:bg-[#1a2c5b]/20 dark:hover:bg-white/20'
+                      }`}
+                    >
+                      {status.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredEvents.length > 0 ? (
-                  filteredEvents.map((event) => (
+                  filteredEvents.map((event) => {
+                    const eventState = getEventState(event);
+                    return (
                     <div
                       key={event.id}
                       onClick={() => navigate(`/events/${event.id}`)}
@@ -337,6 +375,12 @@ const ClubDetail = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0f1e3d] via-[#0f1e3d]/50 to-transparent"></div>
 
                         <EventTranslateBtn eventId={event.id} />
+
+                        <div className="absolute bottom-3 right-3">
+                          <span className={`px-3 py-1 text-xs font-bold rounded-full shadow-lg ${eventState.className}`}>
+                            {eventState.label}
+                          </span>
+                        </div>
 
                         {event.category && (
                           <div className="absolute top-3 right-3">
@@ -370,7 +414,8 @@ const ClubDetail = () => {
                         )}
                       </div>
                     </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="col-span-full bg-[#1a2c5b]/5 dark:bg-white/5 border border-[#1a2c5b]/10 dark:border-white/10 rounded-2xl p-12 text-center">
                     <svg className="w-16 h-16 text-[#1a2c5b]/30 dark:text-white/30 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../Context/AuthContext';
 import { Button, Input, Alert } from '../../Componenets';
+import { API_BASE_URL } from '../../config/api';
 
 // 2FA Sub-component
 const TwoFactorAuth = ({ pendingPersonId, API_BASE_URL, onSuccess, onBack }) => {
@@ -119,8 +120,6 @@ const LoginForm = ({
   const [successMessage, setSuccess] = useState('');
   const [requires2FA, setRequires2FA] = useState(false);
   const [pendingPersonId, setPending] = useState(null);
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   const handleRedirect = (role, clubRole) => {
     if (role === 'admin') navigate('/Admin/Dashboard', { replace: true });

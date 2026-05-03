@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../../config/api';
 
 /* ── Global keyframe animations injected once ── */
 const STYLES = `
@@ -113,8 +114,6 @@ const AddClub = () => {
   const [logoPreview, setLogoPreview]       = useState(null);
   const [coverPreview, setCoverPreview]     = useState(null);
   const [shakeForm, setShakeForm]           = useState(false);
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;

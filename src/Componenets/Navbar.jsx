@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'; 
 import { useNavigate, useLocation } from 'react-router-dom';
 import logo from '../imgs/CluVer.png';
+import { API_BASE_URL } from '../config/api';
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -11,8 +12,6 @@ const Navbar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   // Cache for notifications - stored in sessionStorage to persist across page navigation
   const getCachedNotifications = () => {

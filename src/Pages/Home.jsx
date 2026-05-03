@@ -5,6 +5,7 @@ import Footer from '../Componenets/Footer';
 import WhyChooseUs from '../Componenets/WhyChooseUs';
 import ClubCard from '../Componenets/ClubCard';
 import AboutPlatform from '../Componenets/AboutPlatform';
+import { API_BASE_URL } from '../config/api';
 
 /* ─────────────────────────────────────────────
    Inline CSS animations
@@ -355,8 +356,6 @@ const Home = () => {
     if (saved !== null) return saved === 'true';
     return document.documentElement.classList.contains('dark');
   });
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
   const searchQuery = new URLSearchParams(location.search).get('search') || '';
 
   // Cache for clubs data

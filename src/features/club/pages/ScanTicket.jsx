@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Html5QrcodeScanner, Html5Qrcode } from 'html5-qrcode';
 import { useAuth } from '../../../Context/AuthContext';
+import { API_BASE_URL } from '../../../config/api';
 
 const ScanTicket = () => {
   const { user } = useAuth();
@@ -14,8 +15,6 @@ const ScanTicket = () => {
   const [scanner, setScanner] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
   const dm = darkMode;
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   // Gestion du Thème sombre
   useEffect(() => {

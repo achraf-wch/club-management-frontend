@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../Context/AuthContext';
+import { useToast } from '../../../Context/ToastContext';
+import { API_BASE_URL } from '../../../config/api';
 
 const PresidentDemandes = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('pending');
@@ -19,8 +22,6 @@ const PresidentDemandes = () => {
     window.addEventListener("themeChanged", handleThemeChange);
     return () => window.removeEventListener("themeChanged", handleThemeChange);
   }, []);
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     fetchMyClub();
@@ -145,16 +146,16 @@ const PresidentDemandes = () => {
           console.log("✅ Member created successfully:", personData);
         }
 
-        alert('Demande approuvée avec succès!');
+        toast.success('Demande approuvée avec succès.');
         setShowModal(false);
         fetchRequests();
       } else {
-        const errorData = await response.json();
-        alert(`Erreur ${response.status}: ${errorData.message || 'Erreur lors de l\'approbation'}`);
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(`Erreur ${response.status}: ${errorData.message || 'Erreur lors de l\'approbation'}`);
       }
     } catch (error) {
       console.error('Error approving request:', error);
-      alert('Erreur lors de l\'approbation: ' + error.message);
+      toast.error('Erreur lors de l\'approbation: ' + error.message);
     } finally {
       setActionLoading(false);
     }
@@ -174,16 +175,16 @@ const PresidentDemandes = () => {
         })
       });
       if (response.ok) {
-        alert('Demande refusée');
+        toast.success('Demande refusée.');
         setShowModal(false);
         fetchRequests();
       } else {
-        const errorData = await response.json();
-        alert(`Erreur ${response.status}: ${errorData.message || 'Erreur lors du refus'}`);
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(`Erreur ${response.status}: ${errorData.message || 'Erreur lors du refus'}`);
       }
     } catch (error) {
       console.error('Error rejecting request:', error);
-      alert('Erreur lors du refus: ' + error.message);
+      toast.error('Erreur lors du refus: ' + error.message);
     } finally {
       setActionLoading(false);
     }

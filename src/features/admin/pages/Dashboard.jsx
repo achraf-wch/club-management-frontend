@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../Context/AuthContext';
+import { API_BASE_URL } from '../../../config/api';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -28,8 +29,6 @@ const AdminDashboard = () => {
   const [clubs, setClubs] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   // Cache for API responses
   const cacheRef = React.useRef({});

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api';
 
 const ClubCard = ({ id, name, image, logo, category, description, memberCount, foundingYear }) => {
   const navigate = useNavigate();
   const [realMemberCount, setRealMemberCount] = useState(memberCount ?? 0);
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
     if (memberCount !== undefined && memberCount !== null) {
@@ -27,7 +27,7 @@ const ClubCard = ({ id, name, image, logo, category, description, memberCount, f
       } catch (err) { console.error(err); }
     };
     fetchMembers();
-  }, [id, API_BASE_URL, memberCount]);
+  }, [id, memberCount]);
 
   const defaultCover = 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=400&h=300&fit=crop';
   const defaultLogo = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=ef4444&color=fff`;

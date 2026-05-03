@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../Context/AuthContext';
+import { API_BASE_URL } from '../../../config/api';
 
 // ─── Icons (unchanged) ────────────────────────────────────────────────────────
 
@@ -113,8 +114,6 @@ const ClubDashboard = () => {
   const [pendingCount, setPendingCount] = useState(0);
   const [typedText, setTypedText] = useState('');
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
-
   const effectiveRole = user?.role === 'user' ? user?.club_role : user?.role;
   const isPresident = effectiveRole === 'president';
   const dm = darkMode;
@@ -156,7 +155,7 @@ const ClubDashboard = () => {
       if (path.startsWith('http')) return path;
       return `${API_BASE_URL}/storage/${path.replace(/^\//, '')}`;
     },
-    [API_BASE_URL]
+    []
   );
 
   // Theme listener
@@ -272,7 +271,7 @@ const ClubDashboard = () => {
     };
 
     fetchDashboardData();
-  }, [API_BASE_URL, isPresident, fetchWithCache, user?.club_id]);
+  }, [isPresident, fetchWithCache, user?.club_id]);
 
   // FIX 6: memoize stats array — only rebuilt when its dependencies change
   const stats = useMemo(

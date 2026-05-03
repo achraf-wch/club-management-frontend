@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../Context/AuthContext';
+import { API_BASE_URL } from '../../../config/api';
 
 const ClubCreateEvent = () => {
   const { user } = useAuth();
@@ -24,8 +25,6 @@ const ClubCreateEvent = () => {
     price: 0,
     banner_image: null,
   });
-
-  const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
   const effectiveRole = user?.role === 'user' ? user?.club_role : user?.role;
   const isPresident = effectiveRole === 'president';
   const dm = darkMode;
@@ -55,7 +54,7 @@ const ClubCreateEvent = () => {
       }
     };
     fetchMyClub();
-  }, [API_BASE_URL]);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
